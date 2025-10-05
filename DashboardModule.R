@@ -265,6 +265,7 @@ dashboardServer <- function(id, input_controls) {
     })
     
     # Overview Chart - Raincloud / Half Violin
+    # Overview Chart - Raincloud / Half Violin
     output$overviewChart <- renderPlotly({
       data <- filtered_data()
       p <- plot_ly()
@@ -276,7 +277,7 @@ dashboardServer <- function(id, input_controls) {
         
         # 1️⃣ Half violin (raincloud)
         p <- add_trace(p,
-                       x = ball_name,
+                       x = rep(i, length(ball_values)),
                        y = ball_values,
                        type = 'violin',
                        side = 'positive',
@@ -284,40 +285,54 @@ dashboardServer <- function(id, input_controls) {
                        fillcolor = toRGB(color, alpha = 0.5),
                        line = list(color = color),
                        opacity = 0.6,
-                       points = "none",
-                       showlegend = FALSE)
+                       points = FALSE,
+                       showlegend = FALSE,
+                       name = ball_name)
         
         # 2️⃣ Box plot (centered)
         p <- add_trace(p,
-                       x = ball_name,
+                       x = rep(i, length(ball_values)),
                        y = ball_values,
                        type = 'box',
                        fillcolor = toRGB(color, alpha = 0.8),
                        line = list(color = color, width = 2),
-                       boxpoints = FALSE,  # points shown separately
+                       boxpoints = FALSE,
                        width = 0.3,
-                       name = ball_name)
+                       name = ball_name,
+                       showlegend = FALSE)
         
-        # 3️⃣ Jittered points
+        # 3️⃣ Jittered points (manual jitter) - positioned to the left
+        set.seed(42 + i)  # Different seed per ball
+        jitter_amount <- runif(length(ball_values), -0.35, -0.05)  # Left side only
+        x_jittered <- rep(i, length(ball_values)) + jitter_amount
+        
         p <- add_trace(p,
-                       x = ball_name,
+                       x = x_jittered,
                        y = ball_values,
                        type = 'scatter',
                        mode = 'markers',
-                       marker = list(color = color, size = 6, opacity = 0.8),
-                       jitter = 0.3,
-                       showlegend = FALSE)
+                       marker = list(color = color, size = 4, opacity = 0.6),
+                       showlegend = FALSE,
+                       hoverinfo = 'y',
+                       name = ball_name)
       }
       
       p %>%
         layout(
-          title = "Rainbow Plot of Balls 1 to 6",
+          title = "Raincloud Plot of Balls 1 to 6",
           yaxis = list(title = "Value", color = 'rgba(255,255,255,0.6)'),
-          xaxis = list(title = "Ball", color = 'rgba(255,255,255,0.6)'),
+          xaxis = list(
+            title = "Ball", 
+            color = 'rgba(255,255,255,0.6)',
+            tickmode = 'array',
+            tickvals = 1:6,
+            ticktext = paste0("Ball ", 1:6),
+            range = c(0.5, 6.5)
+          ),
           paper_bgcolor = 'rgba(0,0,0,0)',
           plot_bgcolor = 'rgba(0,0,0,0)',
           font = list(color = 'rgba(255,255,255,0.6)'),
-          showlegend = TRUE
+          showlegend = FALSE
         ) %>%
         config(displayModeBar = FALSE)
     })

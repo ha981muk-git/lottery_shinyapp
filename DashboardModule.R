@@ -51,25 +51,89 @@ inputModuleServer <- function(id) {
         updateSliderInput(session, "range", value = c(minVal, maxVal))
       }
     })
-    reactive({
+    return(reactive({
       list(
         range = input$range,
         metric = input$metric,
         timeRange = input$timeRange,
         refresh = input$refresh
       )
-    })
+    }))
     
   
   })
 }
 
 
+# Main Dashboard Server 
+dashboardServer <- function(id, input_controls) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    
+    # metrics_data reactive: re-generate on refresh click
+    metrics_data <- reactive({
+      input_controls()$refresh   # <- add ()
+      generate_metrics()
+    })
+    
+    # Reactive version for Shiny
+    filtered_data <- reactive({
+      data <- metrics_data()
+      
+      # Get number of weeks to show
+      weeks <- as.numeric(input_controls()$timeRange)  # e.g., 4 for last 4 weeks
+      days <- weeks * 2
+      
+      # Get last N weeks of data
+      data <- tail(data, days)
+      
+      # Get number range
+      num_from <- as.numeric(input_controls()$range[1])  # e.g., 5
+      num_to <- as.numeric(input_controls()$range[2])      # e.g., 45
+      
+      # Filter by number range - check first and last ball
+      data <- data %>%
+        filter(ball_1 >= num_from & ball_6 <= num_to)
+      
+      return(data)
+    })
+    
+    
+    output$metricContent <- renderUI({
+      metric <- input_controls()$metric
+      if (metric == "balls") {
+        ballsMetricUI(ns("balls"))
+      } else if (metric == "sums") {
+        sumsMetricUI(ns("sums"))
+      } else if (metric == "odds_evens") {
+        oddsEvensMetricUI(ns("odds"))
+      } else if (metric == "table") {
+        tableMetricUI(ns("table"))
+      }
+    })
+    
+    observe({
+      metric <- input_controls()$metric
+      if (metric == "balls") {
+        ballsMetricServer("balls", filtered_data, input_controls)
+      } else if (metric == "sums") {
+        sumsMetricServer("sums", filtered_data)
+      } else if (metric == "odds_evens") {
+        oddsEvensMetricServer("odds", filtered_data)
+      } else if (metric == "table") {
+        tableMetricServer("table", filtered_data)
+      }
+    })
+  })
+}
+
+# balls Metrics UI 
 
 # -------------------------
 # Module: dashboardModule
 # -------------------------
-dashboardUI <- function(id) {
+
+ballsMetricUI <- function(id) {
   ns <- NS(id)
   tagList(
     div(
@@ -111,39 +175,9 @@ dashboardUI <- function(id) {
   )
 }
 
-dashboardServer <- function(id, input_controls) {
+ballsMetricServer <- function(id, filtered_data, input_controls) {
   moduleServer(id, function(input, output, session) {
-    ns <- session$ns
-    
-    # metrics_data reactive: re-generate on refresh click
-    metrics_data <- reactive({
-      input_controls()$refresh   # <- add ()
-      generate_metrics()
-    })
-    
-    # Reactive version for Shiny
-    filtered_data <- reactive({
-      data <- metrics_data()
-      
-      # Get number of weeks to show
-      weeks <- as.numeric(input_controls()$timeRange)  # e.g., 4 for last 4 weeks
-      days <- weeks * 2
-      
-      # Get last N weeks of data
-      data <- tail(data, days)
-      
-      # Get number range
-      num_from <- as.numeric(input_controls()$range[1])  # e.g., 5
-      num_to <- as.numeric(input_controls()$range[2])      # e.g., 45
-      
-      # Filter by number range - check first and last ball
-      data <- data %>%
-        filter(ball_1 >= num_from & ball_6 <= num_to)
-      
-      return(data)
-    })
-    
-    
+  
     create_metric_card <- function(title, value, value_symbol) {
       div(
         class = "metric-card",
@@ -155,7 +189,7 @@ dashboardServer <- function(id, input_controls) {
     output$metricCard1 <- renderUI({
       data <- filtered_data()
       selected <- nrow(data)
-      total_counts <- nrow(metrics_data())
+      total_counts <- nrow(generate_metrics())
       change <- (selected/total_counts) * 100
       create_metric_card("Total Coverage",
                          paste0("", format(round(change), big.mark = ",")),
@@ -192,10 +226,7 @@ dashboardServer <- function(id, input_controls) {
                          "")
     })
     
-    
-
-    
-    # Trend Chart - Box Plot
+      # Trend Chart - Box Plot
     output$trendChart <- renderPlotly({
       data <- filtered_data()
       p <- plot_ly()
@@ -332,3 +363,4 @@ dashboardServer <- function(id, input_controls) {
     })
   })
 }
+

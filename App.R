@@ -55,7 +55,7 @@ ui <- page_navbar(
                 lotteryInputUI("inputs1")
             ),
               # main content (module)
-              dashboardUI("dashboard1"),
+              uiOutput("dashboard1-metricContent"),
               #sidebar_collapsible = FALSE, # sidebar is open on load
               fillable = FALSE
             )
@@ -83,6 +83,7 @@ server <- function(input, output, session) {
   
   # call modules
   dashboardServer("dashboard1", input_controls = input_controls)
+  #ballsMetricServer("dashboard1", input_controls = input_controls)
   gen_out <- generatorServer("gen1")  # returns list with selected_numbers reactive if needed
   statsServer("stats1")
   hotcoldServer("hc1")

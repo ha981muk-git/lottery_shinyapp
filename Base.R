@@ -19,11 +19,19 @@ app_theme <- bs_theme(
   heading_font = font_google("Poppins")
 )
 
-# Gets Lottery data to work with
-generate_metrics <- function() {
-  return(lotto_clean_sorted)
-}
 
+
+# Define consistent colors for each ball (using hex codes for transparency support)
+
+# Define consistent colors for each ball (hex codes)
+ball_colors <- c(
+  "Ball 1" = "#4169E1",  # royal blue
+  "Ball 2" = "#DC143C",  # crimson red
+  "Ball 3" = "#32CD32",  # lime green
+  "Ball 4" = "#FFD700",  # gold/yellow
+  "Ball 5" = "#9370DB",  # medium purple
+  "Ball 6" = "#00CED1"   # dark cyan
+)
 
 
 

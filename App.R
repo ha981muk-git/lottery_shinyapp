@@ -34,7 +34,7 @@ if (requireNamespace("rstudioapi", quietly = TRUE) &&
 ui <- page_navbar(
   title = div(
     style = "display: flex; width: 100%; align-items: center; gap: 25px;",
-    span("🎰"),
+    span(""),
     span("Analysis of Lotto 6aus49")
   ),
   theme = app_theme,

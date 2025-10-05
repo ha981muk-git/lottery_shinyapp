@@ -65,42 +65,44 @@ inputModuleServer <- function(id) {
 }
 
 
-# Main Dashboard Server 
+# IMPROVED VERSION - Initialize all servers once
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    # metrics_data reactive: re-generate on refresh click
+    # Metrics data reactive
     metrics_data <- reactive({
-      input_controls()$refresh   # <- add ()
+      input_controls()$refresh
       generate_metrics()
     })
     
-    # Reactive version for Shiny
+    # Filtered data reactive (shared across all metrics)
     filtered_data <- reactive({
       data <- metrics_data()
       
-      # Get number of weeks to show
-      weeks <- as.numeric(input_controls()$timeRange)  # e.g., 4 for last 4 weeks
+      weeks <- as.numeric(input_controls()$timeRange)
       days <- weeks * 2
-      
-      # Get last N weeks of data
       data <- tail(data, days)
       
-      # Get number range
-      num_from <- as.numeric(input_controls()$range[1])  # e.g., 5
-      num_to <- as.numeric(input_controls()$range[2])      # e.g., 45
+      num_from <- as.numeric(input_controls()$range[1])
+      num_to <- as.numeric(input_controls()$range[2])
       
-      # Filter by number range - check first and last ball
       data <- data %>%
         filter(ball_1 >= num_from & ball_6 <= num_to)
       
       return(data)
     })
     
+    # ✅ INITIALIZE ALL SERVERS ONCE (not in observe)
+    ballsMetricServer("balls", filtered_data, input_controls)
+    #sumsMetricServer("sums", filtered_data)
+    #oddsEvensMetricServer("odds", filtered_data)
+    #tableMetricServer("table", filtered_data)
     
+    # Dynamic UI rendering based on selected metric
     output$metricContent <- renderUI({
       metric <- input_controls()$metric
+      
       if (metric == "balls") {
         ballsMetricUI(ns("balls"))
       } else if (metric == "sums") {
@@ -109,19 +111,6 @@ dashboardServer <- function(id, input_controls) {
         oddsEvensMetricUI(ns("odds"))
       } else if (metric == "table") {
         tableMetricUI(ns("table"))
-      }
-    })
-    
-    observe({
-      metric <- input_controls()$metric
-      if (metric == "balls") {
-        ballsMetricServer("balls", filtered_data, input_controls)
-      } else if (metric == "sums") {
-        sumsMetricServer("sums", filtered_data)
-      } else if (metric == "odds_evens") {
-        oddsEvensMetricServer("odds", filtered_data)
-      } else if (metric == "table") {
-        tableMetricServer("table", filtered_data)
       }
     })
   })

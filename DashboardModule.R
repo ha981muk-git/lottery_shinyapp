@@ -1,35 +1,3 @@
-if (requireNamespace("rstudioapi", quietly = TRUE) &&
-    rstudioapi::isAvailable()) {
-  
-  # Get the folder of the currently active script
-  current_script_path <- rstudioapi::getActiveDocumentContext()$path
-  script_folder <- dirname(current_script_path)
-  
-  # Define the dashboard folder path
-  dashboard_folder <- file.path(script_folder, "dashboard")
-  
-  # List of R files to source from the dashboard directory
-  files_to_source <- c(
-    "ballsMetric.R",
-    "lagMetric.R",
-    "oddsEvensMetric.R",
-    "differenceMetric.R",
-    "sumsMetric.R",
-    "tableMetric.R"
-  )
-  
-  # Source each file if it exists
-  for (file_name in files_to_source) {
-    file_path <- file.path(dashboard_folder, file_name)
-    if (file.exists(file_path)) {
-      source(file_path)
-    } else {
-      warning(paste("File not found:", file_name))
-    }
-  }
-}
-
-
 # Gets Lottery data to work with
 generate_metrics <- function() {
   return(lotto_clean_sorted)

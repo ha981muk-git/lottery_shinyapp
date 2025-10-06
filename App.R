@@ -1,23 +1,25 @@
-# ---- Source external base file (adjust path if needed) ----
-# Only works if you are running inside RStudio as before
-if (requireNamespace("rstudioapi", quietly = TRUE) &&
-    rstudioapi::isAvailable()) {
-  
-  # Get the folder of the currently active script
+# 1. Check RStudio and get script folder
+if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable()) {
   current_script_path <- rstudioapi::getActiveDocumentContext()$path
   script_folder <- dirname(current_script_path)
   
-  # List of R files to source
+  # 2. Source all files before launching the app
   files_to_source <- c(
     "Base.R",
     "PrepareData.R",
-    "DashboardModule.R"
+    "DashboardModule.R",
+    "dashboard/ballsMetric.R",
+    "dashboard/lagMetric.R",
+    "dashboard/oddsEvensMetric.R",
+    "dashboard/differenceMetric.R",
+    "dashboard/sumsMetric.R",
+    "dashboard/tableMetric.R"
+    
 #    "GeneratorModule.R",
 #    "StatsModule.R",
 #    "HotcoldModule.R"
   )
   
-  # Source each file if it exists
   for (file_name in files_to_source) {
     file_path <- file.path(script_folder, file_name)
     if (file.exists(file_path)) {
@@ -83,10 +85,10 @@ server <- function(input, output, session) {
   
   # call modules
   dashboardServer("dashboard1", input_controls = input_controls)
-  #ballsMetricServer("dashboard1", input_controls = input_controls)
-  gen_out <- generatorServer("gen1")  # returns list with selected_numbers reactive if needed
-  statsServer("stats1")
-  hotcoldServer("hc1")
+#  ballsMetricServer("dashboard1", input_controls = input_controls)
+#  gen_out <- generatorServer("gen1")  # returns list with selected_numbers reactive if needed
+#  statsServer("stats1")
+#  hotcoldServer("hc1")
 }
 
 # -------------------------

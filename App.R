@@ -3,32 +3,41 @@ if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable())
   current_script_path <- rstudioapi::getActiveDocumentContext()$path
   script_folder <- dirname(current_script_path)
   
-  # 2. Source all files before launching the app
-  files_to_source <- c(
+  # 2. Source main scripts first
+  main_files <- c(
     "Base.R",
     "PrepareData.R",
-    "DashboardModule.R",
-    "dashboard/ballsMetric.R",
-    "dashboard/lagMetric.R",
-    "dashboard/oddsEvensMetric.R",
-    "dashboard/differenceMetric.R",
-    "dashboard/sumsMetric.R",
-    "dashboard/tableMetric.R"
-    
-#    "GeneratorModule.R",
-#    "StatsModule.R",
-#    "HotcoldModule.R"
+    "DashboardModule.R"
+    # "GeneratorModule.R",
+    # "StatsModule.R",
+    # "HotcoldModule.R"
   )
   
-  for (file_name in files_to_source) {
-    file_path <- file.path(script_folder, file_name)
+  lapply(main_files, function(f) {
+    file_path <- file.path(script_folder, f)
     if (file.exists(file_path)) {
-      source(file_path)
+      tryCatch(source(file_path), error = function(e) {
+        warning(paste("Failed to source:", f, "-", e$message))
+      })
     } else {
-      warning(paste("File not found:", file_name))
+      warning(paste("File not found:", f))
     }
-  }
+  })
+  
+  # 3. Automatically source all metric modules in the 'dashboard' folder
+  metric_files <- list.files(
+    path = file.path(script_folder, "dashboard"),
+    pattern = "\\.R$",
+    full.names = TRUE
+  )
+  
+  lapply(metric_files, function(f) {
+    tryCatch(source(f), error = function(e) {
+      warning(paste("Failed to source metric file:", f, "-", e$message))
+    })
+  })
 }
+
 
 
 # -------------------------

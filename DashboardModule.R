@@ -1,10 +1,3 @@
-# Here this file is imported by other App by sourcing
-# Any functions or modules (like generate_metrics()) or can be sourced as above
-# must be defined before launching the app shinyApp(ui, server). 
-# Gets Lottery data to work with
-generate_metrics <- function() {
-  return(lotto_clean_sorted)
-}
 
 
 # ui module
@@ -87,13 +80,16 @@ dashboardServer <- function(id, input_controls) {
       generate_metrics()
     })
     
+    draws_per_week <- 2
     # Filtered data reactive (shared across all metrics)
     filtered_data <- reactive({
       data <- metrics_data()
+      # ensure data is valid and non-empty
+      req(!is.null(data) && nrow(data) > 0) 
       
       weeks <- as.numeric(input_controls()$timeRange)
-      days <- weeks * 2
-      data <- tail(data, days)
+      days <- weeks * draws_per_week
+      data <- tail(data, min(days, nrow(data)))
       
       num_from <- as.numeric(input_controls()$range[1])
       num_to <- as.numeric(input_controls()$range[2])
@@ -101,16 +97,26 @@ dashboardServer <- function(id, input_controls) {
       data <- data %>%
         filter(ball_1 >= num_from & ball_6 <= num_to)
       
+      req(nrow(data) > 0)
+      
       return(data)
     })
     
     # ✅ INITIALIZE ALL SERVERS ONCE (not in observe)
     ballsMetricServer("balls", filtered_data, input_controls)
-    sumsMetricServer("sums", filtered_data)
-    oddsEvensMetricServer("odds", filtered_data)
-    tableMetricServer("table", filtered_data)
-    differenceMetricServer("difference", filtered_data)
-    lagMetricServer("lag",filtered_data)
+    
+    metric_list <- list(
+      sums = sumsMetricServer,
+      odds_evens = oddsEvensMetricServer,
+      table = tableMetricServer,
+      difference = differenceMetricServer,
+      lag = lagMetricServer
+    )
+    
+    lapply(names(metric_list), function(name) {
+      metric_list[[name]](name, filtered_data)
+    })
+    
     
     # Dynamic UI rendering based on selected metric
     # Match output ID in dashboardServer
@@ -119,17 +125,21 @@ dashboardServer <- function(id, input_controls) {
     # But in the UI, the ID is now "dashboard1-metricContent".
     # These must match exactly.
     # This ensures the top-level uiOutput() and server renderUI() match.
+    
+    
+    ui_list <- list(
+      balls = ballsMetricUI,
+      sums = sumsMetricUI,
+      odds_evens = oddsEvensMetricUI,
+      table = tableMetricUI,
+      difference = differenceMetricUI,
+      lag = lagMetricUI
+    )
+    
     output$metricContent <- renderUI({
-      metric <- input_controls()$metric
-      switch(metric,
-             "balls"       = ballsMetricUI(ns("balls")),
-             "sums"        = sumsMetricUI(ns("sums")),
-             "odds_evens"  = oddsEvensMetricUI(ns("odds")),
-             "table"       = tableMetricUI(ns("table")),
-             "difference"  = differenceMetricUI(ns("difference")),
-             "lag"         = lagMetricUI(ns("lag"))
-      )
+      ui_list[[input_controls()$metric]](ns(input_controls()$metric))
     })
+    
     
   })
 }

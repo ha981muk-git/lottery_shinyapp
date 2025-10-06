@@ -57,4 +57,12 @@ lotto_clean_sorted <- lotto_clean %>%
   # mutate(draw_number = row_number()) # sequential numbering
 
 
+# Here this file is imported by other App by sourcing
+# Any functions or modules (like generate_metrics()) or can be sourced as above
+# must be defined before launching the app shinyApp(ui, server). 
+# Gets Lottery data to work with
+generate_metrics <- function() {
+  return(lotto_clean_sorted)
+}
+
 

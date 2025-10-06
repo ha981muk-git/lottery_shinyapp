@@ -30,6 +30,7 @@ if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable())
   }
 }
 
+
 # -------------------------
 # Top-level UI
 # -------------------------
@@ -49,7 +50,7 @@ ui <- page_navbar(
     use_waiter()
   ),
   
-  nav_panel("🎲 Lotto Analyzer",
+  nav_panel("",# 🎲 Lotto Analyzer
             layout_sidebar(
               sidebar = sidebar(
                 width = 280,

@@ -1,7 +1,12 @@
+# Here this file is imported by other App by sourcing
+# Any functions or modules (like generate_metrics()) or can be sourced as above
+# must be defined before launching the app shinyApp(ui, server). 
 # Gets Lottery data to work with
 generate_metrics <- function() {
   return(lotto_clean_sorted)
 }
+
+
 # ui module
 lotteryInputUI <- function(id) {
   ns <- NS(id)
@@ -32,7 +37,7 @@ lotteryInputUI <- function(id) {
     selectInput(ns("metric"), "Analysis Type", choices = metric_choices, selected = "balls"),
     selectInput(ns("timeRange"), "Time Window", choices = time_choices, selected = 30),
     actionButton(ns("refresh"), "Refresh Data", class = "btn-primary w-100",
-                 style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;"),
+                 style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;")
   )
 }
 
@@ -108,6 +113,12 @@ dashboardServer <- function(id, input_controls) {
     lagMetricServer("lag",filtered_data)
     
     # Dynamic UI rendering based on selected metric
+    # Match output ID in dashboardServer
+    # In dashboardServer, you currently have:
+    # output$metricContent <- renderUI({ ... })
+    # But in the UI, the ID is now "dashboard1-metricContent".
+    # These must match exactly.
+    # This ensures the top-level uiOutput() and server renderUI() match.
     output$metricContent <- renderUI({
       metric <- input_controls()$metric
       switch(metric,

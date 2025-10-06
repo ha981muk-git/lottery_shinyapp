@@ -11,10 +11,10 @@ if (requireNamespace("rstudioapi", quietly = TRUE) &&
   files_to_source <- c(
     "Base.R",
     "PrepareData.R",
-    "DashboardModule.R",
-    "GeneratorModule.R",
-    "StatsModule.R",
-    "HotcoldModule.R"
+    "DashboardModule.R"
+#    "GeneratorModule.R",
+#    "StatsModule.R",
+#    "HotcoldModule.R"
   )
   
   # Source each file if it exists

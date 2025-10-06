@@ -1,3 +1,5 @@
+# ---------- Lag Analysis Module - Number Jump Patterns ----------
+
 lagMetricUI <- function(id) {
   ns <- NS(id)
   tagList(
@@ -678,4 +680,50 @@ lagMetricServer <- function(id, filtered_data) {
       )
     })
     
-  })}
+    # Lag Table
+    output$lagTable <- DT::renderDataTable({
+      stats <- lag_stats()
+      if(length(stats$lags) == 0) return(NULL)
+      
+      df <- stats$lag_df
+      
+      df_display <- data.frame(
+        Lag = df$lag,
+        Frequency = df$frequency,
+        Percentage = paste0(df$percentage, "%"),
+        Probability = round(df$probability, 4),
+        Category = df$category,
+        Direction = df$direction
+      )
+      
+      DT::datatable(
+        df_display,
+        options = list(
+          pageLength = 15,
+          order = list(list(1, 'desc')),
+          dom = 'frtip',
+          scrollX = TRUE,
+          initComplete = DT::JS(
+            "function(settings, json) {",
+            "$(this.api().table().container()).css({'background-color': 'rgba(255,255,255,0.05)', 'color': '#e8eaed'});",
+            "}"
+          )
+        ),
+        rownames = FALSE,
+        class = 'cell-border stripe'
+      ) %>%
+        DT::formatStyle(
+          columns = 1:6,
+          backgroundColor = 'rgba(255,255,255,0.02)',
+          color = '#e8eaed'
+        ) %>%
+        DT::formatStyle(
+          'Frequency',
+          background = DT::styleColorBar(range(df$frequency), '#8b5cf6'),
+          backgroundSize = '90% 70%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        )
+    })
+  })
+}

@@ -81,6 +81,14 @@ dashboardServer <- function(id, input_controls) {
     })
     
     draws_per_week <- 2
+    
+    debounced_range <- reactive(input_controls()$range) %>% debounce(300)
+    
+    
+    # observe({
+    #   cat("Debounced range:", debounced_range(), "\n")
+    # })
+    
     # Filtered data reactive (shared across all metrics)
     filtered_data <- reactive({
       data <- metrics_data()
@@ -91,8 +99,9 @@ dashboardServer <- function(id, input_controls) {
       days <- weeks * draws_per_week
       data <- tail(data, min(days, nrow(data)))
       
-      num_from <- as.numeric(input_controls()$range[1])
-      num_to <- as.numeric(input_controls()$range[2])
+      range_vals <- debounced_range()
+      num_from <- as.numeric(range_vals[1])
+      num_to <- as.numeric(range_vals[2])
       
       data <- data %>%
         filter(ball_1 >= num_from & ball_6 <= num_to)
@@ -101,7 +110,7 @@ dashboardServer <- function(id, input_controls) {
       
       return(data)
       
-    })%>% debounce(500) # Wait 1000ms after last input change
+    })
     
     # ✅ INITIALIZE ALL SERVERS ONCE (not in observe)
     ballsMetricServer("balls", filtered_data, input_controls)

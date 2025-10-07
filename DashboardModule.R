@@ -36,7 +36,7 @@ lotteryInputUI <- function(id) {
 
 
 # Module Server
-inputModuleServer <- function(id) {
+lotteryInputServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     minDistance <- 6
     
@@ -81,7 +81,7 @@ dashboardServer <- function(id, input_controls) {
     })
     
     draws_per_week <- 2
-    
+    # wait for 500ms
     debounced_range <- reactive(input_controls()$range) %>% debounce(300)
     
     
@@ -108,7 +108,7 @@ dashboardServer <- function(id, input_controls) {
       
       req(nrow(data) > 0)
       
-      return(data)
+      data
       
     })
     
@@ -147,7 +147,14 @@ dashboardServer <- function(id, input_controls) {
     )
     
     output$metricContent <- renderUI({
-      ui_list[[input_controls()$metric]](ns(input_controls()$metric))
+      req(input_controls()$metric)
+      metric <- input_controls()$metric
+      
+      if (!metric %in% names(ui_list)) {
+        return(div("Invalid metric selected"))
+      }
+      
+      ui_list[[metric]](ns(metric))
     })
     
     

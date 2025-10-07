@@ -11,8 +11,9 @@ ballsMetricUI <- function(id) {
       style = "padding: 20px;",
       div(
         style = "margin-bottom: 32px;",
-        h1(class = "header-title", "Analytics Dashboard"),
-        p(class = "header-subtitle", "Monitor your key performance indicators in real-time")
+        h1(class = "header-title", "6/49 Statistical Analysis Demo"),
+        p(class = "header-subtitle", "Educational demonstration of probability theory and data visualization techniques")
+        
       ),
       layout_column_wrap(
         width = 1/4,

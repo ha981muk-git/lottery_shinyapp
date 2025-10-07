@@ -144,7 +144,7 @@ ui <- page_fluid(
           div(class = "logo-section",
               span("🎲", class = "logo-icon"),
               div(class = "logo-text",
-                  h1("Lotto 6aus49 Analyzer", 
+                  h1("6/49 Statistical Visualization (R Shiny Demo)", 
                      span(class = "testing-badge", "TESTING")),
                   p("Statistical Analysis & Educational Platform")
               )
@@ -180,7 +180,7 @@ ui <- page_fluid(
       
       # Welcome Section
       div(class = "welcome-section",
-          h2("Welcome to Lotto 6aus49 Statistical Analyzer"),
+          h2("Welcome to 6/49 Statistical Visualization (R Shiny Demo)"),
           p(strong("Educational Platform:"), " Discover the power of data analysis for understanding lottery number patterns. This professional tool provides insights into historical draws, frequency analysis, and pattern recognition using statistical methods."),
           p("Learn about modern statistical approaches, probability theory, and data visualization techniques through interactive examples based on publicly available lottery data."),
           p(style = "color: #ffc107; font-weight: 600;",
@@ -272,7 +272,7 @@ ui <- page_fluid(
           ),
           div(class = "footer-bottom",
               p(paste0("© ", format(Sys.Date(), "%Y"), 
-                       " Lotto 6aus49 Statistical Analyzer - Educational & Testing Project | ",
+                       " 6/49 Statistical Visualization (R Shiny Demo) - Educational & Testing Project | ",
                        strong("FOR EDUCATIONAL PURPOSES ONLY"), " | ",
                        "Play Responsibly | No Real Gambling Services Provided | Under Construction"))
           )

@@ -100,7 +100,8 @@ dashboardServer <- function(id, input_controls) {
       req(nrow(data) > 0)
       
       return(data)
-    })
+      
+    })%>% debounce(500) # Wait 1000ms after last input change
     
     # ✅ INITIALIZE ALL SERVERS ONCE (not in observe)
     ballsMetricServer("balls", filtered_data, input_controls)

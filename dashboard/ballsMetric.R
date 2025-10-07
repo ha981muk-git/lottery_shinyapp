@@ -77,7 +77,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     
     output$metricCard3 <- renderUI({
       data <- filtered_data()
-      N_Tickets <- 13000000
+      N_Tickets <- 13983816
       n_tickets <- nrow(data)
       chance <- n_tickets /N_Tickets * 100
       create_metric_card(

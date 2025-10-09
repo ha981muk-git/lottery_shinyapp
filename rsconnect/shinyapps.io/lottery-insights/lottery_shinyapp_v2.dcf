@@ -1,0 +1,10 @@
+name: lottery_shinyapp_v2
+title:
+username: lottery-insights
+account: lottery-insights
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15714627
+bundleId: 11015138
+url: https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/
+version: 1

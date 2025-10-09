@@ -144,7 +144,7 @@ ui <- page_fluid(
           div(class = "logo-section",
               span("🎲", class = "logo-icon"),
               div(class = "logo-text",
-                  h1("6/49 Statistical Visualization (R Shiny Demo)", 
+                  h1("6/49 Statistical Visualization", 
                      span(class = "testing-badge", "TESTING")),
                   p("Statistical Analysis & Educational Platform")
               )
@@ -160,31 +160,10 @@ ui <- page_fluid(
   
   # Main Content
   div(class = "main-content",
-      
-      # Educational Notice (Prominent)
-      div(class = "educational-notice",
-          h3(
-            "⚠️ Important Notice - Educational Purpose Only"
-          ),
-          tags$ul(
-            tags$li(strong("This is a TESTING and EDUCATIONAL platform"), " for demonstrating statistical analysis methods"),
-            tags$li("This website is ", strong("under construction"), " and not intended for commercial use"),
-            tags$li("No real lottery services, betting, or gambling features are provided"),
-            tags$li("All data analysis is for ", strong("educational and research purposes"), " only"),
-            tags$li("This tool demonstrates probability theory, data visualization, and statistical methods"),
-            tags$li(strong("Warning:"), " Gambling can be addictive. Please play responsibly. This site does NOT encourage gambling")
-          ),
-          p(style = "margin-top: 15px; font-style: italic; color: rgba(255,255,255,0.7);",
-            "🔬 Purpose: Academic demonstration of R Shiny capabilities and statistical computing")
-      ),
-      
       # Welcome Section
       div(class = "welcome-section",
-          h2("Welcome to 6/49 Statistical Visualization (R Shiny Demo)"),
+          h2("Welcome to 6/49 Statistical Visualization"),
           p(strong("Educational Platform:"), " Discover the power of data analysis for understanding lottery number patterns. This professional tool provides insights into historical draws, frequency analysis, and pattern recognition using statistical methods."),
-          p("Learn about modern statistical approaches, probability theory, and data visualization techniques through interactive examples based on publicly available lottery data."),
-          p(style = "color: #ffc107; font-weight: 600;",
-            "📚 This is an educational demonstration project - NOT a gambling service")
       ),
       
       # Main Analyzer Section
@@ -204,12 +183,29 @@ ui <- page_fluid(
           )
       ),
       
+      # Educational Notice (Prominent)
+      div(class = "educational-notice",
+          h3(
+            "⚠️ Important Notice - Educational Purpose Only"
+          ),
+          tags$ul(
+            tags$li(strong("This is a TESTING and EDUCATIONAL platform"), " for demonstrating statistical analysis methods"),
+            tags$li("This website is ", strong("under construction"), " and not intended for commercial use"),
+            tags$li("No real lottery services, betting, or gambling features are provided"),
+            tags$li("All data analysis is for ", strong("educational and research purposes"), " only"),
+            tags$li("This tool demonstrates probability theory, data visualization, and statistical methods"),
+            tags$li(strong("Warning:"), " Gambling can be addictive. Please play responsibly. This site does NOT encourage gambling")
+          ),
+          p(style = "margin-top: 15px; font-style: italic; color: rgba(255,255,255,0.7);",
+            "🔬 Purpose: Academic demonstration of statistical computing")
+      ),
+      
       # Additional Educational Section
       div(id = "educational",
           style = "margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px;",
           h2("About This Educational Project", style = "color: #e8eaed;"),
           p(style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
-            "This R Shiny application demonstrates advanced statistical analysis techniques using publicly available lottery data. ",
+            "This application demonstrates advanced statistical analysis techniques using publicly available lottery data. ",
             "It serves as an educational resource for understanding probability distributions, frequency analysis, ",
             "and data visualization methods. The platform is designed for students, researchers, and data science enthusiasts ",
             "interested in learning about statistical computing and interactive web applications."
@@ -218,8 +214,7 @@ ui <- page_fluid(
           tags$ul(
             style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
             tags$li("Understanding probability theory and statistical distributions"),
-            tags$li("Data visualization techniques using R and ggplot2"),
-            tags$li("Interactive web application development with Shiny"),
+            tags$li("Interactive web application development"),
             tags$li("Time series analysis and pattern recognition"),
             tags$li("Responsible interpretation of statistical results")
           )
@@ -272,7 +267,7 @@ ui <- page_fluid(
           ),
           div(class = "footer-bottom",
               p(paste0("© ", format(Sys.Date(), "%Y"), 
-                       " 6/49 Statistical Visualization (R Shiny Demo) - Educational & Testing Project | ",
+                       " 6/49 Statistical Visualization - Educational & Testing Project | ",
                        strong("FOR EDUCATIONAL PURPOSES ONLY"), " | ",
                        "Play Responsibly | No Real Gambling Services Provided | Under Construction"))
           )

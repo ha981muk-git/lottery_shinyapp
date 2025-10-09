@@ -60,7 +60,19 @@ ui <- page_fluid(
     tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
     
     useShinyjs(),
-    use_waiter()
+    use_waiter(),
+    # Google Translate scripts
+      tags$script(HTML('
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: "en",
+          includedLanguages: "es,fr,de,hi,zh-CN",
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, "google_translate_element");
+      }
+    ')),
+      tags$script(src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit")
+
   ),
   
   # ⚠️ DISCLAIMER BANNER (Top Priority)

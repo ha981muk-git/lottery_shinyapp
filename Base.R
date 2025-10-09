@@ -1,5 +1,5 @@
 pkgs <- c("vroom","dplyr","janitor","shiny","bslib","shinyjs","plotly",
-          "waiter", "readr", "tidyr", "purrr", "ggplot2", "qgraph", "brms")
+          "waiter", "readr", "tidyr", "purrr")
 to_install <- pkgs[!pkgs %in% installed.packages()[,"Package"]]
 if(length(to_install)) install.packages(to_install)
 lapply(pkgs, library, character.only = TRUE)

@@ -1,3 +1,8 @@
+current_script_path <- rstudioapi::getActiveDocumentContext()$path
+script_folder <- dirname(current_script_path)
+data_path <- file.path(script_folder,'data',"LOTTO_ab_2018.csv")
+
+
 # ==== Loading data
 # data <- read_delim(
 #   "~/drive/workspace/global/code/R/lottery_bayesian/LOTTO_ab_2018.csv",
@@ -6,7 +11,7 @@
 # )
 
 # ==== Cleaning and Preparation
-data <- vroom("~/drive/workspace/global/code/R/lottery_bayesian/LOTTO_ab_2018.csv", delim = ";",
+data <- vroom(data_path, delim = ";",
               col_types = cols(
                 Datum = col_character(),
                 Gewinnzahlen = col_double(),

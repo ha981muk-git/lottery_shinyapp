@@ -50,7 +50,7 @@ if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable())
 # -------------------------
 # Single Page UI: Lotto 6aus49 Educational/Testing Platform
 # -------------------------
-ui <- page_fluid(
+ui <- fluidPage(
   theme = app_theme,
   
   # Include CSS, JS libraries

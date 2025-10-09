@@ -4,16 +4,18 @@ differenceMetricUI <- function(id) {
   tagList(
     div(
       style = "padding: 20px;",
+      gap = "12px",
       div(
         style = "margin-bottom: 32px;",
         h1(class = "header-title", "Ball Range Analysis"),
         p(class = "header-subtitle", "Analyze the difference between Ball 6 and Ball 1 to identify winning patterns")
       ),
       
-      # Statistics Row
+      # Statistics Row - FIXED ORDER
       layout_column_wrap(
         width = 1/5,
-        heights_equal = "row",
+        heights_equal = "row",  # ← This must come BEFORE gap
+        gap = "12px",
         uiOutput(ns("metricCard1")),
         uiOutput(ns("metricCard2")),
         uiOutput(ns("metricCard3")),
@@ -21,18 +23,21 @@ differenceMetricUI <- function(id) {
         uiOutput(ns("metricCard5"))
       ),
       
-      # Main Frequency Distribution
+      # Main Frequency Distribution - ADD margin-top
       div(
         class = "content-card",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("📊"), span("Range Difference Frequency")),
         p(class = "info-text", "How often each difference value occurs (Ball 6 - Ball 1)"),
         plotlyOutput(ns("rangeFreq"), height = "450px")
       ),
       
-      # Hot and Cold Ranges
+      # Hot and Cold Ranges - FIXED ORDER + ADD margin-top
       layout_column_wrap(
         width = 1/2,
-        heights_equal = "row",
+        heights_equal = "row",  # ← This must come BEFORE gap
+        gap = "20px",
+        fill = FALSE,  # ← ADD THIS to prevent white background
         div(
           class = "content-card",
           div(class = "card-title", span("🔥"), span("Hot Ranges")),
@@ -47,18 +52,21 @@ differenceMetricUI <- function(id) {
         )
       ),
       
-      # Range Categories
+      # Range Categories - ADD margin-top
       div(
         class = "content-card",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("🎯"), span("Range Categories")),
         p(class = "info-text", "Distribution of ranges by category (Small, Medium, Large, Very Large)"),
         plotlyOutput(ns("rangeCategories"), height = "450px")
       ),
       
-      # Trend and Box Plot
+      # Trend and Box Plot - FIXED ORDER + ADD margin-top
       layout_column_wrap(
         width = 1/2,
-        heights_equal = "row",
+        heights_equal = "row",  # ← This must come BEFORE gap
+        gap = "20px",
+        fill = FALSE,  # ← ADD THIS to prevent white background
         div(
           class = "content-card",
           div(class = "card-title", span("📈"), span("Range Trend Over Time")),
@@ -73,19 +81,18 @@ differenceMetricUI <- function(id) {
         )
       ),
       
-      # Heatmap Grid
+      # Rest stays the same with margin-top...
       div(
         class = "content-card",
-        style = "margin-top: 20px;",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("🔥"), span("Range Frequency Heatmap")),
         p(class = "info-text", "Visual heatmap showing frequency intensity - darker colors indicate more common ranges"),
         plotlyOutput(ns("rangeHeatmap"), height = "400px")
       ),
       
-      # Probability Guide
       div(
         class = "content-card",
-        style = "margin-top: 20px;",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("🎲"), span("Range Selection Guide")),
         p(class = "info-text", "Recommended ranges based on historical data"),
         div(
@@ -94,10 +101,9 @@ differenceMetricUI <- function(id) {
         )
       ),
       
-      # Detailed Table
       div(
         class = "content-card",
-        style = "margin-top: 20px;",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("📋"), span("Detailed Range Statistics")),
         p(class = "info-text", "Complete data table with all range differences and their statistics"),
         DT::dataTableOutput(ns("rangeTable"))

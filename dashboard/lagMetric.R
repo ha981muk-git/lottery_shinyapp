@@ -5,25 +5,28 @@ lagMetricUI <- function(id) {
   tagList(
     div(
       style = "padding: 20px;",
+      gap = "12px",
       div(
         style = "margin-bottom: 32px;",
         h1(class = "header-title", "Lag Analysis - Number Jump Patterns"),
         p(class = "header-subtitle", "Analyze how numbers change between consecutive draws and identify movement patterns")
       ),
       
-      # Statistics Row
+      # Statistics Row - FIXED ORDER
       layout_column_wrap(
         width = 1/4,
-        heights_equal = "row",
+        heights_equal = "row",  # ← This must come BEFORE gap
+        gap = "15px",
         uiOutput(ns("metricCard1")),
         uiOutput(ns("metricCard2")),
         uiOutput(ns("metricCard3")),
         uiOutput(ns("metricCard4"))
       ),
       
-      # Ball Position Selector
+      # Ball Position Selector - ADD margin-top
       div(
         class = "content-card",
+        style = "margin-top: 25px;",
         div(
           style = "margin-bottom: 20px;",
           h4(style = "color: #8b5cf6;", "Select Ball Position to Analyze:"),
@@ -50,18 +53,21 @@ lagMetricUI <- function(id) {
         )
       ),
       
-      # Normal Distribution Chart
+      # Normal Distribution Chart - ADD margin-top
       div(
         class = "content-card",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("📊"), span("Lag Distribution with Normal Curve")),
         p(class = "info-text", "Distribution of number changes (lag) compared to theoretical normal distribution"),
         plotlyOutput(ns("lagDistribution"), height = "500px")
       ),
       
-      # Jump Preference Charts
+      # Jump Preference Charts - FIXED ORDER + ADD margin-top
       layout_column_wrap(
         width = 1/2,
-        heights_equal = "row",
+        heights_equal = "row",  # ← This must come BEFORE gap
+        gap = "20px",
+        fill = FALSE,  # ← ADD THIS to prevent white background
         div(
           class = "content-card",
           div(class = "card-title", span("⬆️"), span("Positive Jumps (Increases)")),
@@ -76,18 +82,21 @@ lagMetricUI <- function(id) {
         )
       ),
       
-      # Jump Categories
+      # Jump Categories - ADD margin-top
       div(
         class = "content-card",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("🎯"), span("Jump Categories Distribution")),
         p(class = "info-text", "Classification of jumps by magnitude"),
         plotlyOutput(ns("jumpCategories"), height = "450px")
       ),
       
-      # Heatmap and QQ Plot
+      # Heatmap and QQ Plot - FIXED ORDER + ADD margin-top
       layout_column_wrap(
         width = 1/2,
-        heights_equal = "row",
+        heights_equal = "row",  # ← This must come BEFORE gap
+        gap = "20px",
+        fill = FALSE,  # ← ADD THIS to prevent white background
         div(
           class = "content-card",
           div(class = "card-title", span("🔥"), span("Lag Frequency Heatmap")),
@@ -102,26 +111,25 @@ lagMetricUI <- function(id) {
         )
       ),
       
-      # Preferred Zones
+      # Rest stays the same with margin-top...
       div(
         class = "content-card",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("🎲"), span("Preferred Jump Zones")),
         p(class = "info-text", "Areas where numbers prefer to jump (hot zones) vs avoid (cold zones)"),
         plotlyOutput(ns("preferredZones"), height = "450px")
       ),
       
-      # Statistical Summary
       div(
         class = "content-card",
-        style = "margin-top: 20px;",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("📊"), span("Statistical Summary & Recommendations")),
         uiOutput(ns("statSummary"))
       ),
       
-      # Detailed Table
       div(
         class = "content-card",
-        style = "margin-top: 20px;",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("📋"), span("Detailed Lag Statistics")),
         p(class = "info-text", "Complete lag data with frequencies and probabilities"),
         DT::dataTableOutput(ns("lagTable"))

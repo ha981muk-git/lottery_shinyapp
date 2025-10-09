@@ -1,0 +1,200 @@
+{
+  "languages": ["de", "en"],
+  "translations": [
+    {
+      "key": "disclaimer_title",
+      "de": "BILDUNGSDEMO",
+      "en": "EDUCATIONAL DEMO"
+    },
+    {
+      "key": "disclaimer_subtitle",
+      "de": "Statistisches Lernwerkzeug | Keine Glücksspieldienste | Testphase",
+      "en": "Statistical Learning Tool | No Gambling Services | Testing Phase"
+    },
+    {
+      "key": "site_title",
+      "de": "6/49 Statistical Visualization",
+      "en": "6/49 Statistical Visualization"
+    },
+    {
+      "key": "site_subtitle",
+      "de": "Intelligente Analyse für Ihre Gewinnchancen",
+      "en": "Intelligent Analysis for Your Winning Chances"
+    },
+    {
+      "key": "nav_home",
+      "de": "Startseite",
+      "en": "Home"
+    },
+    {
+      "key": "nav_analyzer",
+      "de": "Analyzer",
+      "en": "Analyzer"
+    },
+    {
+      "key": "nav_about",
+      "de": "Über uns",
+      "en": "About Us"
+    },
+    {
+      "key": "nav_contact",
+      "de": "Kontakt",
+      "en": "Contact"
+    },
+    {
+      "key": "welcome_title",
+      "de": "Willkommen beim 6/49 Statistical Visualization",
+      "en": "Welcome to 6/49 Statistical Visualization"
+    },
+    {
+      "key": "welcome_text",
+      "de": "Entdecken Sie die Macht der Datenanalyse für Ihre Lottozahlen. Unser professionelles Tool bietet Ihnen tiefe Einblicke in historische Ziehungen, Häufigkeitsanalysen und intelligente Mustererkennungen.",
+      "en": "Discover the power of data analysis for your lottery numbers. Our professional tool provides deep insights into historical draws, frequency analyses, and intelligent pattern recognition."
+    },
+    {
+      "key": "settings_title",
+      "de": "Einstellungen",
+      "en": "Settings"
+    },
+    {
+      "key": "footer_notice_title",
+      "de": "Wichtiger Hinweis - Nur zu Bildungszwecken",
+      "en": "Important Notice - Educational Purpose Only"
+    },
+    {
+      "key": "footer_point1_bold",
+      "de": "Dies ist eine TEST- und BILDUNGSPLATTFORM",
+      "en": "This is a TESTING and EDUCATIONAL platform"
+    },
+    {
+      "key": "footer_point1",
+      "de": "zur Demonstration statistischer Analysemethoden",
+      "en": "for demonstrating statistical analysis methods"
+    },
+    {
+      "key": "footer_point2_pre",
+      "de": "Diese Website befindet sich",
+      "en": "This website is"
+    },
+    {
+      "key": "footer_point2_bold",
+      "de": "im Aufbau",
+      "en": "under construction"
+    },
+    {
+      "key": "footer_point2_post",
+      "de": "und ist nicht für kommerzielle Nutzung vorgesehen",
+      "en": "and not intended for commercial use"
+    },
+    {
+      "key": "footer_point3",
+      "de": "Keine echten Lotterie-Dienste, Wetten oder Glücksspielfunktionen werden bereitgestellt",
+      "en": "No real lottery services, betting, or gambling features are provided"
+    },
+    {
+      "key": "footer_point4_pre",
+      "de": "Alle Datenanalysen dienen",
+      "en": "All data analysis is for"
+    },
+    {
+      "key": "footer_point4_bold",
+      "de": "nur zu Bildungs- und Forschungszwecken",
+      "en": "educational and research purposes"
+    },
+    {
+      "key": "footer_point4_post",
+      "de": "only",
+      "en": "only"
+    },
+    {
+      "key": "footer_point5",
+      "de": "Dieses Tool demonstriert Wahrscheinlichkeitstheorie, Datenvisualisierung und statistische Methoden",
+      "en": "This tool demonstrates probability theory, data visualization, and statistical methods"
+    },
+    {
+      "key": "footer_warning",
+      "de": "Warnung:",
+      "en": "Warning:"
+    },
+    {
+      "key": "footer_warning_text",
+      "de": "Glücksspiel kann süchtig machen. Bitte spielen Sie verantwortungsbewusst. Diese Seite fördert NICHT das Glücksspiel",
+      "en": "Gambling can be addictive. Please play responsibly. This site does NOT encourage gambling"
+    },
+    {
+      "key": "footer_purpose",
+      "de": "Zweck: Akademische Demonstration statistischer Berechnungen",
+      "en": "Purpose: Academic demonstration of statistical computing"
+    },
+    {
+      "key": "footer_about_title",
+      "de": "Über 6/49 Statistical Visualization",
+      "en": "About 6/49 Statistical Visualization"
+    },
+    {
+      "key": "footer_about_text",
+      "de": "Professionelle Analyse-Tools für Lotto 6aus49. Basierend auf historischen Daten und modernen statistischen Methoden.",
+      "en": "Professional analysis tools for Lotto 6aus49. Based on historical data and modern statistical methods."
+    },
+    {
+      "key": "footer_quicklinks_title",
+      "de": "Schnellzugriff",
+      "en": "Quick Links"
+    },
+    {
+      "key": "footer_statistics",
+      "de": "Statistiken",
+      "en": "Statistics"
+    },
+    {
+      "key": "footer_faq",
+      "de": "FAQ",
+      "en": "FAQ"
+    },
+    {
+      "key": "footer_legal_title",
+      "de": "Rechtliches",
+      "en": "Legal"
+    },
+    {
+      "key": "footer_imprint",
+      "de": "Impressum",
+      "en": "Imprint"
+    },
+    {
+      "key": "footer_privacy",
+      "de": "Datenschutz",
+      "en": "Privacy Policy"
+    },
+    {
+      "key": "footer_terms",
+      "de": "AGB",
+      "en": "Terms of Service"
+    },
+    {
+      "key": "footer_disclaimer",
+      "de": "Haftungsausschluss",
+      "en": "Disclaimer"
+    },
+    {
+      "key": "footer_contact_title",
+      "de": "Kontakt & Support",
+      "en": "Contact & Support"
+    },
+    {
+      "key": "footer_email",
+      "de": "E-Mail:",
+      "en": "Email:"
+    },
+    {
+      "key": "footer_note",
+      "de": "Hinweis: Dies ist ein Analyse-Tool. Keine Gewinngarantie.",
+      "en": "Note: This is an analysis tool. No guarantee of winning."
+    },
+    {
+      "key": "footer_copyright",
+      "de": "6/49 Statistical Visualization. Alle Rechte vorbehalten. | Verantwortungsvolles Spielen",
+      "en": "6/49 Statistical Visualization. All rights reserved. | Responsible Gaming"
+    }
+  ]
+}

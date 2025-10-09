@@ -16,6 +16,7 @@ sumsMetricUI <- function(id) {
       # Statistics Row
       layout_column_wrap(
         width = 1/5,
+        gap = "12px",  # ← Compact, they're small cards
         heights_equal = "row",
         uiOutput(ns("metricCard1")),
         uiOutput(ns("metricCard2")),
@@ -27,7 +28,10 @@ sumsMetricUI <- function(id) {
       # Distribution and Trend Row
       layout_column_wrap(
         width = 1/2,
+
+        
         heights_equal = "row",
+        gap = "20px",  # ← Compact, they're small cards
         div(
           class = "content-card",
           div(class = "card-title", span("📊"), span("Sum Distribution")),
@@ -45,6 +49,7 @@ sumsMetricUI <- function(id) {
       # Range Analysis and Box Plot Row
       layout_column_wrap(
         width = 1/2,
+        gap = "20px",  # ← Compact, they're small cards
         heights_equal = "row",
         div(
           class = "content-card",

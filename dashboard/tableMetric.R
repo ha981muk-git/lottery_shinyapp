@@ -2,9 +2,12 @@
 
 tableMetricUI <- function(id) {
   ns <- NS(id)
+  
   tagList(
     div(
       style = "padding: 20px;",
+      gap = "12px",
+      # Header
       div(
         style = "margin-bottom: 32px;",
         h1(class = "header-title", "Number Frequency Analysis"),
@@ -15,6 +18,7 @@ tableMetricUI <- function(id) {
       layout_column_wrap(
         width = 1/4,
         heights_equal = "row",
+        gap = "15px",
         uiOutput(ns("metricCard1")),
         uiOutput(ns("metricCard2")),
         uiOutput(ns("metricCard3")),
@@ -24,6 +28,7 @@ tableMetricUI <- function(id) {
       # Main Frequency Chart
       div(
         class = "content-card",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("📊"), span("Overall Number Frequencies")),
         p(class = "info-text", "How many times each number has been drawn"),
         plotlyOutput(ns("freq"), height = "450px")
@@ -33,6 +38,8 @@ tableMetricUI <- function(id) {
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
+        gap = "20px",
+        fill = FALSE,
         div(
           class = "content-card",
           div(class = "card-title", span("🔥"), span("Hot Numbers")),
@@ -50,15 +57,18 @@ tableMetricUI <- function(id) {
       # Interactive Visual Grid
       div(
         class = "content-card",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("🎯"), span("Interactive Number Grid")),
         p(class = "info-text", "Visual heatmap of all number frequencies - click on numbers to see details"),
         plotlyOutput(ns("heatGrid"), height = "500px")
       ),
       
-      # Frequency Distribution Analysis
+      # Frequency Distribution & Ball Position Analysis
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
+        gap = "20px",
+        fill = FALSE,
         div(
           class = "content-card",
           div(class = "card-title", span("📈"), span("Frequency Distribution")),
@@ -73,19 +83,19 @@ tableMetricUI <- function(id) {
         )
       ),
       
-      # Comparative Analysis
+      # Deviation from Expected Frequency
       div(
         class = "content-card",
-        style = "margin-top: 20px;",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("⚖️"), span("Deviation from Expected Frequency")),
         p(class = "info-text", "Numbers above/below their expected frequency (positive = drawn more often than expected)"),
         plotlyOutput(ns("deviation"), height = "450px")
       ),
       
-      # Detailed Data Table
+      # Detailed Frequency Table
       div(
         class = "content-card",
-        style = "margin-top: 20px;",
+        style = "margin-top: 25px;",
         div(class = "card-title", span("📋"), span("Detailed Frequency Table")),
         p(class = "info-text", "Complete data table with sortable columns"),
         DT::dataTableOutput(ns("freqTable"))
@@ -93,6 +103,7 @@ tableMetricUI <- function(id) {
     )
   )
 }
+
 
 tableMetricServer <- function(id, filtered_data) {
   moduleServer(id, function(input, output, session) {

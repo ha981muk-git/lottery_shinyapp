@@ -1,261 +1,828 @@
-      /* Override only header and footer to be light-themed */
-      /* Everything else uses Dashboard.css dark theme */
-      /* ✅ ADD ONLY the light theme overrides for header/footer*/
-      /* Professional Header (Light) */
-      .professional-header {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        color: white;
-        padding: 30px 0;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
-      
-      .header-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      
-      .logo-section {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-      
-      .logo-icon {
-        font-size: 2.5em;
-        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
-      }
-      
-      .logo-text h1 {
-        margin: 0;
-        font-size: 1.8em;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        color: white;
-      }
-      
-      .logo-text p {
-        margin: 5px 0 0 0;
-        font-size: 0.9em;
-        opacity: 0.9;
-        font-weight: 300;
-        color: white;
-      }
-      
-      .header-nav {
-        display: flex;
-        gap: 25px;
-        align-items: center;
-      }
-      
-      .header-nav a {
-        color: white;
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 0.95em;
-        transition: opacity 0.3s ease;
-      }
-      
-      .header-nav a:hover {
-        opacity: 0.8;
-      }
-      
-      /* Main Content Container */
-      .main-content {
-        max-width: 1400px;
-        margin: 40px auto;
-        padding: 0 30px;
-        min-height: calc(100vh - 400px);
-      }
-      
-      /* Welcome Section (Light box in dark theme) */
-      .welcome-section {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 40px;
-        margin-bottom: 30px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-        animation: fadeInUp 0.6s ease-out;
-      }
-      
-      .welcome-section h2 {
-        color: #e8eaed;
-        font-size: 2em;
-        margin-bottom: 15px;
-        font-weight: 600;
-        background: linear-gradient(135deg, #fff 0%, #e8eaed 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      
-      .welcome-section p {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 1.1em;
-        line-height: 1.6;
-        margin-bottom: 10px;
-      }
-      
-      /* Professional Footer (Light) */
-      .professional-footer {
-        background: #2c3e50;
-        color: white;
-        margin-top: 60px;
-        padding: 40px 0 20px 0;
-        border-top: 4px solid #1e3c72;
-      }
-      
-      .footer-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 30px;
-      }
-      
-      .footer-sections {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 40px;
-        margin-bottom: 30px;
-      }
-      
-      .footer-section h3 {
-        font-size: 1.2em;
-        margin-bottom: 15px;
-        font-weight: 600;
-        color: #ecf0f1;
-      }
-      
-      .footer-section p,
-      .footer-section ul {
-        font-size: 0.9em;
-        line-height: 1.8;
-        color: #bdc3c7;
-      }
-      
-      .footer-section ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      
-      .footer-section ul li {
-        margin-bottom: 8px;
-      }
-      
-      .footer-section a {
-        color: #bdc3c7;
-        text-decoration: none;
-        transition: color 0.3s ease;
-      }
-      
-      .footer-section a:hover {
-        color: #ecf0f1;
-      }
-      
-      .footer-bottom {
-        border-top: 1px solid #34495e;
-        padding-top: 20px;
-        text-align: center;
-        color: #95a5a6;
-        font-size: 0.85em;
-      }
-      
-      /* Sidebar layout spacing */
-      .bslib-sidebar-layout {
-        gap: 25px;
-      }
-      
-      /* Responsive Design */
-      @media (max-width: 768px) {
-        .header-content {
-          flex-direction: column;
-          gap: 20px;
-        }
-        
-        .header-nav {
-          flex-wrap: wrap;
-          justify-content: center;
-        }
-        
-        .welcome-section {
-          padding: 25px;
-        }
-        
-        .footer-sections {
-          grid-template-columns: 1fr;
-        }
-      }
-      
-       /*# Additional inline styles for disclaimer banner*/
-            .disclaimer-banner {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-        color: white;
-        padding: 15px 0;
-        text-align: center;
-        font-weight: 600;
-        font-size: 0.95em;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        position: sticky;
-        top: 0;
-        z-index: 1001;
-        animation: pulse 2s ease-in-out infinite;
-      }
-      
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.9; }
-      }
-      
-      .disclaimer-banner strong {
-        font-size: 1.1em;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-      
-      .educational-notice {
-        background: rgba(255, 193, 7, 0.15);
-        border: 2px solid #ffc107;
-        border-radius: 12px;
-        padding: 25px;
-        margin: 20px 0;
-        color: #ffc107;
-      }
-      
-      .educational-notice h3 {
-        color: #ffc107;
-        margin-top: 0;
-        font-size: 1.4em;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      
-      .educational-notice ul {
-        color: rgba(255, 255, 255, 0.85);
-        line-height: 1.8;
-      }
-      
-      .testing-badge {
-        display: inline-block;
-        background: #ff9800;
-        color: white;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.8em;
-        font-weight: 700;
-        margin-left: 10px;
-        animation: blink 1.5s ease-in-out infinite;
-      }
-      
-      @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
-      }
+/* ============================================
+   COMBINED DASHBOARD + HOME CSS
+   ============================================ */
+
+/* ========== SHARED ANIMATIONS ========== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ========== BASE BODY STYLES ========== */
+body {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ========== DISCLAIMER BANNER ========== */
+.disclaimer-banner {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  padding: 15px 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.disclaimer-banner strong {
+  font-size: 1.1em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ========== PROFESSIONAL HEADER (Light Theme) ========== */
+.professional-header {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  padding: 30px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-icon {
+  font-size: 2.5em;
+  filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+}
+
+.logo-text h1 {
+  margin: 0;
+  font-size: 1.8em;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: white;
+}
+
+.logo-text p {
+  margin: 5px 0 0 0;
+  font-size: 0.9em;
+  opacity: 0.9;
+  font-weight: 300;
+  color: white;
+}
+
+.header-nav {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+}
+
+.header-nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95em;
+  transition: opacity 0.3s ease;
+}
+
+.header-nav a:hover {
+  opacity: 0.8;
+}
+
+/* ========== MAIN CONTENT ========== */
+.main-content {
+  max-width: 1400px;
+  margin: 40px auto;
+  padding: 0 30px;
+  min-height: calc(100vh - 400px);
+}
+
+/* ========== WELCOME SECTION ========== */
+.welcome-section {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 40px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.welcome-section h2 {
+  color: #e8eaed;
+  font-size: 2em;
+  margin-bottom: 15px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #fff 0%, #e8eaed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcome-section p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1em;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+/* ========== EDUCATIONAL NOTICE ========== */
+.educational-notice {
+  background: rgba(255, 193, 7, 0.15);
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: 25px;
+  margin: 20px 0;
+  color: #ffc107;
+}
+
+.educational-notice h3 {
+  color: #ffc107;
+  margin-top: 0;
+  font-size: 1.4em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.educational-notice ul {
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.8;
+}
+
+.testing-badge {
+  display: inline-block;
+  background: #ff9800;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 700;
+  margin-left: 10px;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+/* ========== DASHBOARD COMPONENTS ========== */
+.header-title {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, #e8eaed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.header-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* ========== METRIC CARDS ========== */
+.metric-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.6s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.metric-card:hover::before {
+  transform: translateX(0);
+}
+
+.metric-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 12px 0;
+  animation: slideIn 0.8s ease-out;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+
+.metric-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.metric-change.positive {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.metric-change.negative {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* ========== CHART CARDS ========== */
+.chart-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 28px;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.chart-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #e8eaed;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-title::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(180deg, #6366f1, #8b5cf6);
+  border-radius: 2px;
+}
+
+/* ========== CONTROL PANEL ========== */
+.control-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  opacity: 1 !important;
+  visibility: visible !important;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* ========== FORM CONTROLS ========== */
+.selectize-input {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #e8eaed !important;
+  border-radius: 10px !important;
+  transition: all 0.3s ease !important;
+}
+
+.selectize-input:hover {
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+.selectize-dropdown {
+  background: #1a1f3a !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+}
+
+.selectize-dropdown-content .option {
+  color: #e8eaed !important;
+  padding: 10px 12px !important;
+}
+
+.selectize-dropdown-content .option:hover {
+  background: rgba(99, 102, 241, 0.2) !important;
+}
+
+label {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-weight: 500 !important;
+  margin-bottom: 8px !important;
+}
+
+/* ========== STATUS INDICATOR ========== */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  display: inline-block;
+  margin-right: 8px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ========== PROFESSIONAL FOOTER (Light Theme) ========== */
+.professional-footer {
+  background: #2c3e50;
+  color: white;
+  margin-top: 60px;
+  padding: 40px 0 20px 0;
+  border-top: 4px solid #1e3c72;
+}
+
+.footer-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 30px;
+}
+
+.footer-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+  margin-bottom: 30px;
+}
+
+.footer-section h3 {
+  font-size: 1.2em;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #ecf0f1;
+}
+
+.footer-section p,
+.footer-section ul {
+  font-size: 0.9em;
+  line-height: 1.8;
+  color: #bdc3c7;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 8px;
+}
+
+.footer-section a {
+  color: #bdc3c7;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+  color: #ecf0f1;
+}
+
+.footer-bottom {
+  border-top: 1px solid #34495e;
+  padding-top: 20px;
+  text-align: center;
+  color: #95a5a6;
+  font-size: 0.85em;
+}
+
+/* ========== SIDEBAR LAYOUT ========== */
+.bslib-sidebar-layout {
+  gap: 25px;
+}
+
+/* ========== BSLIB LAYOUT COLUMN WRAP FIX ========== */
+/* Fix spacing for layout_column_wrap in R Shiny */
+[class*="bslib-grid"] {
+  gap: 20px !important;
+  margin-bottom: 20px;
+}
+
+.bslib-grid > * {
+  min-width: 0; /* Prevent overflow */
+}
+
+/* Ensure proper spacing for nested layouts */
+div[style*="padding: 20px"] > div[class*="bslib"] {
+  margin-bottom: 20px;
+}
+
+/* ========== CONTENT CARDS (for R Shiny modules) ========== */
+.content-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 28px;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.8s ease-out;
+  margin-bottom: 20px;
+}
+
+.content-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #e8eaed;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-title span:first-child {
+  font-size: 1.5em;
+}
+
+.info-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+/* ========== VALUE BOXES (custom metric cards) ========== */
+.value-box-custom {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.6s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.value-box-custom::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.value-box-custom:hover::before {
+  transform: translateX(0);
+}
+
+.value-box-custom:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.value-box-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.value-box-value {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 10px 0;
+  line-height: 1.2;
+}
+
+.value-box-label {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+/* ========== ACTION BUTTONS ========== */
+.btn-action {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 5px; /* Add margin for button spacing */
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-action:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  color: white;
+}
+
+.btn-success {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #059669;
+  border-color: #059669;
+}
+
+/* ========== PLOTLY CHART CONTAINERS ========== */
+/* Ensure plotly charts fit properly in their containers */
+.plotly {
+  width: 100% !important;
+}
+
+.js-plotly-plot {
+  width: 100% !important;
+}
+
+/* Fix plotly chart spacing */
+.content-card .plotly,
+.chart-card .plotly {
+  margin-top: 10px;
+}
+
+/* ========== DATATABLE STYLING ========== */
+/* Dark theme for DT DataTables */
+.dataTables_wrapper {
+  color: #e8eaed !important;
+}
+
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_processing,
+.dataTables_wrapper .dataTables_paginate {
+  color: #e8eaed !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  color: #e8eaed !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 6px;
+  margin: 0 2px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  color: white !important;
+  background: rgba(139, 92, 246, 0.5) !important;
+  border: 1px solid rgba(139, 92, 246, 0.5) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  color: white !important;
+  background: #8b5cf6 !important;
+  border: 1px solid #8b5cf6 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+  color: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+table.dataTable {
+  border-collapse: collapse !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+table.dataTable thead th {
+  background: rgba(139, 92, 246, 0.2) !important;
+  color: #e8eaed !important;
+  border-bottom: 2px solid rgba(139, 92, 246, 0.5) !important;
+  padding: 12px 8px !important;
+}
+
+table.dataTable tbody td {
+  color: #e8eaed !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding: 10px 8px !important;
+}
+
+table.dataTable tbody tr:hover {
+  background: rgba(139, 92, 246, 0.1) !important;
+}
+
+table.dataTable.stripe tbody tr.odd,
+table.dataTable.display tbody tr.odd {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+table.dataTable.stripe tbody tr.odd:hover,
+table.dataTable.display tbody tr.odd:hover {
+  background: rgba(139, 92, 246, 0.15) !important;
+}
+
+/* DataTable filter input */
+.dataTables_wrapper input[type="search"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #e8eaed !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+}
+
+.dataTables_wrapper select {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #e8eaed !important;
+  border-radius: 8px !important;
+  padding: 4px 8px !important;
+}
+
+/* ========== SPACING UTILITIES ========== */
+/* Add spacing between sections */
+.content-card + .content-card {
+  margin-top: 20px;
+}
+
+/* Ensure proper spacing in grid layouts */
+div[style*="display: grid"] {
+  gap: 20px;
+}
+
+div[style*="display: flex"] {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Fix spacing for recommendation boxes */
+.value-box-custom ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.value-box-custom li {
+  margin-bottom: 8px;
+}
+
+/* ========== MODULE-SPECIFIC FIXES ========== */
+/* Lag Analysis - Ball Selection Buttons */
+div[style*="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;"] {
+  padding: 15px;
+  gap: 12px !important;
+}
+
+/* Frequency Table - ensure full width */
+.dataTables_wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Range Guide Grid */
+div[style*="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr))"] {
+  gap: 20px !important;
+  margin-top: 20px;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .header-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .welcome-section {
+    padding: 25px;
+  }
+  
+  .footer-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-content {
+    padding: 0 15px;
+  }
+  
+  .content-card {
+    padding: 20px;
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+  }
+  
+  .value-box-value {
+    font-size: 1.5rem;
+  }
+  
+  /* Stack buttons vertically on mobile */
+  div[style*="display: flex; gap: 10px"] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn-action {
+    width: 100%;
+  }
+}
+
+/* ========== PRINT STYLES ========== */
+@media print {
+  .professional-header,
+  .professional-footer,
+  .disclaimer-banner {
+    display: none;
+  }
+  
+  body {
+    background: white;
+  }
+  
+  .content-card,
+  .chart-card,
+  .value-box-custom {
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+}

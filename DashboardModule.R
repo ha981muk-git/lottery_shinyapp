@@ -6,6 +6,7 @@ lotteryInputUI <- function(id) {
   time_choices <- c(
     "Last  7 Weeks" = 7,
     "Last 30 Weeks" = 30,
+    "Last 60 Weeks" = 60,
     "Last 90 Weeks" = 90,
     "Last 120 Weeks" = 120,
     "Last 150 Weeks" = 150,
@@ -14,10 +15,10 @@ lotteryInputUI <- function(id) {
   metric_choices <- c(
     "Balls" = "balls", 
     "Sums" = "sums",
-    "Odds Evens" = "odds_evens",
-    "Tables" = "table",
-    "Difference" = "difference",
-    "Lag" = "lag"
+    "Odds Evens" = "odds_evens"
+#    "Tables" = "table",
+#    "Difference" = "difference",
+#    "Lag" = "lag"
   )
   
   tagList(
@@ -28,7 +29,7 @@ lotteryInputUI <- function(id) {
     ),
     sliderInput(ns("range"), "Ball Range", min = 1, max = 49, value = c(1,49), step = 1),
     selectInput(ns("metric"), "Analysis Type", choices = metric_choices, selected = "balls"),
-    selectInput(ns("timeRange"), "Time Window", choices = time_choices, selected = 30),
+    selectInput(ns("timeRange"), "Time Window", choices = time_choices, selected = 60),
     actionButton(ns("refresh"), "Refresh Data", class = "btn-primary w-100",
                  style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;")
   )

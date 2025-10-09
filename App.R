@@ -60,82 +60,14 @@ ui <- page_fluid(
     tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
     
     useShinyjs(),
-    use_waiter(),
-    
-    # Additional inline styles for disclaimer banner
-    tags$style(HTML("
-      .disclaimer-banner {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-        color: white;
-        padding: 15px 0;
-        text-align: center;
-        font-weight: 600;
-        font-size: 0.95em;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        position: sticky;
-        top: 0;
-        z-index: 1001;
-        animation: pulse 2s ease-in-out infinite;
-      }
-      
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.9; }
-      }
-      
-      .disclaimer-banner strong {
-        font-size: 1.1em;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-      
-      .educational-notice {
-        background: rgba(255, 193, 7, 0.15);
-        border: 2px solid #ffc107;
-        border-radius: 12px;
-        padding: 25px;
-        margin: 20px 0;
-        color: #ffc107;
-      }
-      
-      .educational-notice h3 {
-        color: #ffc107;
-        margin-top: 0;
-        font-size: 1.4em;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      
-      .educational-notice ul {
-        color: rgba(255, 255, 255, 0.85);
-        line-height: 1.8;
-      }
-      
-      .testing-badge {
-        display: inline-block;
-        background: #ff9800;
-        color: white;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.8em;
-        font-weight: 700;
-        margin-left: 10px;
-        animation: blink 1.5s ease-in-out infinite;
-      }
-      
-      @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
-      }
-    "))
+    use_waiter()
   ),
   
   # ⚠️ DISCLAIMER BANNER (Top Priority)
   div(class = "disclaimer-banner",
       "⚠️ ",
       strong("EDUCATIONAL & TESTING PURPOSE ONLY"),
-      " | This website is under construction and for statistical analysis demonstration purposes only | No real gambling services provided"
+      " | This website is under construction and for statistical analysis demonstration purposes only"
   ),
   
   # Professional Header
@@ -170,7 +102,7 @@ ui <- page_fluid(
       div(id = "analyzer",
           layout_sidebar(
             sidebar = sidebar(
-              width = 320,
+              width = 300,
               class = "control-panel",
               h3("Analysis Settings", style = "margin-top: 0; color: #e8eaed;"),
               lotteryInputUI("inputs1")

@@ -50,6 +50,18 @@ ballsMetricUI <- function(id) {
 ballsMetricServer <- function(id, filtered_data, input_controls) {
   moduleServer(id, function(input, output, session) {
     
+    
+    # Define consistent colors for each ball (hex codes)
+    ball_colors <- c(
+      "Ball 1" = "#4169E1",  # royal blue
+      "Ball 2" = "#DC143C",  # crimson red
+      "Ball 3" = "#32CD32",  # lime green
+      "Ball 4" = "#FFD700",  # gold/yellow
+      "Ball 5" = "#9370DB",  # medium purple
+      "Ball 6" = "#00CED1"   # dark cyan
+    )
+    
+    
     create_metric_card <- function(title, value, value_symbol) {
       div(
         class = "metric-card",

@@ -79,6 +79,9 @@ sumsMetricUI <- function(id) {
 sumsMetricServer <- function(id, filtered_data) {
   moduleServer(id, function(input, output, session) {
     
+    
+
+    
     # Calculate sum statistics
     sum_stats <- reactive({
       data <- filtered_data()

@@ -1,5 +1,5 @@
-current_script_path <- rstudioapi::getActiveDocumentContext()$path
-script_folder <- dirname(current_script_path)
+# Source main files
+script_folder <- "."
 data_path <- file.path(script_folder,'data',"LOTTO_ab_2018.csv")
 
 

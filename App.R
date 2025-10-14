@@ -8,6 +8,8 @@ library(plotly)
 library(waiter)
 library(tidyr)
 library(purrr)
+library(DT)
+
 
 
 

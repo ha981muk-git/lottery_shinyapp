@@ -1,11 +1,12 @@
 /* ============================================
-   OPTIMIZED DASHBOARD CSS - All Functionality Preserved
+   OPTIMIZED RESPONSIVE DASHBOARD CSS
+   All devices supported (desktop, tablet, mobile)
    ============================================ */
 
 /* ========== CRITICAL SIDEBAR FIX (TOP PRIORITY) ========== */
 .bslib-sidebar-layout {
   display: grid !important;
-  grid-template-columns: 300px 1fr !important;
+  grid-template-columns: minmax(260px, 25%) 1fr !important;
   gap: 20px !important;
   align-items: start !important;
 }
@@ -136,9 +137,10 @@ body {
 
 /* ========== MAIN CONTENT ========== */
 .main-content {
+  width: 100%;
   max-width: 1400px;
   margin: 40px auto;
-  padding: 0 30px;
+  padding: clamp(15px, 4vw, 40px);
   min-height: calc(100vh - 400px);
 }
 
@@ -192,7 +194,7 @@ body {
   animation: blink 1.5s ease-in-out infinite;
 }
 
-/* ========== CARDS (Unified) ========== */
+/* ========== CARDS ========== */
 .metric-card,
 .chart-card,
 .content-card,
@@ -532,7 +534,13 @@ table.dataTable.stripe tbody tr.odd:hover {
   font-size: 0.85em;
 }
 
-/* ========== LAYOUT UTILITIES ========== */
+/* ========== GRID & FLEX UTILITIES ========== */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
 [class*="bslib-grid"] {
   gap: 20px !important;
   margin-bottom: 20px;
@@ -541,6 +549,8 @@ table.dataTable.stripe tbody tr.odd:hover {
 .plotly,
 .js-plotly-plot {
   width: 100% !important;
+  height: auto !important;
+  max-height: 70vh !important;
 }
 
 .content-card + .content-card {
@@ -556,37 +566,50 @@ div[style*="display: flex"] {
   flex-wrap: wrap;
 }
 
-/* ========== RESPONSIVE ========== */
+/* ========== RESPONSIVE DESIGN ========== */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 1200px) {
+  html { font-size: 15px; }
+}
+
+@media (max-width: 1024px) {
+  .bslib-sidebar-layout { grid-template-columns: 220px 1fr !important; }
+}
+
 @media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    gap: 20px;
+  html { font-size: 14px; }
+  .header-content { flex-direction: column; gap: 20px; }
+  .header-nav { flex-wrap: wrap; justify-content: center; }
+  .footer-sections { grid-template-columns: 1fr; }
+  .main-content, .content-card { padding: 20px 15px; }
+  .bslib-sidebar-layout { grid-template-columns: 1fr !important; }
+  .bslib-sidebar-layout > .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 75%;
+    height: 100%;
+    background: #1a1f3a;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
   }
-  
-  .header-nav {
-    flex-wrap: wrap;
-    justify-content: center;
+  .bslib-sidebar-layout[data-sidebar-open="true"] > .sidebar {
+    transform: translateX(0);
   }
-  
-  .footer-sections {
-    grid-template-columns: 1fr;
-  }
-  
-  .main-content,
-  .content-card {
-    padding: 20px 15px;
-  }
-  
-  .value-box-value {
-    font-size: 1.5rem;
-  }
-  
-  .btn-action {
-    width: 100%;
-  }
-  
-  .bslib-sidebar-layout {
-    grid-template-columns: 1fr !important;
+  .btn-action { width: 100%; padding: 14px 18px; font-size: 1rem; }
+  .value-box-value { font-size: 1.5rem; }
+}
+
+@media (max-width: 480px) {
+  html { font-size: 13px; }
+  .header-content, .footer-content { padding: 0 15px; }
+  .chart-title, .card-title { font-size: 1.2rem; }
+  table.dataTable td:nth-child(n+4),
+  table.dataTable th:nth-child(n+4) {
+    display: none;
   }
 }
 
@@ -597,11 +620,7 @@ div[style*="display: flex"] {
   .disclaimer-banner {
     display: none;
   }
-  
-  body {
-    background: white;
-  }
-  
+  body { background: white; }
   .content-card,
   .chart-card,
   .value-box-custom {

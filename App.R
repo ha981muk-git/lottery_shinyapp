@@ -78,49 +78,74 @@ ui <- fluidPage(
   
   # Include CSS, JS libraries
   tags$head(
-#    tags$link(rel = "stylesheet", type = "text/css", href = "Dashboard.css"),
+    tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
     tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
     useShinyjs(),
     use_waiter(),
     
-    # ✅ CRITICAL FIX: Force remove sidebar overlay
+    # Fix sidebar overlay
     tags$script(HTML("
-    $(document).ready(function() {
-      // Remove all overlay effects immediately
-      function fixSidebarOverlay() {
-        $('.bslib-sidebar-layout > .main').css({
-          'opacity': '1',
-          'filter': 'none',
-          'pointer-events': 'auto',
-          'transition': 'none'
-        });
-        
-        // Remove any backdrop elements
-        $('.sidebar-backdrop, .bslib-sidebar-backdrop').remove();
-        
-        // Ensure sidebar doesn't overlap
-        $('.bslib-sidebar-layout').css({
-          'display': 'grid',
-          'grid-template-columns': 'auto 1fr',
-          'gap': '20px'
-        });
-      }
-      
-      // Run immediately and after any changes
-      fixSidebarOverlay();
-      setTimeout(fixSidebarOverlay, 100);
-      setTimeout(fixSidebarOverlay, 500);
-      
-      // Watch for sidebar changes
-      var observer = new MutationObserver(fixSidebarOverlay);
-      observer.observe(document.body, { 
-        childList: true, 
-        subtree: true, 
-        attributes: true,
-        attributeFilter: ['class', 'style']
+      $(document).ready(function() {
+        function fixSidebarOverlay() {
+          $('.bslib-sidebar-layout > .main').css({
+            'opacity': '1',
+            'filter': 'none',
+            'pointer-events': 'auto',
+            'transition': 'none'
+          });
+          $('.sidebar-backdrop, .bslib-sidebar-backdrop').remove();
+          $('.bslib-sidebar-layout').css({
+            'display': 'grid',
+            'grid-template-columns': 'auto 1fr',
+            'gap': '20px'
+          });
+        }
+        fixSidebarOverlay();
+        setTimeout(fixSidebarOverlay, 100);
+        setTimeout(fixSidebarOverlay, 500);
+        const observer = new MutationObserver(fixSidebarOverlay);
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
       });
-    });
-  "))
+    ")),
+    
+    # ✅ Add responsive sidebar toggle
+    tags$script(HTML("
+      $(document).ready(function() {
+        const toggleButton = $('<button class=\"sidebar-toggle-btn\">☰ Menu</button>')
+          .css({
+            position: 'fixed',
+            top: '15px',
+            left: '15px',
+            background: '#8b5cf6',
+            color: '#fff',
+            border: 'none',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            fontSize: '18px',
+            cursor: 'pointer',
+            zIndex: 2000,
+            display: 'none'
+          })
+          .appendTo('body')
+          .on('click', function() {
+            const layout = document.querySelector('.bslib-sidebar-layout');
+            if (layout) {
+              const open = layout.dataset.sidebarOpen === 'true';
+              layout.dataset.sidebarOpen = !open;
+            }
+          });
+
+        function checkScreen() {
+          if (window.innerWidth < 768) {
+            toggleButton.show();
+          } else {
+            toggleButton.hide();
+          }
+        }
+        checkScreen();
+        $(window).on('resize', checkScreen);
+      });
+    "))
   ),
   
   

@@ -113,7 +113,7 @@ dashboardServer <- function(id, input_controls) {
     draws_per_week <- 2
     
     # Increase debounce for better performance
-    debounced_range <- reactive(input_controls()$range) %>% debounce(500)
+    debounced_range <- reactive(input_controls()$range) %>% debounce(200)
     
     # Use eventReactive for more controlled updates
     filtered_data <- eventReactive(

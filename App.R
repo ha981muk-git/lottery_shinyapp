@@ -227,7 +227,7 @@ ui <- fluidPage(
               div(class = "footer-section",
                   h3("About This Project"),
                   p(strong("Educational & Testing Only")),
-                  p("Professional analysis tools for demonstrating statistical methods with Lotto 6aus49 data. Based on historical data and modern statistical approaches."),
+                  p("Professional analysis tools for demonstrating statistical methods with public Lotto 6aus49 data. Based on historical data and modern statistical approaches."),
                   p(style = "color: #ffc107; font-weight: 600;", 
                     "⚠️ Under Construction - Testing Phase")
               ),

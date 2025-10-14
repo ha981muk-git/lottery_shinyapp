@@ -1,3 +1,41 @@
+/* CRITICAL OVERRIDE - Place at the TOP of Dashboard.css */
+.bslib-sidebar-layout {
+  display: grid !important;
+  grid-template-columns: 300px 1fr !important;
+  gap: 20px !important;
+  align-items: start !important;
+}
+
+.bslib-sidebar-layout > .sidebar {
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.bslib-sidebar-layout > .main {
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+  transition: none !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Remove ALL backdrop/overlay elements */
+.sidebar-backdrop,
+.bslib-sidebar-backdrop,
+.bslib-sidebar-layout::before,
+.bslib-sidebar-layout::after {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  background: none !important;
+}
+
+/* Ensure main content is always visible */
+.bslib-sidebar-layout .main > * {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
 /* ============================================
    COMBINED DASHBOARD + HOME CSS
    ============================================ */
@@ -454,22 +492,89 @@ label {
 }
 
 /* ========== SIDEBAR LAYOUT ========== */
+/* ========== CRITICAL SIDEBAR FIX ========== */
+/* Remove the sidebar overlay/backdrop that covers content */
+.bslib-sidebar-layout:not(.sidebar-collapsed) > .main {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure sidebar doesn't create overlay on main content */
+.bslib-sidebar-layout > .main {
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+}
+
+/* Remove any backdrop/overlay effects */
+.sidebar-backdrop,
+.bslib-sidebar-backdrop {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Ensure main content is always visible */
+.bslib-sidebar-layout .main > * {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for when sidebar is open */
+.bslib-sidebar-layout:not([data-bslib-sidebar-open="false"]) > .main {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Remove transition effects that might cause opacity issues */
+.bslib-sidebar-layout > .main {
+  transition: none !important;
+}
+
+/* ========== BSLIB LAYOUT COLUMN WRAP FIX ========== */
+/* ========== SIDEBAR LAYOUT FIX (COMPLETE) ========== */
 .bslib-sidebar-layout {
   gap: 25px;
 }
 
+/* CRITICAL: Remove sidebar overlay */
+.bslib-sidebar-layout > .main,
+.bslib-sidebar-layout:not(.sidebar-collapsed) > .main,
+.bslib-sidebar-layout[data-bslib-sidebar-open="always"] > .main,
+.bslib-sidebar-layout[data-bslib-sidebar-open="desktop"] > .main {
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+  transition: none !important;
+}
+
+/* Remove backdrop */
+.sidebar-backdrop,
+.bslib-sidebar-backdrop,
+.bslib-sidebar-layout::before {
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+}
+
+/* Ensure content is always visible */
+.bslib-sidebar-layout .main > *,
+.bslib-sidebar-layout .main {
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: transparent !important;
+}
+
 /* ========== BSLIB LAYOUT COLUMN WRAP FIX ========== */
-/* Fix spacing for layout_column_wrap in R Shiny */
 [class*="bslib-grid"] {
   gap: 20px !important;
   margin-bottom: 20px;
 }
 
 .bslib-grid > * {
-  min-width: 0; /* Prevent overflow */
+  min-width: 0;
 }
 
-/* Ensure proper spacing for nested layouts */
 div[style*="padding: 20px"] > div[class*="bslib"] {
   margin-bottom: 20px;
 }

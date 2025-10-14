@@ -79,25 +79,51 @@ ui <- fluidPage(
   
   # Include CSS, JS libraries
   tags$head(
-    # ✅ Keep Dashboard.css (DARK theme)
-    tags$link(rel = "stylesheet", type = "text/css", href = "Dashboard.css"),
+#    tags$link(rel = "stylesheet", type = "text/css", href = "Dashboard.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
-    
     useShinyjs(),
     use_waiter(),
-    # Google Translate scripts
-      tags$script(HTML('
-      function googleTranslateElementInit() {
-        new google.translate.TranslateElement({
-          pageLanguage: "en",
-          includedLanguages: "es,fr,de,hi,zh-CN",
-          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-        }, "google_translate_element");
+    
+    # ✅ CRITICAL FIX: Force remove sidebar overlay
+    tags$script(HTML("
+    $(document).ready(function() {
+      // Remove all overlay effects immediately
+      function fixSidebarOverlay() {
+        $('.bslib-sidebar-layout > .main').css({
+          'opacity': '1',
+          'filter': 'none',
+          'pointer-events': 'auto',
+          'transition': 'none'
+        });
+        
+        // Remove any backdrop elements
+        $('.sidebar-backdrop, .bslib-sidebar-backdrop').remove();
+        
+        // Ensure sidebar doesn't overlap
+        $('.bslib-sidebar-layout').css({
+          'display': 'grid',
+          'grid-template-columns': 'auto 1fr',
+          'gap': '20px'
+        });
       }
-    ')),
-      tags$script(src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit")
-
+      
+      // Run immediately and after any changes
+      fixSidebarOverlay();
+      setTimeout(fixSidebarOverlay, 100);
+      setTimeout(fixSidebarOverlay, 500);
+      
+      // Watch for sidebar changes
+      var observer = new MutationObserver(fixSidebarOverlay);
+      observer.observe(document.body, { 
+        childList: true, 
+        subtree: true, 
+        attributes: true,
+        attributeFilter: ['class', 'style']
+      });
+    });
+  "))
   ),
+  
   
   # ⚠️ DISCLAIMER BANNER (Top Priority)
   # div(class = "disclaimer-banner",
@@ -135,20 +161,24 @@ ui <- fluidPage(
       # ),
       
       # Main Analyzer Section
-      div(id = "analyzer",
-          layout_sidebar(
-            sidebar = sidebar(
-              width = 300,
-              class = "control-panel",
-              h3("Analysis Settings", style = "margin-top: 0; color: #e8eaed;"),
-              lotteryInputUI("inputs1")
-            ),
-            div(
-              style = "padding: 20px;",
-              uiOutput("dashboard1-metricContent")
-            ),
-            fillable = FALSE
-          )
+      layout_sidebar(
+        sidebar = sidebar(
+          width = 300,
+          class = "control-panel",
+          open = "desktop",  # Keep this
+          position = "left",  # ✅ ADD THIS
+          max_height_mobile = NULL,  # ✅ ADD THIS
+          h3("Analysis Settings", style = "margin-top: 0; color: #e8eaed;"),
+          lotteryInputUI("inputs1")
+        ),
+        # Main content
+        div(
+          style = "padding: 20px; min-height: 100vh;",  # ✅ Changed padding
+          uiOutput("dashboard1-metricContent")
+        ),
+        fillable = FALSE,
+        border = FALSE,  # ✅ ADD THIS
+        border_radius = FALSE  # ✅ ADD THIS
       ),
       
       # Educational Notice (Prominent)
@@ -227,7 +257,7 @@ ui <- fluidPage(
               div(class = "footer-section",
                   h3("Important Information"),
                   p("Project Type: Educational/Academic"),
-                  p("Status: Under Construction (Testing)"),
+                  p("Status: Under Construction (Testing)")
                   # p(strong("Responsible Gaming:")),
                   # p(style = "font-size: 0.9em;", "This site is for educational purposes only. We do not encourage gambling. If you have gambling problems, seek help:"),
                   # p(style = "font-size: 0.85em;", "🇩🇪 BZgA: 0800 1 37 27 00")

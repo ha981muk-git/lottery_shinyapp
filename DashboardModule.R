@@ -15,10 +15,10 @@ lotteryInputUI <- function(id) {
   metric_choices <- c(
     "Balls" = "balls", 
     "Sums" = "sums",
-    "Odds Evens" = "odds_evens"
-#    "Tables" = "table",
-#    "Difference" = "difference",
-#    "Lag" = "lag"
+    "Odds Evens" = "odds_evens",
+    "Tables" = "table",
+    "Difference" = "difference",
+    "Lag" = "lag"
   )
   
   tagList(
@@ -118,10 +118,10 @@ dashboardServer <- function(id, input_controls) {
     
     metric_list <- list(
       sums = sumsMetricServer,
-      odds_evens = oddsEvensMetricServer
-#      table = tableMetricServer,
-#      difference = differenceMetricServer,
-#      lag = lagMetricServer
+      odds_evens = oddsEvensMetricServer,
+      table = tableMetricServer,
+      difference = differenceMetricServer,
+      lag = lagMetricServer
     )
     
     lapply(names(metric_list), function(name) {
@@ -141,10 +141,10 @@ dashboardServer <- function(id, input_controls) {
     ui_list <- list(
       balls = ballsMetricUI,
       sums = sumsMetricUI,
-      odds_evens = oddsEvensMetricUI
-#      table = tableMetricUI,
-#      difference = differenceMetricUI,
-#      lag = lagMetricUI
+      odds_evens = oddsEvensMetricUI,
+      table = tableMetricUI,
+      difference = differenceMetricUI,
+      lag = lagMetricUI
     )
     
     output$metricContent <- renderUI({

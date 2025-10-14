@@ -65,15 +65,44 @@ lotteryInputServer <- function(id) {
 }
 
 
-# IMPROVED VERSION - Initialize all servers once
+# UI Module - Add all metric UIs at once
+dashboardUI <- function(id) {
+  ns <- NS(id)
+  
+  tagList(
+    # Container for all metrics (all pre-rendered, hidden via CSS)
+    div(id = ns("metricsContainer"),
+        div(id = ns("metric-balls"), 
+            style = "display: none;",
+            ballsMetricUI(ns("balls"))),
+        
+        div(id = ns("metric-sums"), 
+            style = "display: none;",
+            sumsMetricUI(ns("sums"))),
+        
+        div(id = ns("metric-odds_evens"), 
+            style = "display: none;",
+            oddsEvensMetricUI(ns("odds_evens"))),
+        
+        div(id = ns("metric-table"), 
+            style = "display: none;",
+            tableMetricUI(ns("table"))),
+        
+        div(id = ns("metric-difference"), 
+            style = "display: none;",
+            differenceMetricUI(ns("difference"))),
+        
+        div(id = ns("metric-lag"), 
+            style = "display: none;",
+            lagMetricUI(ns("lag")))
+    )
+  )
+}
+
+# Server Module - Toggle visibility instead of rebuilding
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    
-    # Ensure input_controls() is available before anything else
-    
-    
-    
     # Metrics data reactive
     metrics_data <- reactive({
       req(input_controls())
@@ -82,82 +111,66 @@ dashboardServer <- function(id, input_controls) {
     })
     
     draws_per_week <- 2
-    # wait for 500ms
-    debounced_range <- reactive(input_controls()$range) %>% debounce(300)
     
+    # Increase debounce for better performance
+    debounced_range <- reactive(input_controls()$range) %>% debounce(500)
     
-    # observe({
-    #   cat("Debounced range:", debounced_range(), "\n")
-    # })
+    # Use eventReactive for more controlled updates
+    filtered_data <- eventReactive(
+      c(input_controls()$refresh, 
+        input_controls()$timeRange, 
+        debounced_range()),
+      {
+        data <- metrics_data()
+        req(!is.null(data) && nrow(data) > 0)
+        
+        weeks <- as.numeric(input_controls()$timeRange)
+        days <- weeks * draws_per_week
+        data <- tail(data, min(days, nrow(data)))
+        
+        range_vals <- debounced_range()
+        num_from <- as.numeric(range_vals[1])
+        num_to <- as.numeric(range_vals[2])
+        
+        data <- data %>%
+          filter(ball_1 >= num_from & ball_6 <= num_to)
+        
+        req(nrow(data) > 0)
+        data
+      },
+      ignoreNULL = TRUE
+    )
     
-    # Filtered data reactive (shared across all metrics)
-    filtered_data <- reactive({
-      data <- metrics_data()
-      # ensure data is valid and non-empty
-      req(!is.null(data) && nrow(data) > 0) 
-      
-      weeks <- as.numeric(input_controls()$timeRange)
-      days <- weeks * draws_per_week
-      data <- tail(data, min(days, nrow(data)))
-      
-      range_vals <- debounced_range()
-      num_from <- as.numeric(range_vals[1])
-      num_to <- as.numeric(range_vals[2])
-      
-      data <- data %>%
-        filter(ball_1 >= num_from & ball_6 <= num_to)
-      
-      req(nrow(data) > 0)
-      
-      data
-      
-    })
-    
-    # ✅ INITIALIZE ALL SERVERS ONCE (not in observe)
+    # Initialize all metric servers once
     ballsMetricServer("balls", filtered_data, input_controls)
+    sumsMetricServer("sums", filtered_data)
+    oddsEvensMetricServer("odds_evens", filtered_data)
+    tableMetricServer("table", filtered_data)
+    differenceMetricServer("difference", filtered_data)
+    lagMetricServer("lag", filtered_data)
     
-    metric_list <- list(
-      sums = sumsMetricServer,
-      odds_evens = oddsEvensMetricServer,
-      table = tableMetricServer,
-      difference = differenceMetricServer,
-      lag = lagMetricServer
-    )
-    
-    lapply(names(metric_list), function(name) {
-      metric_list[[name]](name, filtered_data)
-    })
-    
-    
-    # Dynamic UI rendering based on selected metric
-    # Match output ID in dashboardServer
-    # In dashboardServer, you currently have:
-    # output$metricContent <- renderUI({ ... })
-    # But in the UI, the ID is now "dashboard1-metricContent".
-    # These must match exactly.
-    # This ensures the top-level uiOutput() and server renderUI() match.
-    
-    
-    ui_list <- list(
-      balls = ballsMetricUI,
-      sums = sumsMetricUI,
-      odds_evens = oddsEvensMetricUI,
-      table = tableMetricUI,
-      difference = differenceMetricUI,
-      lag = lagMetricUI
-    )
-    
-    output$metricContent <- renderUI({
+    # Toggle visibility based on selected metric (NO UI REBUILD!)
+    observeEvent(input_controls()$metric, {
       req(input_controls()$metric)
       metric <- input_controls()$metric
       
-      if (!metric %in% names(ui_list)) {
-        return(div("Invalid metric selected"))
-      }
+      # Hide all metrics
+      all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       
-      ui_list[[metric]](ns(metric))
-    })
+      lapply(all_metrics, function(m) {
+        shinyjs::hide(id = paste0("metric-", m))
+      })
+      
+      # Show selected metric
+      shinyjs::show(id = paste0("metric-", metric))
+    }, ignoreNULL = TRUE, ignoreInit = FALSE)
     
+    # Show initial metric on load
+    observe({
+      req(input_controls()$metric)
+      shinyjs::show(id = paste0("metric-", input_controls()$metric))
+    }) %>% 
+      bindEvent(input_controls()$metric, once = TRUE)
     
   })
 }

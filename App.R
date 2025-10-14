@@ -173,7 +173,8 @@ ui <- fluidPage(
         # Main content
         div(
           style = "padding: 20px; min-height: 100vh;",  # ✅ Changed padding
-          uiOutput("dashboard1-metricContent")
+          # NEW (fast):
+          dashboardUI("dashboard1")
         ),
         fillable = FALSE,
         border = FALSE,  # ✅ ADD THIS

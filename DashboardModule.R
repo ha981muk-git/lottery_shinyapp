@@ -29,7 +29,7 @@ lotteryInputUI <- function(id) {
     ),
     sliderInput(ns("range"), "Ball Range", min = 1, max = 49, value = c(1,49), step = 1),
     selectInput(ns("metric"), "Analysis Type", choices = metric_choices, selected = "balls"),
-    selectInput(ns("timeRange"), "Time Window", choices = time_choices, selected = 60),
+    selectInput(ns("timeRange"), "Time Window", choices = time_choices, selected = 30),
     actionButton(ns("refresh"), "Refresh Data", class = "btn-primary w-100",
                  style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;")
   )
@@ -46,7 +46,7 @@ lotteryInputServer <- function(id) {
       maxVal <- input$range[2]
       
       if ((maxVal - minVal) < minDistance) {
-        maxVal <- min(minVal + minDistance, 50)
+        maxVal <- min(minVal + minDistance, 49)
         minVal <- maxVal - minDistance
         updateSliderInput(session, "range", value = c(minVal, maxVal))
       }

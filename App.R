@@ -12,6 +12,8 @@ library(purrr)
 
 
 
+
+
 # ---------- UI helper theme ----------
 app_theme <- bs_theme(
   version = 5,
@@ -98,11 +100,11 @@ ui <- fluidPage(
   ),
   
   # ⚠️ DISCLAIMER BANNER (Top Priority)
-  div(class = "disclaimer-banner",
-      "⚠️ ",
-      strong("EDUCATIONAL & TESTING PURPOSE ONLY"),
-      " | This website is under construction and for statistical analysis demonstration purposes only"
-  ),
+  # div(class = "disclaimer-banner",
+  #     "⚠️ ",
+  #     strong("EDUCATIONAL & TESTING PURPOSE ONLY"),
+  #     " | This website is under construction and for statistical analysis demonstration purposes only"
+  # ),
   
   # Professional Header
   div(class = "professional-header",
@@ -127,10 +129,10 @@ ui <- fluidPage(
   # Main Content
   div(class = "main-content",
       # Welcome Section
-      div(class = "welcome-section",
-          h2("Welcome to 6/49 Statistical Visualization"),
-          p(strong("Educational Platform:"), " Discover the power of data analysis for understanding lottery number patterns. This professional tool provides insights into historical draws, frequency analysis, and pattern recognition using statistical methods."),
-      ),
+      # div(class = "welcome-section",
+      #     h2("Welcome to 6/49 Statistical Visualization"),
+      #     p(strong("Educational Platform:"), " Discover the power of data analysis for understanding lottery number patterns. This professional tool provides insights into historical draws, frequency analysis, and pattern recognition using statistical methods."),
+      # ),
       
       # Main Analyzer Section
       div(id = "analyzer",
@@ -226,9 +228,9 @@ ui <- fluidPage(
                   h3("Important Information"),
                   p("Project Type: Educational/Academic"),
                   p("Status: Under Construction (Testing)"),
-                  p(strong("Responsible Gaming:")),
-                  p(style = "font-size: 0.9em;", "This site is for educational purposes only. We do not encourage gambling. If you have gambling problems, seek help:"),
-                  p(style = "font-size: 0.85em;", "🇩🇪 BZgA: 0800 1 37 27 00")
+                  # p(strong("Responsible Gaming:")),
+                  # p(style = "font-size: 0.9em;", "This site is for educational purposes only. We do not encourage gambling. If you have gambling problems, seek help:"),
+                  # p(style = "font-size: 0.85em;", "🇩🇪 BZgA: 0800 1 37 27 00")
               )
           ),
           div(class = "footer-bottom",

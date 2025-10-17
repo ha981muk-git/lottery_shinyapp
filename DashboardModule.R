@@ -154,7 +154,6 @@ dashboardServer <- function(id, input_controls) {
     # ============ OPTIMIZED BACKGROUND INITIALIZATION ============
     
     initialized_servers <- reactiveVal(list())
-    loading_notification <- reactiveVal(NULL)
     
     initialize_server <- function(metric, show_message = TRUE) {
       already_init <- initialized_servers()
@@ -196,7 +195,7 @@ dashboardServer <- function(id, input_controls) {
       
     }) %>% bindEvent(input_controls()$metric, once = TRUE)
     
-    # 2. Background loading with notification
+    # 2. Background loading (silent - no notifications)
     observe({
       req(input_controls()$metric)
       first_metric <- input_controls()$metric
@@ -206,36 +205,13 @@ dashboardServer <- function(id, input_controls) {
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       other_metrics <- setdiff(all_metrics, first_metric)
       
-      # Show subtle notification
-      notif_id <- showNotification(
-        tagList(
-          icon("sync", class = "fa-spin"),
-          " Loading additional metrics..."
-        ),
-        duration = NULL,
-        closeButton = FALSE,
-        type = "message"
-      )
-      loading_notification(notif_id)
-      
       cat("🔄 Background loading remaining metrics...\n")
       
-      # Load other metrics
+      # Load other metrics silently
       for (m in other_metrics) {
         initialize_server(m, show_message = FALSE)
         Sys.sleep(0.08)  # Slightly faster than 0.1s
       }
-      
-      # Update notification
-      removeNotification(notif_id)
-      showNotification(
-        tagList(
-          icon("check-circle"),
-          " All metrics ready!"
-        ),
-        duration = 2,
-        type = "message"
-      )
       
       cat("✅ All metrics ready!\n")
       

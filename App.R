@@ -29,7 +29,6 @@ app_theme <- bs_theme(
 )
 
 
-
 # Source main files
 script_folder <- "."
 

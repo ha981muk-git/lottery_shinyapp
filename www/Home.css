@@ -628,3 +628,17 @@ html {
     break-inside: avoid;
   }
 }
+
+/* ========== SKELETON LOADER ========== */
+@keyframes shimmer {
+  0% { 
+    background-position: 200% 0; 
+  }
+  100% { 
+    background-position: -200% 0; 
+  }
+}
+
+.skeleton-card {
+  animation: shimmer 1.5s infinite;
+}

@@ -1,5 +1,3 @@
-
-
 # ui module
 lotteryInputUI <- function(id) {
   ns <- NS(id)
@@ -41,6 +39,7 @@ lotteryInputServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     minDistance <- 6
     
+    # Debounce slider updates
     observeEvent(input$range, {
       minVal <- input$range[1]
       maxVal <- input$range[2]
@@ -51,27 +50,42 @@ lotteryInputServer <- function(id) {
         updateSliderInput(session, "range", value = c(minVal, maxVal))
       }
     })
+    
+    # Throttle refresh button to prevent spam
+    refresh_throttled <- reactive({
+      input$refresh
+    }) %>% throttle(500)  # Max once per 500ms
+    
     return(reactive({
       list(
         range = input$range,
         metric = input$metric,
         timeRange = input$timeRange,
-        refresh = input$refresh
+        refresh = refresh_throttled()  # Use throttled version
       )
     }))
-    
-  
   })
 }
 
 
-# UI Module - Add all metric UIs at once
+# UI Module - Add all metric UIs at once with skeleton loader
 dashboardUI <- function(id) {
   ns <- NS(id)
   
   tagList(
+    # Skeleton for initial load
+    div(id = ns("skeleton-loader"),
+        style = "padding: 20px;",
+        div(class = "skeleton-card",
+            style = "height: 200px; background: linear-gradient(90deg, rgba(139,92,246,0.1) 25%, rgba(139,92,246,0.2) 50%, rgba(139,92,246,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; margin-bottom: 20px;"),
+        div(class = "skeleton-card",
+            style = "height: 300px; background: linear-gradient(90deg, rgba(139,92,246,0.1) 25%, rgba(139,92,246,0.2) 50%, rgba(139,92,246,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px;")
+    ),
+    
     # Container for all metrics (all pre-rendered, hidden via CSS)
     div(id = ns("metricsContainer"),
+        style = "display: none;",  # Hidden until first metric loads
+        
         div(id = ns("metric-balls"), 
             style = "display: none;",
             ballsMetricUI(ns("balls"))),
@@ -99,17 +113,13 @@ dashboardUI <- function(id) {
   )
 }
 
-# Server Module - Toggle visibility instead of rebuilding
+# Server Module - Optimized with background loading
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    # Metrics data reactive
-    metrics_data <- reactive({
-      req(input_controls())
-      input_controls()$refresh
-      generate_metrics()
-    })
     
+    # Cache the data generation
+    metrics_data <- generate_metrics()
     draws_per_week <- 2
     
     # Increase debounce for better performance
@@ -121,7 +131,7 @@ dashboardServer <- function(id, input_controls) {
         input_controls()$timeRange, 
         debounced_range()),
       {
-        data <- metrics_data()
+        data <- metrics_data
         req(!is.null(data) && nrow(data) > 0)
         
         weeks <- as.numeric(input_controls()$timeRange)
@@ -141,36 +151,117 @@ dashboardServer <- function(id, input_controls) {
       ignoreNULL = TRUE
     )
     
-    # Initialize all metric servers once
-    ballsMetricServer("balls", filtered_data, input_controls)
-    sumsMetricServer("sums", filtered_data)
-    oddsEvensMetricServer("odds_evens", filtered_data)
-    tableMetricServer("table", filtered_data)
-    differenceMetricServer("difference", filtered_data)
-    lagMetricServer("lag", filtered_data)
+    # ============ OPTIMIZED BACKGROUND INITIALIZATION ============
     
-    # Toggle visibility based on selected metric (NO UI REBUILD!)
+    initialized_servers <- reactiveVal(list())
+    loading_notification <- reactiveVal(NULL)
+    
+    initialize_server <- function(metric, show_message = TRUE) {
+      already_init <- initialized_servers()
+      if (metric %in% already_init) return()
+      
+      start_time <- Sys.time()
+      
+      if (show_message) {
+        cat("⏳ Loading:", metric, "...\n")
+      }
+      
+      switch(metric,
+             "balls" = ballsMetricServer("balls", filtered_data, input_controls),
+             "sums" = sumsMetricServer("sums", filtered_data),
+             "odds_evens" = oddsEvensMetricServer("odds_evens", filtered_data),
+             "table" = tableMetricServer("table", filtered_data),
+             "difference" = differenceMetricServer("difference", filtered_data),
+             "lag" = lagMetricServer("lag", filtered_data)
+      )
+      
+      elapsed <- round(as.numeric(Sys.time() - start_time, units = "secs"), 3)
+      
+      initialized_servers(c(already_init, metric))
+      cat(sprintf("✓ %s loaded in %s seconds\n", metric, elapsed))
+    }
+    
+    # 1. Initialize first metric + show container
+    observe({
+      req(input_controls()$metric)
+      metric <- input_controls()$metric
+      
+      # Hide skeleton, show metrics container
+      shinyjs::hide("skeleton-loader")
+      shinyjs::show("metricsContainer")
+      
+      # Load first metric
+      initialize_server(metric, show_message = TRUE)
+      shinyjs::show(id = paste0("metric-", metric))
+      
+    }) %>% bindEvent(input_controls()$metric, once = TRUE)
+    
+    # 2. Background loading with notification
+    observe({
+      req(input_controls()$metric)
+      first_metric <- input_controls()$metric
+      
+      invalidateLater(1000)
+      
+      all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
+      other_metrics <- setdiff(all_metrics, first_metric)
+      
+      # Show subtle notification
+      notif_id <- showNotification(
+        tagList(
+          icon("sync", class = "fa-spin"),
+          " Loading additional metrics..."
+        ),
+        duration = NULL,
+        closeButton = FALSE,
+        type = "message"
+      )
+      loading_notification(notif_id)
+      
+      cat("🔄 Background loading remaining metrics...\n")
+      
+      # Load other metrics
+      for (m in other_metrics) {
+        initialize_server(m, show_message = FALSE)
+        Sys.sleep(0.08)  # Slightly faster than 0.1s
+      }
+      
+      # Update notification
+      removeNotification(notif_id)
+      showNotification(
+        tagList(
+          icon("check-circle"),
+          " All metrics ready!"
+        ),
+        duration = 2,
+        type = "message"
+      )
+      
+      cat("✅ All metrics ready!\n")
+      
+    }) %>% bindEvent(input_controls()$metric, once = TRUE)
+    
+    # ============ END BACKGROUND INITIALIZATION ============
+    
+    # 3. Fast metric switching
     observeEvent(input_controls()$metric, {
       req(input_controls()$metric)
       metric <- input_controls()$metric
       
-      # Hide all metrics
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       
+      # Batch hide for better performance
       lapply(all_metrics, function(m) {
         shinyjs::hide(id = paste0("metric-", m))
       })
       
-      # Show selected metric
+      # Safety net: initialize if not loaded
+      initialize_server(metric, show_message = FALSE)
+      
+      # Show selected
       shinyjs::show(id = paste0("metric-", metric))
-    }, ignoreNULL = TRUE, ignoreInit = FALSE)
-    
-    # Show initial metric on load
-    observe({
-      req(input_controls()$metric)
-      shinyjs::show(id = paste0("metric-", input_controls()$metric))
-    }) %>% 
-      bindEvent(input_controls()$metric, once = TRUE)
+      
+    }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
   })
 }

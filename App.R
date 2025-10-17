@@ -196,7 +196,7 @@ ui <- fluidPage(
         ),
         # Main content
         div(
-          style = "padding: 20px; min-height: 100vh;",  # ✅ Changed padding
+          style = "padding: 0; min-height: 100vh;",  # Removed excessive padding
           # NEW (fast):
           dashboardUI("dashboard1")
         ),

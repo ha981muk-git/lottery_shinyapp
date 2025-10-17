@@ -546,12 +546,32 @@ table.dataTable.stripe tbody tr.odd:hover {
   margin-bottom: 20px;
 }
 
+* ========== PLOT SIZING - RESPONSIVE & BETTER PROPORTIONS ========== */
+/* ========== PLOT SIZING - RESPONSIVE & BETTER PROPORTIONS ========== */
 .plotly,
 .js-plotly-plot {
   width: 100% !important;
-  height: min(280px, 25vw) !important;
+  height: min(500px, 40vh) !important; /* Taller plots with viewport height */
+  min-height: 400px !important; /* Ensure minimum readable height */
 }
 
+/* Make chart cards take more space */
+.chart-card {
+  min-height: 450px;
+}
+
+/* For mobile - still readable */
+@media (max-width: 768px) {
+  .plotly,
+  .js-plotly-plot {
+    height: 350px !important;
+    min-height: 300px !important;
+  }
+  
+  .chart-card {
+    min-height: 380px;
+  }
+}
 .content-card + .content-card {
   margin-top: 20px;
 }

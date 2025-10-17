@@ -549,8 +549,7 @@ table.dataTable.stripe tbody tr.odd:hover {
 .plotly,
 .js-plotly-plot {
   width: 100% !important;
-  height: auto !important;
-  max-height: 70vh !important;
+  height: min(280px, 25vw) !important;
 }
 
 .content-card + .content-card {

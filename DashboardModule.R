@@ -1,34 +1,53 @@
 # ui module
-lotteryInputUI <- function(id) {
+lotteryInputUI <- function(id, lang = "de") {
   ns <- NS(id)
-  time_choices <- c(
-    "Last  7 Weeks" = 7,
-    "Last 30 Weeks" = 30,
-    "Last 60 Weeks" = 60,
-    "Last 90 Weeks" = 90,
-    "Last 120 Weeks" = 120,
-    "Last 150 Weeks" = 150,
-    "Last 180 Weeks" = 180
-  )
-  metric_choices <- c(
-    "Balls" = "balls", 
-    "Sums" = "sums",
-    "Odds Evens" = "odds_evens",
-    "Tables" = "table",
-    "Difference" = "difference",
-    "Lag" = "lag"
+  
+  # Dynamic choices based on language
+  time_choices <- setNames(
+    c(7, 30, 60, 90, 120, 150, 180),
+    c(t("time_last_7", lang),
+    t("time_last_30", lang),
+    t("time_last_60", lang),
+    t("time_last_90", lang),
+    t("time_last_120", lang),
+    t("time_last_150", lang),
+    t("time_last_180", lang)
+  ))
+  
+  # ✅ IMPORTANT: Also use setNames() for metric_choices
+  metric_choices <- setNames(
+    c("balls", "sums", "odds_evens", "table", "difference", "lag"),
+    c(
+      t("metric_balls", lang),
+      t("metric_sums", lang),
+      t("metric_odds_evens", lang),
+      t("metric_tables", lang),
+      t("metric_difference", lang),
+      t("metric_lag", lang)
+    )
   )
   
   tagList(
     div(style = "margin-bottom: 24px;",
         h4(style = "color: #e8eaed; margin-bottom: 8px;",
-           span(class = "status-dot"), "Live Dashboard"),
-        p(style = "color: rgba(255, 255, 255, 0.5); font-size: 0.875rem;", "Real-time analytics")
+           span(class = "status-dot"), t("input_live_dashboard", lang)),
+        p(style = "color: rgba(255, 255, 255, 0.5); font-size: 0.875rem;", 
+          t("input_realtime", lang))
     ),
-    sliderInput(ns("range"), "Ball Range", min = 1, max = 49, value = c(1,49), step = 1),
-    selectInput(ns("metric"), "Analysis Type", choices = metric_choices, selected = "balls"),
-    selectInput(ns("timeRange"), "Time Window", choices = time_choices, selected = 30),
-    actionButton(ns("refresh"), "Refresh Data", class = "btn-primary w-100",
+    sliderInput(ns("range"), 
+                t("input_ball_range", lang), 
+                min = 1, max = 49, value = c(1,49), step = 1),
+    selectInput(ns("metric"), 
+                t("input_analysis_type", lang), 
+                choices = metric_choices, 
+                selected = "balls"),
+    selectInput(ns("timeRange"), 
+                t("input_time_window", lang), 
+                choices = time_choices, 
+                selected = 30),
+    actionButton(ns("refresh"), 
+                 t("input_refresh", lang), 
+                 class = "btn-primary w-100",
                  style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;")
   )
 }

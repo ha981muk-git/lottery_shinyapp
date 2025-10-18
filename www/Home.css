@@ -660,3 +660,39 @@ html {
 .skeleton-card {
   animation: shimmer 1.5s infinite;
 }
+
+/* Language switches */
+
+.lang-switcher {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  gap: 5px;
+  background: rgba(139, 92, 246, 0.9);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+  
+.lang-btn {
+  background: transparent;
+  border: 2px solid rgba(255,255,255,0.3);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+.lang-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.6);
+}
+.lang-btn.active {
+  background: #fff;
+  color: #8b5cf6;
+  border-color: #fff;
+}

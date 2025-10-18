@@ -10,8 +10,8 @@ library(tidyr)
 library(purrr)
 library(DT)
 
-
-
+# ✅ Load translations
+source("translations.R")
 
 # ---------- UI helper theme ----------
 app_theme <- bs_theme(
@@ -28,11 +28,9 @@ app_theme <- bs_theme(
   heading_font = font_google("Poppins")
 )
 
-
 # Source main files
 script_folder <- "."
 
-# Source main scripts
 main_files <- c(
   "PrepareData.R",
   "DashboardModule.R"
@@ -48,7 +46,6 @@ lapply(main_files, function(f) {
   }
 })
 
-# Source all metric modules in the 'dashboard' folder
 metric_files <- list.files(
   path = file.path(script_folder, "dashboard"),
   pattern = "\\.R$",
@@ -61,261 +58,239 @@ lapply(metric_files, function(f) {
 })
 
 
-
-
-# -------------------------
-# Top-level UI: Lotto 6aus49 Dashboard
-# -------------------------
-# -------------------------
-# Single Page UI: Lotto 6aus49 Professional Website
-# -------------------------
-# -------------------------
-# Single Page UI: Lotto 6aus49 Educational/Testing Platform
-# -------------------------
-ui <- fluidPage(
-  theme = app_theme,
+# ============================================================================
+# UI - SEPARATE, with language parameter
+# ============================================================================
+ui <- function(request) {
+  # ✅ Get language from URL or default to German
+  query <- parseQueryString(request$QUERY_STRING)
+  LANG <- query$lang %||% "de"
   
-  # Include CSS, JS libraries
-  tags$head(
-    tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
-    tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
-    useShinyjs(),
-    use_waiter(),
+  fluidPage(
+    theme = app_theme,
     
-    # Fix sidebar overlay
-    tags$script(HTML("
-      $(document).ready(function() {
-        function fixSidebarOverlay() {
-          $('.bslib-sidebar-layout > .main').css({
-            'opacity': '1',
-            'filter': 'none',
-            'pointer-events': 'auto',
-            'transition': 'none'
-          });
-          $('.sidebar-backdrop, .bslib-sidebar-backdrop').remove();
-          $('.bslib-sidebar-layout').css({
-            'display': 'grid',
-            'grid-template-columns': 'auto 1fr',
-            'gap': '20px'
-          });
-        }
-        fixSidebarOverlay();
-        setTimeout(fixSidebarOverlay, 100);
-        setTimeout(fixSidebarOverlay, 500);
-        const observer = new MutationObserver(fixSidebarOverlay);
-        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
-      });
-    ")),
-    
-    # ✅ Add responsive sidebar toggle
-    tags$script(HTML("
-      $(document).ready(function() {
-        const toggleButton = $('<button class=\"sidebar-toggle-btn\">☰ Menu</button>')
-          .css({
-            position: 'fixed',
-            top: '15px',
-            left: '15px',
-            background: '#8b5cf6',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 14px',
-            borderRadius: '8px',
-            fontSize: '18px',
-            cursor: 'pointer',
-            zIndex: 2000,
-            display: 'none'
-          })
-          .appendTo('body')
-          .on('click', function() {
-            const layout = document.querySelector('.bslib-sidebar-layout');
-            if (layout) {
-              const open = layout.dataset.sidebarOpen === 'true';
-              layout.dataset.sidebarOpen = !open;
-            }
-          });
-
-        function checkScreen() {
-          if (window.innerWidth < 768) {
-            toggleButton.show();
-          } else {
-            toggleButton.hide();
+    tags$head(
+      tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
+      tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
+      useShinyjs(),
+      use_waiter(),
+      
+      # Fix sidebar overlay
+      tags$script(HTML("
+        $(document).ready(function() {
+          function fixSidebarOverlay() {
+            $('.bslib-sidebar-layout > .main').css({
+              'opacity': '1',
+              'filter': 'none',
+              'pointer-events': 'auto',
+              'transition': 'none'
+            });
+            $('.sidebar-backdrop, .bslib-sidebar-backdrop').remove();
+            $('.bslib-sidebar-layout').css({
+              'display': 'grid',
+              'grid-template-columns': 'auto 1fr',
+              'gap': '20px'
+            });
           }
-        }
-        checkScreen();
-        $(window).on('resize', checkScreen);
-      });
-    "))
-  ),
-  
-  
-  # ⚠️ DISCLAIMER BANNER (Top Priority)
-  # div(class = "disclaimer-banner",
-  #     "⚠️ ",
-  #     strong("EDUCATIONAL & TESTING PURPOSE ONLY"),
-  #     " | This website is under construction and for statistical analysis demonstration purposes only"
-  # ),
-  
-  # Professional Header
-  div(class = "professional-header",
-      div(class = "header-content",
-          div(class = "logo-section",
-              span("🎲", class = "logo-icon"),
-              div(class = "logo-text",
-                  h1("6/49 Statistical Visualization", 
-                     span(class = "testing-badge", "TESTING")),
-                  p("Statistical Analysis & Educational Platform")
-              )
-          ),
-          div(class = "header-nav",
-              a(href = "#", "Home"),
-              a(href = "#analyzer", "Analyzer"),
-              a(href = "#educational", "Educational Info"),
-              a(href = "#disclaimer", "Disclaimer")
-          )
-      )
-  ),
-  
-  # Main Content
-  div(class = "main-content",
-      # Welcome Section
-      # div(class = "welcome-section",
-      #     h2("Welcome to 6/49 Statistical Visualization"),
-      #     p(strong("Educational Platform:"), " Discover the power of data analysis for understanding lottery number patterns. This professional tool provides insights into historical draws, frequency analysis, and pattern recognition using statistical methods."),
-      # ),
+          fixSidebarOverlay();
+          setTimeout(fixSidebarOverlay, 100);
+          setTimeout(fixSidebarOverlay, 500);
+          const observer = new MutationObserver(fixSidebarOverlay);
+          observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+        });
+      ")),
       
-      # Main Analyzer Section
-      layout_sidebar(
-        sidebar = sidebar(
-          width = 300,
-          class = "control-panel",
-          open = "desktop",  # Keep this
-          position = "left",  # ✅ ADD THIS
-          max_height_mobile = NULL,  # ✅ ADD THIS
-          h3("Analysis Settings", style = "margin-top: 0; color: #e8eaed;"),
-          lotteryInputUI("inputs1")
+      # Responsive sidebar toggle
+      tags$script(HTML("
+        $(document).ready(function() {
+          const toggleButton = $('<button class=\"sidebar-toggle-btn\">☰ Menu</button>')
+            .css({
+              position: 'fixed',
+              top: '15px',
+              left: '15px',
+              background: '#8b5cf6',
+              color: '#fff',
+              border: 'none',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '18px',
+              cursor: 'pointer',
+              zIndex: 2000,
+              display: 'none'
+            })
+            .appendTo('body')
+            .on('click', function() {
+              const layout = document.querySelector('.bslib-sidebar-layout');
+              if (layout) {
+                const open = layout.dataset.sidebarOpen === 'true';
+                layout.dataset.sidebarOpen = !open;
+              }
+            });
+
+          function checkScreen() {
+            if (window.innerWidth < 768) {
+              toggleButton.show();
+            } else {
+              toggleButton.hide();
+            }
+          }
+          checkScreen();
+          $(window).on('resize', checkScreen);
+        });
+      "))
+    ),
+    
+    # ✅ Language switcher - updates URL to change language
+    div(class = "lang-switcher",
+        tags$a(href = "?lang=de", class = paste0("lang-btn", if(LANG == "de") " active" else ""), "DE"),
+        tags$a(href = "?lang=en", class = paste0("lang-btn", if(LANG == "en") " active" else ""), "EN")
+    ),
+    
+    # Professional Header - ✅ TRANSLATED
+    div(class = "professional-header",
+        div(class = "header-content",
+            div(class = "logo-section",
+                span("🎲", class = "logo-icon"),
+                div(class = "logo-text",
+                    h1(t("title", LANG), 
+                       span(class = "testing-badge", t("testing_badge", LANG))),
+                    p(t("subtitle", LANG))
+                )
+            ),
+            div(class = "header-nav",
+                a(href = "#", t("nav_home", LANG)),
+                a(href = "#analyzer", t("nav_analyzer", LANG)),
+                a(href = "#educational", t("nav_educational", LANG)),
+                a(href = "#disclaimer", t("nav_disclaimer", LANG))
+            ),
+            
+        )
+    ),
+    
+    # Main Content
+    div(class = "main-content",
+        # Main Analyzer Section
+        layout_sidebar(
+          sidebar = sidebar(
+            width = 300,
+            class = "control-panel",
+            open = "desktop",
+            position = "left",
+            max_height_mobile = NULL,
+            h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
+            lotteryInputUI("inputs1", lang = LANG)
+          ),
+          # Main content
+          div(
+            style = "padding: 0; min-height: 100vh;",
+            dashboardUI("dashboard1")
+          ),
+          fillable = FALSE,
+          border = FALSE,
+          border_radius = FALSE
         ),
-        # Main content
-        div(
-          style = "padding: 0; min-height: 100vh;",  # Removed excessive padding
-          # NEW (fast):
-          dashboardUI("dashboard1")
+        
+        # Educational Notice - ✅ TRANSLATED
+        div(class = "educational-notice",
+            h3(t("notice_title", LANG)),
+            tags$ul(
+              tags$li(strong(t("notice_1", LANG)), t("notice_1b", LANG)),
+              tags$li(t("notice_2", LANG), strong(t("notice_2b", LANG)), t("notice_2c", LANG)),
+              tags$li(t("notice_3", LANG)),
+              tags$li(t("notice_4", LANG), strong(t("notice_4b", LANG)), t("notice_4c", LANG)),
+              tags$li(t("notice_5", LANG)),
+              tags$li(strong(t("notice_6", LANG)), t("notice_6b", LANG))
+            ),
+            p(style = "margin-top: 15px; font-style: italic; color: rgba(255,255,255,0.7);",
+              t("notice_purpose", LANG))
         ),
-        fillable = FALSE,
-        border = FALSE,  # ✅ ADD THIS
-        border_radius = FALSE  # ✅ ADD THIS
-      ),
-      
-      # Educational Notice (Prominent)
-      div(class = "educational-notice",
-          h3(
-            "⚠️ Important Notice - Educational Purpose Only"
-          ),
-          tags$ul(
-            tags$li(strong("This is a TESTING and EDUCATIONAL platform"), " for demonstrating statistical analysis methods"),
-            tags$li("This website is ", strong("under construction"), " and not intended for commercial use"),
-            tags$li("No real lottery services, betting, or gambling features are provided"),
-            tags$li("All data analysis is for ", strong("educational and research purposes"), " only"),
-            tags$li("This tool demonstrates probability theory, data visualization, and statistical methods"),
-            tags$li(strong("Warning:"), " Gambling can be addictive. Please play responsibly. This site does NOT encourage gambling")
-          ),
-          p(style = "margin-top: 15px; font-style: italic; color: rgba(255,255,255,0.7);",
-            "🔬 Purpose: Academic demonstration of statistical computing")
-      ),
-      
-      # Additional Educational Section
-      div(id = "educational",
-          style = "margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px;",
-          h2("About This Educational Project", style = "color: #e8eaed;"),
-          p(style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
-            "This application demonstrates advanced statistical analysis techniques using publicly available lottery data. ",
-            "It serves as an educational resource for understanding probability distributions, frequency analysis, ",
-            "and data visualization methods. The platform is designed for students, researchers, and data science enthusiasts ",
-            "interested in learning about statistical computing and interactive web applications."
-          ),
-          h3("Learning Objectives:", style = "color: #e8eaed; margin-top: 20px;"),
-          tags$ul(
-            style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
-            tags$li("Understanding probability theory and statistical distributions"),
-            tags$li("Interactive web application development"),
-            tags$li("Time series analysis and pattern recognition"),
-            tags$li("Responsible interpretation of statistical results")
-          )
-      )
-  ),
-  
-  # Professional Footer
-  div(class = "professional-footer",
-      div(class = "footer-content",
-          div(class = "footer-sections",
-              # About Section
-              div(class = "footer-section",
-                  h3("About This Project"),
-                  p(strong("Educational & Testing Only")),
-                  p("Professional analysis tools for demonstrating statistical methods with public Lotto 6aus49 data. Based on historical data and modern statistical approaches."),
-                  p(style = "color: #ffc107; font-weight: 600;", 
-                    "⚠️ Under Construction - Testing Phase")
-              ),
-              # Quick Links
-              div(class = "footer-section",
-                  h3("Quick Links"),
-                  tags$ul(
-                    tags$li(a(href = "#", "Home")),
-                    tags$li(a(href = "#analyzer", "Analyzer")),
-                    tags$li(a(href = "#educational", "Educational Info")),
-                    tags$li(a(href = "#disclaimer", "Disclaimer"))
-                  )
-              ),
-              # Legal & Disclaimer
-              div(class = "footer-section",
-                  h3("Legal & Disclaimer"),
-                  tags$ul(
-                    tags$li(a(href = "#", "Full Disclaimer")),
-                    tags$li(a(href = "#", "Privacy Policy")),
-                    tags$li(a(href = "#", "Terms of Use")),
-                    tags$li(a(href = "#", "Educational Purpose Statement"))
-                  ),
-                  p(style = "color: #e74c3c; font-size: 0.85em; margin-top: 10px;",
-                    "⚠️ No gambling services provided")
-              ),
-              # Contact & Responsibility
-              div(class = "footer-section",
-                  h3("Important Information"),
-                  p("Project Type: Educational/Academic"),
-                  p("Status: Under Construction (Testing)")
-                  # p(strong("Responsible Gaming:")),
-                  # p(style = "font-size: 0.9em;", "This site is for educational purposes only. We do not encourage gambling. If you have gambling problems, seek help:"),
-                  # p(style = "font-size: 0.85em;", "🇩🇪 BZgA: 0800 1 37 27 00")
-              )
-          ),
-          div(class = "footer-bottom",
-              p(paste0("© ", format(Sys.Date(), "%Y"), 
-                       " 6/49 Statistical Visualization - Educational & Testing Project | ",
-                       strong("FOR EDUCATIONAL PURPOSES ONLY"), " | ",
-                       "Play Responsibly | No Real Gambling Services Provided | Under Construction"))
-          )
-      )
+        
+        # Additional Educational Section - ✅ TRANSLATED
+        div(id = "educational",
+            style = "margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px;",
+            h2(t("edu_title", LANG), style = "color: #e8eaed;"),
+            p(style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
+              t("edu_intro", LANG)
+            ),
+            h3(t("edu_objectives", LANG), style = "color: #e8eaed; margin-top: 20px;"),
+            tags$ul(
+              style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
+              tags$li(t("edu_obj_1", LANG)),
+              tags$li(t("edu_obj_2", LANG)),
+              tags$li(t("edu_obj_3", LANG)),
+              tags$li(t("edu_obj_4", LANG))
+            )
+        )
+    ),
+    
+    # Professional Footer - ✅ TRANSLATED
+    div(class = "professional-footer",
+        div(class = "footer-content",
+            div(class = "footer-sections",
+                # About Section
+                div(class = "footer-section",
+                    h3(t("footer_about", LANG)),
+                    p(strong(t("footer_edu_only", LANG))),
+                    p(t("footer_desc", LANG)),
+                    p(style = "color: #ffc107; font-weight: 600;", 
+                      t("footer_construction", LANG))
+                ),
+                # Quick Links
+                div(class = "footer-section",
+                    h3(t("footer_quick", LANG)),
+                    tags$ul(
+                      tags$li(a(href = "#", t("nav_home", LANG))),
+                      tags$li(a(href = "#analyzer", t("nav_analyzer", LANG))),
+                      tags$li(a(href = "#educational", t("nav_educational", LANG))),
+                      tags$li(a(href = "#disclaimer", t("nav_disclaimer", LANG)))
+                    )
+                ),
+                # Legal & Disclaimer
+                div(class = "footer-section",
+                    h3(t("footer_legal", LANG)),
+                    tags$ul(
+                      tags$li(a(href = "#", t("footer_full_disclaimer", LANG))),
+                      tags$li(a(href = "#", t("footer_privacy", LANG))),
+                      tags$li(a(href = "#", t("footer_terms", LANG))),
+                      tags$li(a(href = "#", t("footer_edu_statement", LANG)))
+                    ),
+                    p(style = "color: #e74c3c; font-size: 0.85em; margin-top: 10px;",
+                      t("footer_no_gambling", LANG))
+                ),
+                # Important Information
+                div(class = "footer-section",
+                    h3(t("footer_info", LANG)),
+                    p(t("footer_project_type", LANG)),
+                    p(t("footer_status", LANG))
+                )
+            ),
+            div(class = "footer-bottom",
+                p(paste0("© ", format(Sys.Date(), "%Y"), 
+                         " 6/49 ", t("footer_copyright", LANG), " | ",
+                         strong(t("footer_for_edu", LANG)), " | ",
+                         t("footer_play_resp", LANG), " | ", 
+                         t("footer_no_services", LANG), " | ",
+                         t("footer_under_const", LANG)))
+            )
+        )
+    )
   )
-)
-
-
-# -------------------------
-# Top-level Server
-# -------------------------
-server <- function(input, output, session) {
-  # Call input module
-  input_controls <- lotteryInputServer("inputs1")
-  
-  # call modules
-  dashboardServer("dashboard1", input_controls = input_controls)
-  #  ballsMetricServer("dashboard1", input_controls = input_controls)
-  #  gen_out <- generatorServer("gen1")  # returns list with selected_numbers reactive if needed
-  #  statsServer("stats1")
-  #  hotcoldServer("hc1")
 }
 
 
+# ============================================================================
+# Server - SEPARATE, NO CHANGES NEEDED
+# ============================================================================
+server <- function(input, output, session) {
+  # Call input module
+  input_controls <- lotteryInputServer("inputs1")  # CORRECT!
+  
+  # Call modules
+  dashboardServer("dashboard1", input_controls = input_controls)
+}
+
 
 # -------------------------
-# Run app
+# Run app - ✅ Enable bookmarking for URL parameters
 # -------------------------
-shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server, enableBookmarking = "url")

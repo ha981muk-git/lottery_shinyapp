@@ -506,7 +506,7 @@ lagMetricServer <- function(id, filtered_data) {
       label_frequency <- t("lag_label_frequency", lang)
       
       # Create annotation text - convert NA to empty string
-      anno_text <- as.character(as.vector(t(labels)))
+      anno_text <- as.character(as.vector(base::t(labels)))
       anno_text[is.na(anno_text)] <- ""
       
       plot_ly(z = mat, x = 1:n_cols, y = 1:n_rows, type = "heatmap",

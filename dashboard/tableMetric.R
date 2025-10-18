@@ -427,22 +427,25 @@ tableMetricServer <- function(id, filtered_data) {
       mat <- matrix(0, nrow = 7, ncol = 7)
       labels <- matrix("", nrow = 7, ncol = 7)
       
+      
       for(i in 1:49) {
         row <- ((i - 1) %/% 7) + 1
         col <- ((i - 1) %% 7) + 1
         mat[row, col] <- df$frequency[i]
         labels[row, col] <- as.character(i)
       }
+
       
       n_rows <- nrow(mat)
       n_cols <- ncol(mat)
       
       # Get label text BEFORE plotly
-      label_number <- t("table_label_number", lang)
-      label_frequency <- t("table_label_frequency", lang)
+      label_number <- as.character(t("table_label_number", lang))
+      label_frequency <- as.character(t("table_label_frequency", lang))
       
+
       # Create annotation text
-      anno_text <- as.vector(t(labels))
+      anno_text <- as.vector(base::t(labels))
       
       plot_ly(z = mat, x = 1:n_cols, y = 1:n_rows, type = "heatmap",
               colorscale = list(

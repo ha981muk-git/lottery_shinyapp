@@ -1,7 +1,7 @@
-# balls Metrics UI 
+# balls Metrics UI with Translation Support
 
 # -------------------------
-# Module: dashboardModule
+# Module: ballsMetricModule
 # -------------------------
 
 ballsMetricUI <- function(id) {
@@ -11,9 +11,8 @@ ballsMetricUI <- function(id) {
       style = "padding: 20px;",
       div(
         style = "margin-bottom: 32px;",
-        h1(class = "header-title", "6/49 Statistical Analysis Demo"),
-        p(class = "header-subtitle", "Educational demonstration of probability theory and data visualization techniques")
-        
+        # Header will be rendered dynamically in server
+        uiOutput(ns("header"))
       ),
       layout_column_wrap(
         width = 1/4,
@@ -28,19 +27,25 @@ ballsMetricUI <- function(id) {
         heights_equal = "row",
         div(
           class = "chart-card",
-          div(class = "chart-title", "Trend Analysis"),
+          uiOutput(ns("trendChartTitle")),
           plotlyOutput(ns("trendChart"), height = "350px")
         ),
         div(
           class = "chart-card",
-          div(class = "chart-title", "Performance Distribution"),
+          uiOutput(ns("distributionChartTitle")),
           plotlyOutput(ns("distributionChart"), height = "350px")
         )
       ),
       div(
         class = "chart-card",
         style = "margin-top: 20px;",
-        div(class = "chart-title", "Comprehensive Overview"),
+        uiOutput(ns("densityChartTitle")),
+        plotlyOutput(ns("densityChart"), height = "400px")
+      ),
+      div(
+        class = "chart-card",
+        style = "margin-top: 20px;",
+        uiOutput(ns("overviewChartTitle")),
         plotlyOutput(ns("overviewChart"), height = "400px")
       )
     )
@@ -50,6 +55,11 @@ ballsMetricUI <- function(id) {
 ballsMetricServer <- function(id, filtered_data, input_controls) {
   moduleServer(id, function(input, output, session) {
     
+    # Get current language from URL
+    get_lang <- reactive({
+      query <- parseQueryString(isolate(session$clientData$url_search))
+      query$lang %||% "de"
+    })
     
     # Define consistent colors for each ball (hex codes)
     ball_colors <- c(
@@ -61,77 +71,119 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       "Ball 6" = "#00CED1"   # dark cyan
     )
     
+    # Render header
+    output$header <- renderUI({
+      lang <- get_lang()
+      tagList(
+        h1(class = "header-title", t("balls_title", lang)),
+        p(class = "header-subtitle", t("balls_subtitle", lang))
+      )
+    })
+    
+    # Chart titles
+    output$trendChartTitle <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", t("balls_trend_title", lang))
+    })
+    
+    output$distributionChartTitle <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", t("balls_distribution_title", lang))
+    })
+    
+    output$densityChartTitle <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", t("balls_chart_density", lang))
+    })
+    
+    output$overviewChartTitle <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", t("balls_overview_title", lang))
+    })
     
     create_metric_card <- function(title, value, value_symbol) {
       div(
         class = "metric-card",
         div(class = "metric-label", title),
-        div(class = "metric-value",paste0(value, value_symbol))
+        div(class = "metric-value", paste0(value, value_symbol))
       )
     }
     
     output$metricCard1 <- renderUI({
+      lang <- get_lang()
       data <- filtered_data()
       selected <- nrow(data)
       total_counts <- nrow(generate_metrics())
       change <- (selected/total_counts) * 100
-      create_metric_card("Total Coverage",
-                         paste0("", format(round(change), big.mark = ",")),
-                         "%")
+      create_metric_card(
+        t("balls_metric_coverage", lang),
+        paste0("", format(round(change), big.mark = ",")),
+        "%"
+      )
     })
     
     output$metricCard2 <- renderUI({
+      lang <- get_lang()
       data <- filtered_data()
       n_tickets <- nrow(data)
-      create_metric_card("Total Occurrence",
-                         format(round(n_tickets)),"")
+      create_metric_card(
+        t("balls_metric_occurrence", lang),
+        format(round(n_tickets)),
+        ""
+      )
     })
     
-    
     output$metricCard3 <- renderUI({
+      lang <- get_lang()
       data <- filtered_data()
       N_Tickets <- 13983816
       n_tickets <- nrow(data)
-      chance <- n_tickets /N_Tickets * 100
+      chance <- n_tickets / N_Tickets * 100
       create_metric_card(
-        "Total Chance",
+        t("balls_metric_chance", lang),
         paste0(format(chance, digits = 2)),
         "%"
       )
     })
     
     output$metricCard4 <- renderUI({
-      # Get number range
-      num_from <- as.numeric(input_controls()$range[1])  # e.g., 5
-      num_to <- as.numeric(input_controls()$range[2])      # e.g., 45
-      difference <- num_to -num_from +1 
-      create_metric_card("Range Difference",
-                         difference,
-                         "")
+      lang <- get_lang()
+      num_from <- as.numeric(input_controls()$range[1])
+      num_to <- as.numeric(input_controls()$range[2])
+      difference <- num_to - num_from + 1
+      create_metric_card(
+        t("balls_metric_range", lang),
+        difference,
+        ""
+      )
     })
     
     # Trend Chart - Box Plot
     output$trendChart <- renderPlotly({
+      lang <- get_lang()
       data <- filtered_data()
       p <- plot_ly()
+      
       for(i in 1:6) {
         ball_name <- paste0("Ball ", i)
+        ball_label <- t(paste0("ball_", i), lang)
         p <- add_trace(p, 
-                       x = ball_name,
+                       x = ball_label,
                        y = data[[paste0("ball_", i)]], 
-                       name = ball_name, 
+                       name = ball_label, 
                        type = "box",
                        fillcolor = ball_colors[ball_name],
                        marker = list(color = ball_colors[ball_name]),
                        line = list(color = ball_colors[ball_name]))
       }
+      
       p %>%
         layout(
-          title = "Box Plot of Balls 1 to 6",
+          title = t("balls_boxplot_title", lang),
           paper_bgcolor = 'rgba(0,0,0,0)',
           plot_bgcolor = 'rgba(0,0,0,0)',
-          xaxis = list(title = "Ball", color = 'rgba(255,255,255,0.6)'),
-          yaxis = list(title = "Value", color = 'rgba(255,255,255,0.6)'),
+          xaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
+          yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
           font = list(color = 'rgba(255,255,255,0.6)'),
           showlegend = TRUE
         ) %>%
@@ -140,15 +192,18 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     
     # Distribution Chart - Full Violin Plot
     output$distributionChart <- renderPlotly({
+      lang <- get_lang()
       data <- filtered_data()
       p <- plot_ly()
+      
       for(i in 1:6) {
         ball_name <- paste0("Ball ", i)
+        ball_label <- t(paste0("ball_", i), lang)
         p <- add_trace(p, 
-                       x = ball_name,
+                       x = ball_label,
                        y = data[[paste0("ball_", i)]], 
                        type = 'violin', 
-                       name = ball_name,
+                       name = ball_label,
                        side = 'both',
                        box = list(
                          visible = TRUE,
@@ -160,11 +215,12 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
                        line = list(color = ball_colors[ball_name]),
                        opacity = 0.6)
       }
+      
       p %>%
         layout(
-          title = "Violin Plot of Balls 1 to 6",
-          yaxis = list(title = "Value", color = 'rgba(255,255,255,0.6)'),
-          xaxis = list(title = "Ball", color = 'rgba(255,255,255,0.6)'),
+          title = t("balls_violin_title", lang),
+          yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
+          xaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
           paper_bgcolor = 'rgba(0,0,0,0)',
           plot_bgcolor = 'rgba(0,0,0,0)',
           font = list(color = 'rgba(255,255,255,0.6)'),
@@ -173,14 +229,64 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
         config(displayModeBar = FALSE)
     })
     
-    # Overview Chart - Raincloud / Half Violin
+    output$densityChart <- renderPlotly({
+      # The key is lang <- get_lang() must be inside the renderPlotly, not outside.
+      # Otherwise, lang is undefined when t() is called.
+      lang <- get_lang()  # <-- add this
+      data <- filtered_data()
+      
+      # Convert data to long format
+      df_long <- data %>%
+        tidyr::pivot_longer(
+          cols = starts_with("ball_"),
+          names_to = "ball",
+          values_to = "value"
+        ) %>%
+        dplyr::mutate(ball = stringr::str_replace(ball, "ball_", "Ball "))
+      
+      p <- plot_ly()
+      
+      
+      # Smooth overlay (optional)
+      for (ball_name in unique(df_long$ball)) {
+        ball_values <- df_long$value[df_long$ball == ball_name]
+        density_data <- density(ball_values)
+        p <- add_trace(
+          p,
+          x = density_data$x,
+          y = density_data$y,
+          type = "scatter",
+          mode = "lines",
+          name = paste(ball_name, "(Smooth)"),
+          line = list(color = ball_colors[ball_name], width = 2)
+        )
+      }
+      
+      p %>%
+        layout(
+          title = t("balls_chart_density_title", lang),
+          xaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
+          yaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
+          paper_bgcolor = 'rgba(0,0,0,0)',
+          plot_bgcolor = 'rgba(0,0,0,0)',
+          font = list(color = 'rgba(255,255,255,0.6)'),
+          barmode = "overlay",
+          legend = list(orientation = 'h', y = -0.2)
+        ) %>%
+        config(displayModeBar = FALSE)
+    })
+    
     # Overview Chart - Raincloud / Half Violin
     output$overviewChart <- renderPlotly({
+      lang <- get_lang()
       data <- filtered_data()
       p <- plot_ly()
       
+      ball_labels <- sapply(1:6, function(i) t(paste0("ball_", i), lang))
+      
       for(i in 1:6){
         ball_name <- paste0("Ball ", i)
+        ball_label <- ball_labels[i]
         ball_values <- data[[paste0("ball_", i)]]
         color <- ball_colors[ball_name]
         
@@ -196,7 +302,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
                        opacity = 0.6,
                        points = FALSE,
                        showlegend = FALSE,
-                       name = ball_name)
+                       name = ball_label)
         
         # 2️⃣ Box plot (centered)
         p <- add_trace(p,
@@ -207,12 +313,12 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
                        line = list(color = color, width = 2),
                        boxpoints = FALSE,
                        width = 0.3,
-                       name = ball_name,
+                       name = ball_label,
                        showlegend = FALSE)
         
         # 3️⃣ Jittered points (manual jitter) - positioned to the left
-        set.seed(42 + i)  # Different seed per ball
-        jitter_amount <- runif(length(ball_values), -0.35, -0.05)  # Left side only
+        set.seed(42 + i)
+        jitter_amount <- runif(length(ball_values), -0.35, -0.05)
         x_jittered <- rep(i, length(ball_values)) + jitter_amount
         
         p <- add_trace(p,
@@ -223,19 +329,19 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
                        marker = list(color = color, size = 4, opacity = 0.6),
                        showlegend = FALSE,
                        hoverinfo = 'y',
-                       name = ball_name)
+                       name = ball_label)
       }
       
       p %>%
         layout(
-          title = "Raincloud Plot of Balls 1 to 6",
-          yaxis = list(title = "Value", color = 'rgba(255,255,255,0.6)'),
+          title = t("balls_raincloud_title", lang),
+          yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
           xaxis = list(
-            title = "Ball", 
+            title = t("ball_label", lang), 
             color = 'rgba(255,255,255,0.6)',
             tickmode = 'array',
             tickvals = 1:6,
-            ticktext = paste0("Ball ", 1:6),
+            ticktext = ball_labels,
             range = c(0.5, 6.5)
           ),
           paper_bgcolor = 'rgba(0,0,0,0)',

@@ -41,6 +41,41 @@ translations <- list(
     metric_difference = "Difference",
     metric_lag = "Lag",
     
+    
+    # Balls Metric Module
+    balls_title = "6/49 Statistical Analysis Demo",
+    balls_subtitle = "Educational demonstration of probability theory and data visualization techniques",
+    
+    # Metric Cards
+    balls_metric_coverage = "Total Coverage",
+    balls_metric_occurrence = "Total Occurrence",
+    balls_metric_chance = "Total Chance",
+    balls_metric_range = "Range Difference",
+    
+    # Chart Titles
+    balls_trend_title = "Trend Analysis",
+    balls_distribution_title = "Performance Distribution",
+    balls_overview_title = "Comprehensive Overview",
+    balls_boxplot_title = "Box Plot of Balls 1 to 6",
+    balls_violin_title = "Violin Plot of Balls 1 to 6",
+    balls_raincloud_title = "Raincloud Plot of Balls 1 to 6",
+    balls_chart_density = "Density Distribution",
+    balls_chart_density_title = "Density of Numbers for Each Ball",
+    
+    # Axis Labels
+    ball_label = "Ball",
+    value_label = "Value",
+    
+    # Individual Ball Labels
+    ball_1 = "Ball 1",
+    ball_2 = "Ball 2",
+    ball_3 = "Ball 3",
+    ball_4 = "Ball 4",
+    ball_5 = "Ball 5",
+    ball_6 = "Ball 6",
+    
+    
+    
     # Educational Notice
     notice_title = "⚠️ Important Notice - Educational Purpose Only",
     notice_1 = "This is a TESTING and EDUCATIONAL platform",
@@ -125,6 +160,39 @@ translations <- list(
     metric_tables = "Tabellen",
     metric_difference = "Differenz",
     metric_lag = "Verzögerung",
+    
+    # Balls Metric Module
+    balls_title = "6/49 Statistische Analyse Demo",
+    balls_subtitle = "Pädagogische Demonstration der Wahrscheinlichkeitstheorie und Datenvisualisierungstechniken",
+    
+    # Metric Cards
+    balls_metric_coverage = "Gesamtabdeckung",
+    balls_metric_occurrence = "Gesamthäufigkeit",
+    balls_metric_chance = "Gesamtchance",
+    balls_metric_range = "Bereichsdifferenz",
+    
+    # Chart Titles
+    balls_trend_title = "Trendanalyse",
+    balls_distribution_title = "Leistungsverteilung",
+    balls_overview_title = "Umfassende Übersicht",
+    balls_boxplot_title = "Boxplot der Kugeln 1 bis 6",
+    balls_violin_title = "Violinplot der Kugeln 1 bis 6",
+    balls_raincloud_title = "Raincloud-Plot der Kugeln 1 bis 6",
+    balls_chart_density = "Dichteverteilung",
+    balls_chart_density_title = "Dichte der Zahlen für jede Kugel",
+    
+    
+    # Axis Labels
+    ball_label = "Kugel",
+    value_label = "Wert",
+    
+    # Individual Ball Labels
+    ball_1 = "Kugel 1",
+    ball_2 = "Kugel 2",
+    ball_3 = "Kugel 3",
+    ball_4 = "Kugel 4",
+    ball_5 = "Kugel 5",
+    ball_6 = "Kugel 6",
     
     # Educational Notice
     notice_title = "⚠️ Wichtiger Hinweis - Nur zu Bildungszwecken",

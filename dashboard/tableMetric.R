@@ -1,4 +1,4 @@
-# ---------- Frequency Table Module (FINAL FIX) ----------
+# ---------- Frequency Table Module with Language Support ----------
 
 tableMetricUI <- function(id) {
   ns <- NS(id)
@@ -7,11 +7,10 @@ tableMetricUI <- function(id) {
     # Header Section
     div(
       style = "margin-bottom: 32px;",
-      h1(class = "header-title", "Number Frequency Analysis"),
-      p(class = "header-subtitle", "Comprehensive analysis of how often each number appears in lottery draws")
+      uiOutput(ns("header"))
     ),
     
-    # Statistics Row - 4 Metric Cards (NO gap parameter, use CSS)
+    # Statistics Row - 4 Metric Cards
     layout_column_wrap(
       width = 1/4,
       heights_equal = "row",
@@ -25,27 +24,27 @@ tableMetricUI <- function(id) {
     div(
       class = "chart-card",
       style = "margin-top: 20px;",
-      div(class = "chart-title", "📊 Overall Number Frequencies"),
-      p(class = "info-text", "How many times each number has been drawn"),
+      uiOutput(ns("chartTitle1")),
+      p(class = "info-text", uiOutput(ns("chartDesc1"))),
       plotlyOutput(ns("freq"), height = "450px")
     ),
     
-    # Hot and Cold Numbers Row (NO gap parameter)
+    # Hot and Cold Numbers Row
     layout_column_wrap(
       width = 1/2,
       heights_equal = "row",
       div(
         class = "chart-card",
         style = "margin-top: 20px;",
-        div(class = "chart-title", "🔥 Hot Numbers"),
-        p(class = "info-text", "Top 10 most frequently drawn numbers"),
+        uiOutput(ns("chartTitle2")),
+        p(class = "info-text", uiOutput(ns("chartDesc2"))),
         plotlyOutput(ns("hotNumbers"), height = "400px")
       ),
       div(
         class = "chart-card",
         style = "margin-top: 20px;",
-        div(class = "chart-title", "❄️ Cold Numbers"),
-        p(class = "info-text", "Top 10 least frequently drawn numbers"),
+        uiOutput(ns("chartTitle3")),
+        p(class = "info-text", uiOutput(ns("chartDesc3"))),
         plotlyOutput(ns("coldNumbers"), height = "400px")
       )
     ),
@@ -54,27 +53,27 @@ tableMetricUI <- function(id) {
     div(
       class = "chart-card",
       style = "margin-top: 20px;",
-      div(class = "chart-title", "🎯 Interactive Number Grid"),
-      p(class = "info-text", "Visual heatmap of all number frequencies - click on numbers to see details"),
+      uiOutput(ns("chartTitle4")),
+      p(class = "info-text", uiOutput(ns("chartDesc4"))),
       plotlyOutput(ns("heatGrid"), height = "500px")
     ),
     
-    # Frequency Distribution & Ball Position Analysis (NO gap parameter)
+    # Frequency Distribution & Ball Position Analysis
     layout_column_wrap(
       width = 1/2,
       heights_equal = "row",
       div(
         class = "chart-card",
         style = "margin-top: 20px;",
-        div(class = "chart-title", "📈 Frequency Distribution"),
-        p(class = "info-text", "How frequencies are distributed across all numbers"),
+        uiOutput(ns("chartTitle5")),
+        p(class = "info-text", uiOutput(ns("chartDesc5"))),
         plotlyOutput(ns("freqDist"), height = "400px")
       ),
       div(
         class = "chart-card",
         style = "margin-top: 20px;",
-        div(class = "chart-title", "🎲 Ball Position Analysis"),
-        p(class = "info-text", "Average frequency by ball position (1-6)"),
+        uiOutput(ns("chartTitle6")),
+        p(class = "info-text", uiOutput(ns("chartDesc6"))),
         plotlyOutput(ns("positionAnalysis"), height = "400px")
       )
     ),
@@ -83,8 +82,8 @@ tableMetricUI <- function(id) {
     div(
       class = "chart-card",
       style = "margin-top: 20px;",
-      div(class = "chart-title", "⚖️ Deviation from Expected Frequency"),
-      p(class = "info-text", "Numbers above/below their expected frequency (positive = drawn more often than expected)"),
+      uiOutput(ns("chartTitle7")),
+      p(class = "info-text", uiOutput(ns("chartDesc7"))),
       plotlyOutput(ns("deviation"), height = "450px")
     ),
     
@@ -92,8 +91,8 @@ tableMetricUI <- function(id) {
     div(
       class = "chart-card",
       style = "margin-top: 20px;",
-      div(class = "chart-title", "📋 Detailed Frequency Table"),
-      p(class = "info-text", "Complete data table with sortable columns"),
+      uiOutput(ns("chartTitle8")),
+      p(class = "info-text", uiOutput(ns("chartDesc8"))),
       DT::dataTableOutput(ns("freqTable"))
     )
   )
@@ -102,6 +101,102 @@ tableMetricUI <- function(id) {
 
 tableMetricServer <- function(id, filtered_data) {
   moduleServer(id, function(input, output, session) {
+    
+    # Get current language from URL
+    get_lang <- reactive({
+      query <- parseQueryString(isolate(session$clientData$url_search))
+      query$lang %||% "de"
+    })
+    
+    # Render header
+    output$header <- renderUI({
+      lang <- get_lang()
+      tagList(
+        h1(class = "header-title", t("table_title", lang)),
+        p(class = "header-subtitle", t("table_subtitle", lang))
+      )
+    })
+    
+    # Chart titles and descriptions
+    output$chartTitle1 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📊"), span(t("table_chart_frequencies", lang)))
+    })
+    
+    output$chartDesc1 <- renderUI({
+      lang <- get_lang()
+      t("table_chart_frequencies_desc", lang)
+    })
+    
+    output$chartTitle2 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("🔥"), span(t("table_chart_hot", lang)))
+    })
+    
+    output$chartDesc2 <- renderUI({
+      lang <- get_lang()
+      t("table_chart_hot_desc", lang)
+    })
+    
+    output$chartTitle3 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("❄️"), span(t("table_chart_cold", lang)))
+    })
+    
+    output$chartDesc3 <- renderUI({
+      lang <- get_lang()
+      t("table_chart_cold_desc", lang)
+    })
+    
+    output$chartTitle4 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("🎯"), span(t("table_chart_grid", lang)))
+    })
+    
+    output$chartDesc4 <- renderUI({
+      lang <- get_lang()
+      t("table_chart_grid_desc", lang)
+    })
+    
+    output$chartTitle5 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📈"), span(t("table_chart_dist", lang)))
+    })
+    
+    output$chartDesc5 <- renderUI({
+      lang <- get_lang()
+      t("table_chart_dist_desc", lang)
+    })
+    
+    output$chartTitle6 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("🎲"), span(t("table_chart_position", lang)))
+    })
+    
+    output$chartDesc6 <- renderUI({
+      lang <- get_lang()
+      t("table_chart_position_desc", lang)
+    })
+    
+    output$chartTitle7 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("⚖️"), span(t("table_chart_deviation", lang)))
+    })
+    
+    output$chartDesc7 <- renderUI({
+      lang <- get_lang()
+      t("table_chart_deviation_desc", lang)
+    })
+    
+    output$chartTitle8 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📋"), span(t("table_chart_table", lang)))
+    })
+    
+    output$chartDesc8 <- renderUI({
+      lang <- get_lang()
+      t("table_chart_table_desc", lang)
+    })
     
     # Calculate frequency statistics
     freq_stats <- reactive({
@@ -143,44 +238,49 @@ tableMetricServer <- function(id, filtered_data) {
     
     # Metric Cards
     output$metricCard1 <- renderUI({
+      lang <- get_lang()
       stats <- freq_stats()
       div(
         class = "metric-card",
-        div(class = "metric-label", "🔥 HOTTEST NUMBER"),
+        div(class = "metric-label", t("table_metric_hottest", lang)),
         div(class = "metric-value", stats$most_common)
       )
     })
     
     output$metricCard2 <- renderUI({
+      lang <- get_lang()
       stats <- freq_stats()
       div(
         class = "metric-card",
-        div(class = "metric-label", "❄️ COLDEST NUMBER"),
+        div(class = "metric-label", t("table_metric_coldest", lang)),
         div(class = "metric-value", stats$least_common)
       )
     })
     
     output$metricCard3 <- renderUI({
+      lang <- get_lang()
       stats <- freq_stats()
       div(
         class = "metric-card",
-        div(class = "metric-label", "📊 EXPECTED FREQUENCY"),
+        div(class = "metric-label", t("table_metric_expected", lang)),
         div(class = "metric-value", round(stats$expected_freq, 1))
       )
     })
     
     output$metricCard4 <- renderUI({
+      lang <- get_lang()
       stats <- freq_stats()
       range_val <- stats$max_freq - stats$min_freq
       div(
         class = "metric-card",
-        div(class = "metric-label", "📏 FREQUENCY RANGE"),
+        div(class = "metric-label", t("table_metric_range", lang)),
         div(class = "metric-value", range_val)
       )
     })
     
     # Main Frequency Chart
     output$freq <- renderPlotly({
+      lang <- get_lang()
       stats <- freq_stats()
       df <- stats$freq_df
       
@@ -196,7 +296,7 @@ tableMetricServer <- function(id, filtered_data) {
                 line = list(color = "rgba(255, 255, 255, 0.3)", width = 1),
                 showscale = TRUE,
                 colorbar = list(
-                  title = "Frequency",
+                  title = t("table_label_frequency", lang),
                   titlefont = list(color = "#e8eaed"),
                   tickfont = list(color = "#e8eaed")
                 )
@@ -207,8 +307,8 @@ tableMetricServer <- function(id, filtered_data) {
                   y = rep(stats$expected_freq, 2),
                   type = "scatter", mode = "lines",
                   line = list(color = "#10b981", width = 3, dash = "dash"),
-                  name = "Expected",
-                  hovertemplate = paste0("Expected: ", round(stats$expected_freq, 1), "<extra></extra>"),
+                  name = t("table_label_expected", lang),
+                  hovertemplate = paste0(t("table_label_expected", lang), ": ", round(stats$expected_freq, 1), "<extra></extra>"),
                   showlegend = TRUE,
                   inherit = FALSE) %>%
         layout(
@@ -216,13 +316,13 @@ tableMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Number",
+            title = t("table_label_number", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             dtick = 1,
             color = "#e8eaed"
           ),
           yaxis = list(
-            title = "Frequency",
+            title = t("table_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             color = "#e8eaed"
           ),
@@ -240,6 +340,7 @@ tableMetricServer <- function(id, filtered_data) {
     
     # Hot Numbers
     output$hotNumbers <- renderPlotly({
+      lang <- get_lang()
       stats <- freq_stats()
       df <- stats$freq_df
       hot <- df[order(-df$frequency), ][1:10, ]
@@ -253,18 +354,22 @@ tableMetricServer <- function(id, filtered_data) {
               textposition = "outside",
               textfont = list(color = "#e8eaed", size = 12),
               customdata = ~deviation,
-              hovertemplate = "<b>Number: %{x}</b><br>Frequency: %{y}<br>Deviation: +%{customdata:.1f}<extra></extra>") %>%
+              hovertemplate = paste0(
+                "<b>", t("table_label_number", lang), ": %{x}</b><br>",
+                t("table_label_frequency", lang), ": %{y}<br>",
+                t("table_label_deviation", lang), ": +%{customdata:.1f}<extra></extra>"
+              )) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Number",
+            title = t("table_label_number", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             color = "#e8eaed"
           ),
           yaxis = list(
-            title = "Frequency",
+            title = t("table_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             color = "#e8eaed"
           )
@@ -274,6 +379,7 @@ tableMetricServer <- function(id, filtered_data) {
     
     # Cold Numbers
     output$coldNumbers <- renderPlotly({
+      lang <- get_lang()
       stats <- freq_stats()
       df <- stats$freq_df
       cold <- df[order(df$frequency), ][1:10, ]
@@ -287,18 +393,22 @@ tableMetricServer <- function(id, filtered_data) {
               textposition = "outside",
               textfont = list(color = "#e8eaed", size = 12),
               customdata = ~deviation,
-              hovertemplate = "<b>Number: %{x}</b><br>Frequency: %{y}<br>Deviation: %{customdata:.1f}<extra></extra>") %>%
+              hovertemplate = paste0(
+                "<b>", t("table_label_number", lang), ": %{x}</b><br>",
+                t("table_label_frequency", lang), ": %{y}<br>",
+                t("table_label_deviation", lang), ": %{customdata:.1f}<extra></extra>"
+              )) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Number",
+            title = t("table_label_number", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             color = "#e8eaed"
           ),
           yaxis = list(
-            title = "Frequency",
+            title = t("table_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             color = "#e8eaed"
           )
@@ -307,7 +417,9 @@ tableMetricServer <- function(id, filtered_data) {
     })
     
     # Heat Grid
+    # Example for tableMetric.R Heat Grid (line ~300):
     output$heatGrid <- renderPlotly({
+      lang <- get_lang()
       stats <- freq_stats()
       df <- stats$freq_df
       
@@ -322,51 +434,56 @@ tableMetricServer <- function(id, filtered_data) {
         labels[row, col] <- as.character(i)
       }
       
-      plot_ly(z = mat, x = 1:7, y = 1:7, type = "heatmap",
+      n_rows <- nrow(mat)
+      n_cols <- ncol(mat)
+      
+      # Get label text BEFORE plotly
+      label_number <- t("table_label_number", lang)
+      label_frequency <- t("table_label_frequency", lang)
+      
+      # Create annotation text
+      anno_text <- as.vector(t(labels))
+      
+      plot_ly(z = mat, x = 1:n_cols, y = 1:n_rows, type = "heatmap",
               colorscale = list(
-                c(0, "rgba(79, 172, 254, 0.3)"),
+                c(0, "rgba(79, 172, 254, 0.2)"),
                 c(0.5, "rgba(139, 92, 246, 0.7)"),
                 c(1, "rgba(236, 72, 153, 1)")
               ),
               text = labels,
               hovertemplate = paste0(
-                "<b>Number: %{text}</b><br>",
-                "Frequency: %{z}<br>",
+                "<b>", label_number, ": %{text}</b><br>",
+                label_frequency, ": %{z}<br>",
                 "<extra></extra>"
               ),
               showscale = TRUE,
               colorbar = list(
-                title = "Frequency",
+                title = label_frequency,
                 titlefont = list(color = "#e8eaed"),
                 tickfont = list(color = "#e8eaed")
               )) %>%
         add_annotations(
-          x = rep(1:7, each = 7),
-          y = rep(1:7, times = 7),
-          text = as.vector(t(labels)),
+          x = rep(1:n_cols, each = n_rows),
+          y = rep(1:n_rows, times = n_cols),
+          text = anno_text,
+          textfont = list(color = "#FFFFFF", size = 14, family = "Inter"),
           showarrow = FALSE,
-          font = list(color = "#FFFFFF", size = 16, family = "Inter", weight = "bold")
+          xref = "x",
+          yref = "y"
         ) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
-          xaxis = list(
-            showticklabels = FALSE,
-            showgrid = FALSE,
-            zeroline = FALSE
-          ),
-          yaxis = list(
-            showticklabels = FALSE,
-            showgrid = FALSE,
-            zeroline = FALSE
-          )
+          xaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE),
+          yaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE)
         ) %>%
         config(displayModeBar = FALSE)
     })
     
     # Frequency Distribution
     output$freqDist <- renderPlotly({
+      lang <- get_lang()
       stats <- freq_stats()
       df <- stats$freq_df
       
@@ -377,8 +494,8 @@ tableMetricServer <- function(id, filtered_data) {
               ),
               nbinsx = 20,
               hovertemplate = paste0(
-                "Frequency Range: %{x}<br>",
-                "Count: %{y}<br>",
+                t("table_label_frequency", lang), " Range: %{x}<br>",
+                t("table_label_count", lang), ": %{y}<br>",
                 "<extra></extra>"
               )) %>%
         layout(
@@ -386,12 +503,12 @@ tableMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Frequency",
+            title = t("table_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             color = "#e8eaed"
           ),
           yaxis = list(
-            title = "Number of Numbers",
+            title = paste0(t("table_label_number", lang), "s"),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             color = "#e8eaed"
           ),
@@ -402,6 +519,7 @@ tableMetricServer <- function(id, filtered_data) {
     
     # Position Analysis
     output$positionAnalysis <- renderPlotly({
+      lang <- get_lang()
       data <- filtered_data()
       
       # Calculate average frequency per position
@@ -412,7 +530,7 @@ tableMetricServer <- function(id, filtered_data) {
       })
       
       df <- data.frame(
-        position = paste0("Ball ", 1:6),
+        position = paste0(t("ball_label", lang), " ", 1:6),
         avg_freq = position_freq
       )
       
@@ -428,7 +546,7 @@ tableMetricServer <- function(id, filtered_data) {
               textfont = list(color = "#e8eaed", size = 14),
               hovertemplate = paste0(
                 "<b>%{x}</b><br>",
-                "Avg Frequency: %{y:.2f}<br>",
+                t("table_label_avg_frequency", lang), ": %{y:.2f}<br>",
                 "<extra></extra>"
               )) %>%
         layout(
@@ -436,12 +554,12 @@ tableMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Ball Position",
+            title = t("table_label_ball_position", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             color = "#e8eaed"
           ),
           yaxis = list(
-            title = "Average Frequency",
+            title = t("table_label_avg_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             color = "#e8eaed"
           )
@@ -451,6 +569,7 @@ tableMetricServer <- function(id, filtered_data) {
     
     # Deviation Chart
     output$deviation <- renderPlotly({
+      lang <- get_lang()
       stats <- freq_stats()
       df <- stats$freq_df
       
@@ -462,13 +581,17 @@ tableMetricServer <- function(id, filtered_data) {
                 line = list(color = "rgba(255, 255, 255, 0.3)", width = 1)
               ),
               customdata = ~deviation_pct,
-              hovertemplate = "<b>Number: %{x}</b><br>Deviation: %{y:.2f}<br>Percentage: %{customdata}%<extra></extra>") %>%
+              hovertemplate = paste0(
+                "<b>", t("table_label_number", lang), ": %{x}</b><br>",
+                t("table_label_deviation", lang), ": %{y:.2f}<br>",
+                t("table_label_deviation_pct", lang), ": %{customdata}%<extra></extra>"
+              )) %>%
         add_trace(x = c(min(df$number), max(df$number)), 
                   y = c(0, 0),
                   type = "scatter", mode = "lines",
                   line = list(color = "#e8eaed", width = 2),
-                  name = "Expected",
-                  hovertemplate = "Expected: 0<extra></extra>",
+                  name = t("table_label_expected", lang),
+                  hovertemplate = paste0(t("table_label_expected", lang), ": 0<extra></extra>"),
                   showlegend = FALSE,
                   inherit = FALSE) %>%
         layout(
@@ -476,13 +599,13 @@ tableMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Number",
+            title = t("table_label_number", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             dtick = 1,
             color = "#e8eaed"
           ),
           yaxis = list(
-            title = "Deviation from Expected",
+            title = t("table_chart_deviation", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             zeroline = TRUE,
             zerolinecolor = "rgba(255, 255, 255, 0.3)",
@@ -494,6 +617,7 @@ tableMetricServer <- function(id, filtered_data) {
     
     # Data Table
     output$freqTable <- DT::renderDataTable({
+      lang <- get_lang()
       stats <- freq_stats()
       df <- stats$freq_df
       

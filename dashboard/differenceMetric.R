@@ -1,20 +1,19 @@
-# ---------- Ball Range Analysis Module (Ball 6 - Ball 1) ----------
+# ---------- Ball Range Analysis Module with Language Support ----------
+
 differenceMetricUI <- function(id) {
   ns <- NS(id)
   tagList(
     div(
       style = "padding: 20px;",
-      gap = "12px",
       div(
         style = "margin-bottom: 32px;",
-        h1(class = "header-title", "Ball Range Analysis"),
-        p(class = "header-subtitle", "Analyze the difference between Ball 6 and Ball 1 to identify winning patterns")
+        uiOutput(ns("header"))
       ),
       
-      # Statistics Row - FIXED ORDER
+      # Statistics Row
       layout_column_wrap(
         width = 1/5,
-        heights_equal = "row",  # ← This must come BEFORE gap
+        heights_equal = "row",
         gap = "12px",
         uiOutput(ns("metricCard1")),
         uiOutput(ns("metricCard2")),
@@ -23,89 +22,89 @@ differenceMetricUI <- function(id) {
         uiOutput(ns("metricCard5"))
       ),
       
-      # Main Frequency Distribution - ADD margin-top
+      # Main Frequency Distribution
       div(
         class = "content-card",
         style = "margin-top: 25px;",
-        div(class = "card-title", span("📊"), span("Range Difference Frequency")),
-        p(class = "info-text", "How often each difference value occurs (Ball 6 - Ball 1)"),
+        uiOutput(ns("chartTitle1")),
+        p(class = "info-text", uiOutput(ns("chartDesc1"))),
         plotlyOutput(ns("rangeFreq"), height = "450px")
       ),
       
-      # Hot and Cold Ranges - FIXED ORDER + ADD margin-top
+      # Hot and Cold Ranges
       layout_column_wrap(
         width = 1/2,
-        heights_equal = "row",  # ← This must come BEFORE gap
+        heights_equal = "row",
         gap = "20px",
-        fill = FALSE,  # ← ADD THIS to prevent white background
+        fill = FALSE,
         div(
           class = "content-card",
-          div(class = "card-title", span("🔥"), span("Hot Ranges")),
-          p(class = "info-text", "Most frequently occurring differences - these ranges appear often"),
+          uiOutput(ns("chartTitle2")),
+          p(class = "info-text", uiOutput(ns("chartDesc2"))),
           plotlyOutput(ns("hotRanges"), height = "400px")
         ),
         div(
           class = "content-card",
-          div(class = "card-title", span("❄️"), span("Cold Ranges")),
-          p(class = "info-text", "Least frequently occurring differences - these ranges are rare"),
+          uiOutput(ns("chartTitle3")),
+          p(class = "info-text", uiOutput(ns("chartDesc3"))),
           plotlyOutput(ns("coldRanges"), height = "400px")
         )
       ),
       
-      # Range Categories - ADD margin-top
+      # Range Categories
       div(
         class = "content-card",
         style = "margin-top: 25px;",
-        div(class = "card-title", span("🎯"), span("Range Categories")),
-        p(class = "info-text", "Distribution of ranges by category (Small, Medium, Large, Very Large)"),
+        uiOutput(ns("chartTitle4")),
+        p(class = "info-text", uiOutput(ns("chartDesc4"))),
         plotlyOutput(ns("rangeCategories"), height = "450px")
       ),
       
-      # Trend and Box Plot - FIXED ORDER + ADD margin-top
+      # Trend and Box Plot
       layout_column_wrap(
         width = 1/2,
-        heights_equal = "row",  # ← This must come BEFORE gap
+        heights_equal = "row",
         gap = "20px",
-        fill = FALSE,  # ← ADD THIS to prevent white background
+        fill = FALSE,
         div(
           class = "content-card",
-          div(class = "card-title", span("📈"), span("Range Trend Over Time")),
-          p(class = "info-text", "How the range difference changes across draws"),
+          uiOutput(ns("chartTitle5")),
+          p(class = "info-text", uiOutput(ns("chartDesc5"))),
           plotlyOutput(ns("rangeTrend"), height = "400px")
         ),
         div(
           class = "content-card",
-          div(class = "card-title", span("📦"), span("Statistical Distribution")),
-          p(class = "info-text", "Box plot showing quartiles, median, and outliers"),
+          uiOutput(ns("chartTitle6")),
+          p(class = "info-text", uiOutput(ns("chartDesc6"))),
           plotlyOutput(ns("rangeBox"), height = "400px")
         )
       ),
       
-      # Rest stays the same with margin-top...
+      # Heatmap
       div(
         class = "content-card",
         style = "margin-top: 25px;",
-        div(class = "card-title", span("🔥"), span("Range Frequency Heatmap")),
-        p(class = "info-text", "Visual heatmap showing frequency intensity - darker colors indicate more common ranges"),
+        uiOutput(ns("chartTitle7")),
+        p(class = "info-text", uiOutput(ns("chartDesc7"))),
         plotlyOutput(ns("rangeHeatmap"), height = "400px")
       ),
       
+      # Range Guide
       div(
         class = "content-card",
         style = "margin-top: 25px;",
-        div(class = "card-title", span("🎲"), span("Range Selection Guide")),
-        p(class = "info-text", "Recommended ranges based on historical data"),
-        div(
-          style = "padding: 20px;",
-          uiOutput(ns("rangeGuide"))
-        )
+        uiOutput(ns("chartTitle8")),
+        p(class = "info-text", uiOutput(ns("chartDesc8"))),
+        div(style = "padding: 20px;",
+            uiOutput(ns("rangeGuide")))
       ),
       
+      # Table
       div(
         class = "content-card",
         style = "margin-top: 25px;",
-        div(class = "card-title", span("📋"), span("Detailed Range Statistics")),
-        p(class = "info-text", "Complete data table with all range differences and their statistics"),
+        uiOutput(ns("chartTitle9")),
+        p(class = "info-text", uiOutput(ns("chartDesc9"))),
         DT::dataTableOutput(ns("rangeTable"))
       )
     )
@@ -115,25 +114,127 @@ differenceMetricUI <- function(id) {
 differenceMetricServer <- function(id, filtered_data) {
   moduleServer(id, function(input, output, session) {
     
+    # Get current language from URL
+    get_lang <- reactive({
+      query <- parseQueryString(isolate(session$clientData$url_search))
+      query$lang %||% "de"
+    })
+    
+    # Render header
+    output$header <- renderUI({
+      lang <- get_lang()
+      tagList(
+        h1(class = "header-title", t("difference_title", lang)),
+        p(class = "header-subtitle", t("difference_subtitle", lang))
+      )
+    })
+    
+    # Chart titles and descriptions
+    output$chartTitle1 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📊"), span(t("difference_chart_freq", lang)))
+    })
+    
+    output$chartDesc1 <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_freq_desc", lang)
+    })
+    
+    output$chartTitle2 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("🔥"), span(t("difference_chart_hot", lang)))
+    })
+    
+    output$chartDesc2 <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_hot_desc", lang)
+    })
+    
+    output$chartTitle3 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("❄️"), span(t("difference_chart_cold", lang)))
+    })
+    
+    output$chartDesc3 <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_cold_desc", lang)
+    })
+    
+    output$chartTitle4 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("🎯"), span(t("difference_chart_categories", lang)))
+    })
+    
+    output$chartDesc4 <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_categories_desc", lang)
+    })
+    
+    output$chartTitle5 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📈"), span(t("difference_chart_trend", lang)))
+    })
+    
+    output$chartDesc5 <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_trend_desc", lang)
+    })
+    
+    output$chartTitle6 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📦"), span(t("difference_chart_box", lang)))
+    })
+    
+    output$chartDesc6 <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_box_desc", lang)
+    })
+    
+    output$chartTitle7 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("🔥"), span(t("difference_chart_heatmap", lang)))
+    })
+    
+    output$chartDesc7 <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_heatmap_desc", lang)
+    })
+    
+    output$chartTitle8 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("🎲"), span(t("difference_chart_guide", lang)))
+    })
+    
+    output$chartDesc8 <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_guide_desc", lang)
+    })
+    
+    output$chartTitle9 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📋"), span(t("difference_chart_table", lang)))
+    })
+    
+    output$chartDesc9 <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_table_desc", lang)
+    })
+    
     # Calculate range statistics
     range_stats <- reactive({
       data <- filtered_data()
       
-      # Calculate difference between ball 6 and ball 1
       ranges <- data$ball_6 - data$ball_1
       
-      # Create frequency table
       range_freq <- table(ranges)
       range_df <- data.frame(
         range = as.numeric(names(range_freq)),
         frequency = as.numeric(range_freq)
       )
       
-      # Calculate statistics
       range_df$percentage <- round((range_df$frequency / sum(range_df$frequency)) * 100, 2)
       range_df$cumulative <- cumsum(range_df$percentage)
       
-      # Categorize ranges
       range_df$category <- cut(range_df$range, 
                                breaks = c(-Inf, 15, 25, 35, Inf),
                                labels = c("Small (≤15)", "Medium (16-25)", "Large (26-35)", "Very Large (>35)"))
@@ -152,57 +253,63 @@ differenceMetricServer <- function(id, filtered_data) {
     
     # Metric Cards
     output$metricCard1 <- renderUI({
+      lang <- get_lang()
       stats <- range_stats()
       div(
         class = "value-box-custom",
         div(class = "value-box-icon", "📊"),
         div(class = "value-box-value", round(stats$mean, 1)),
-        div(class = "value-box-label", "Average Range")
+        div(class = "value-box-label", t("difference_metric_avg", lang))
       )
     })
     
     output$metricCard2 <- renderUI({
+      lang <- get_lang()
       stats <- range_stats()
       div(
         class = "value-box-custom",
         div(class = "value-box-icon", "🎯"),
         div(class = "value-box-value", stats$median),
-        div(class = "value-box-label", "Median Range")
+        div(class = "value-box-label", t("difference_metric_median", lang))
       )
     })
     
     output$metricCard3 <- renderUI({
+      lang <- get_lang()
       stats <- range_stats()
       div(
         class = "value-box-custom",
         div(class = "value-box-icon", "⭐"),
         div(class = "value-box-value", stats$most_common),
-        div(class = "value-box-label", "Most Common")
+        div(class = "value-box-label", t("difference_metric_most_common", lang))
       )
     })
     
     output$metricCard4 <- renderUI({
+      lang <- get_lang()
       stats <- range_stats()
       div(
         class = "value-box-custom",
         div(class = "value-box-icon", "📉"),
         div(class = "value-box-value", stats$min),
-        div(class = "value-box-label", "Minimum Range")
+        div(class = "value-box-label", t("difference_metric_min", lang))
       )
     })
     
     output$metricCard5 <- renderUI({
+      lang <- get_lang()
       stats <- range_stats()
       div(
         class = "value-box-custom",
         div(class = "value-box-icon", "📈"),
         div(class = "value-box-value", stats$max),
-        div(class = "value-box-label", "Maximum Range")
+        div(class = "value-box-label", t("difference_metric_max", lang))
       )
     })
     
     # Range Frequency Chart
     output$rangeFreq <- renderPlotly({
+      lang <- get_lang()
       stats <- range_stats()
       df <- stats$range_df
       
@@ -218,14 +325,19 @@ differenceMetricServer <- function(id, filtered_data) {
                 line = list(color = "rgba(255, 255, 255, 0.3)", width = 1.5),
                 showscale = TRUE,
                 colorbar = list(
-                  title = "Frequency",
+                  title = t("difference_label_frequency", lang),
                   titlefont = list(color = "#e8eaed"),
                   tickfont = list(color = "#e8eaed")
                 )
               ),
               customdata = ~cbind(percentage, category),
-              hovertemplate = "<b>Range: %{x}</b><br>Frequency: %{y}<br>Percentage: %{customdata[0]}%<br>Category: %{customdata[1]}<extra></extra>",
-              name = "Frequency") %>%
+              hovertemplate = paste0(
+                "<b>", t("difference_label_range", lang), ": %{x}</b><br>",
+                t("difference_label_frequency", lang), ": %{y}<br>",
+                t("difference_hover_percentage", lang), ": %{customdata[0]}%<br>",
+                t("difference_label_category", lang), ": %{customdata[1]}<extra></extra>"
+              ),
+              name = t("difference_label_frequency", lang)) %>%
         add_trace(x = c(stats$mean, stats$mean),
                   y = c(0, max(df$frequency) * 1.1),
                   type = "scatter", mode = "lines",
@@ -239,11 +351,11 @@ differenceMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Range Difference (Ball 6 - Ball 1)",
+            title = t("difference_label_range", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           yaxis = list(
-            title = "Frequency",
+            title = t("difference_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           showlegend = TRUE,
@@ -258,6 +370,7 @@ differenceMetricServer <- function(id, filtered_data) {
     
     # Hot Ranges
     output$hotRanges <- renderPlotly({
+      lang <- get_lang()
       stats <- range_stats()
       df <- stats$range_df
       hot <- df[order(-df$frequency), ][1:min(10, nrow(df)), ]
@@ -267,20 +380,24 @@ differenceMetricServer <- function(id, filtered_data) {
                 color = colorRampPalette(c("#ff6b6b", "#DC143C"))(nrow(hot)),
                 line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
               ),
-              text = ~paste0(frequency, " times (", percentage, "%)"),
+              text = ~paste0(frequency, " ", t("difference_hover_times", lang), " (", percentage, "%)"),
               textposition = "outside",
               textfont = list(color = "#e8eaed", size = 11),
-              hovertemplate = "<b>Range: %{x}</b><br>Frequency: %{y}<br>Percentage: %{text}<extra></extra>") %>%
+              hovertemplate = paste0(
+                "<b>", t("difference_label_range", lang), ": %{x}</b><br>",
+                t("difference_label_frequency", lang), ": %{y}<br>",
+                t("difference_hover_percentage", lang), ": %{text}<extra></extra>"
+              )) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Range",
+            title = t("difference_label_range", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           yaxis = list(
-            title = "Frequency",
+            title = t("difference_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           )
         )
@@ -288,6 +405,7 @@ differenceMetricServer <- function(id, filtered_data) {
     
     # Cold Ranges
     output$coldRanges <- renderPlotly({
+      lang <- get_lang()
       stats <- range_stats()
       df <- stats$range_df
       cold <- df[order(df$frequency), ][1:min(10, nrow(df)), ]
@@ -297,20 +415,24 @@ differenceMetricServer <- function(id, filtered_data) {
                 color = colorRampPalette(c("#00f2fe", "#4facfe"))(nrow(cold)),
                 line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
               ),
-              text = ~paste0(frequency, " times (", percentage, "%)"),
+              text = ~paste0(frequency, " ", t("difference_hover_times", lang), " (", percentage, "%)"),
               textposition = "outside",
               textfont = list(color = "#e8eaed", size = 11),
-              hovertemplate = "<b>Range: %{x}</b><br>Frequency: %{y}<br>Percentage: %{text}<extra></extra>") %>%
+              hovertemplate = paste0(
+                "<b>", t("difference_label_range", lang), ": %{x}</b><br>",
+                t("difference_label_frequency", lang), ": %{y}<br>",
+                t("difference_hover_percentage", lang), ": %{text}<extra></extra>"
+              )) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Range",
+            title = t("difference_label_range", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           yaxis = list(
-            title = "Frequency",
+            title = t("difference_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           )
         )
@@ -318,6 +440,7 @@ differenceMetricServer <- function(id, filtered_data) {
     
     # Range Categories
     output$rangeCategories <- renderPlotly({
+      lang <- get_lang()
       stats <- range_stats()
       df <- stats$range_df
       
@@ -337,7 +460,11 @@ differenceMetricServer <- function(id, filtered_data) {
               text = ~paste0(percentage, "%"),
               textinfo = "label+text",
               textfont = list(size = 14, color = "#FFFFFF", family = "Inter"),
-              hovertemplate = "<b>%{label}</b><br>Frequency: %{value}<br>Percentage: %{text}<extra></extra>") %>%
+              hovertemplate = paste0(
+                "<b>%{label}</b><br>",
+                t("difference_label_frequency", lang), ": %{value}<br>",
+                t("difference_hover_percentage", lang), ": %{text}<extra></extra>"
+              )) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
@@ -353,6 +480,7 @@ differenceMetricServer <- function(id, filtered_data) {
     
     # Range Trend
     output$rangeTrend <- renderPlotly({
+      lang <- get_lang()
       stats <- range_stats()
       ranges <- stats$ranges
       
@@ -361,20 +489,19 @@ differenceMetricServer <- function(id, filtered_data) {
         range = ranges
       )
       
-      # Add moving average if enough data
       window_size <- min(20, nrow(df))
       if(nrow(df) >= window_size) {
         df$ma <- zoo::rollmean(df$range, k = window_size, fill = NA, align = "right")
       }
       
       plot_ly(df, x = ~draw) %>%
-        add_trace(y = ~range, name = "Range", type = "scatter", mode = "lines",
+        add_trace(y = ~range, name = t("difference_label_range", lang), type = "scatter", mode = "lines",
                   line = list(color = "rgba(139, 92, 246, 0.5)", width = 1.5),
-                  hovertemplate = "Draw: %{x}<br>Range: %{y}<extra></extra>") %>%
+                  hovertemplate = paste0(t("difference_label_range", lang), " #%{x}: %{y}<extra></extra>")) %>%
         {if("ma" %in% names(df))
           add_trace(., y = ~ma, name = "Moving Avg", type = "scatter", mode = "lines",
                     line = list(color = "#10b981", width = 3),
-                    hovertemplate = "Draw: %{x}<br>MA: %{y:.1f}<extra></extra>")
+                    hovertemplate = "MA: %{y:.1f}<extra></extra>")
           else .
         } %>%
         add_trace(x = c(min(df$draw), max(df$draw)),
@@ -393,7 +520,7 @@ differenceMetricServer <- function(id, filtered_data) {
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           yaxis = list(
-            title = "Range Value",
+            title = t("difference_label_range", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           hovermode = "x unified",
@@ -408,21 +535,24 @@ differenceMetricServer <- function(id, filtered_data) {
     
     # Box Plot
     output$rangeBox <- renderPlotly({
+      lang <- get_lang()
       stats <- range_stats()
       
       plot_ly(y = ~stats$ranges, type = "box",
               marker = list(color = "#8b5cf6"),
               line = list(color = "#ec4899", width = 2),
               fillcolor = "rgba(139, 92, 246, 0.3)",
-              name = "Range Distribution",
+              name = t("difference_label_range", lang),
               boxmean = "sd",
-              hovertemplate = "Value: %{y}<extra></extra>") %>%
+              hovertemplate = paste0(
+                t("difference_label_range", lang), ": %{y}<extra></extra>"
+              )) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           yaxis = list(
-            title = "Range Value",
+            title = t("difference_label_range", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           xaxis = list(
@@ -433,21 +563,29 @@ differenceMetricServer <- function(id, filtered_data) {
     })
     
     # Heatmap
+    # Example for differenceMetric.R Range Heatmap (line ~584):
     output$rangeHeatmap <- renderPlotly({
+      lang <- get_lang()
       stats <- range_stats()
       df <- stats$range_df
       
-      # Create grid for better visualization
       n_cols <- 10
       n_rows <- ceiling(nrow(df) / n_cols)
       total_cells <- n_rows * n_cols
       
-      # Pad data
       padded_range <- c(df$range, rep(NA, total_cells - nrow(df)))
       padded_freq <- c(df$frequency, rep(0, total_cells - nrow(df)))
       
       mat <- matrix(padded_freq, nrow = n_rows, ncol = n_cols, byrow = TRUE)
       labels <- matrix(padded_range, nrow = n_rows, ncol = n_cols, byrow = TRUE)
+      
+      # Get label text BEFORE plotly
+      label_range <- t("difference_label_range", lang)
+      label_frequency <- t("difference_label_frequency", lang)
+      
+      # Create annotation text - convert NA to empty string
+      anno_text <- as.character(as.vector(t(labels)))
+      anno_text[is.na(anno_text)] <- ""
       
       plot_ly(z = mat, x = 1:n_cols, y = 1:n_rows, type = "heatmap",
               colorscale = list(
@@ -456,46 +594,44 @@ differenceMetricServer <- function(id, filtered_data) {
                 c(1, "rgba(236, 72, 153, 1)")
               ),
               text = labels,
-              hovertemplate = "<b>Range: %{text}</b><br>Frequency: %{z}<extra></extra>",
+              hovertemplate = paste0(
+                "<b>", label_range, ": %{text}</b><br>",
+                label_frequency, ": %{z}<br>",
+                "<extra></extra>"
+              ),
               showscale = TRUE,
               colorbar = list(
-                title = "Frequency",
+                title = label_frequency,
                 titlefont = list(color = "#e8eaed"),
                 tickfont = list(color = "#e8eaed")
               )) %>%
         add_annotations(
           x = rep(1:n_cols, each = n_rows),
           y = rep(1:n_rows, times = n_cols),
-          text = as.vector(t(labels)),
+          text = anno_text,
+          textfont = list(color = "#FFFFFF", size = 12, family = "Inter"),
           showarrow = FALSE,
-          font = list(color = "#FFFFFF", size = 12, family = "Inter", weight = "bold")
+          xref = "x",
+          yref = "y"
         ) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
-          xaxis = list(
-            showticklabels = FALSE,
-            showgrid = FALSE,
-            zeroline = FALSE
-          ),
-          yaxis = list(
-            showticklabels = FALSE,
-            showgrid = FALSE,
-            zeroline = FALSE
-          )
-        )
+          xaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE),
+          yaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE)
+        ) %>%
+        config(displayModeBar = FALSE)
     })
     
     # Range Selection Guide
     output$rangeGuide <- renderUI({
+      lang <- get_lang()
       stats <- range_stats()
       df <- stats$range_df
       
-      # Get top 5 ranges
       top_ranges <- df[order(-df$frequency), ][1:5, ]
       
-      # Calculate optimal range
       optimal_start <- round(stats$mean - stats$sd)
       optimal_end <- round(stats$mean + stats$sd)
       
@@ -507,7 +643,7 @@ differenceMetricServer <- function(id, filtered_data) {
           div(
             class = "value-box-custom",
             style = "text-align: left;",
-            h4(style = "color: #ec4899; margin-bottom: 15px;", "🔥 Top 5 Hot Ranges"),
+            h4(style = "color: #ec4899; margin-bottom: 15px;", paste0("🔥 ", t("difference_guide_top_hot", lang))),
             tags$ul(
               style = "list-style: none; padding: 0;",
               lapply(1:nrow(top_ranges), function(i) {
@@ -519,7 +655,7 @@ differenceMetricServer <- function(id, filtered_data) {
                   ),
                   tags$span(
                     style = "margin-left: 15px; color: rgba(255,255,255,0.7);",
-                    paste0("(", top_ranges$frequency[i], " times, ", top_ranges$percentage[i], "%)")
+                    paste0("(", top_ranges$frequency[i], " ", t("difference_hover_times", lang), ", ", top_ranges$percentage[i], "%)")
                   )
                 )
               })
@@ -530,22 +666,22 @@ differenceMetricServer <- function(id, filtered_data) {
           div(
             class = "value-box-custom",
             style = "text-align: center;",
-            h4(style = "color: #10b981; margin-bottom: 15px;", "🎯 Optimal Range"),
+            h4(style = "color: #10b981; margin-bottom: 15px;", paste0("🎯 ", t("difference_label_optimal", lang))),
             div(
               style = "font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;",
               paste0(optimal_start, " - ", optimal_end)
             ),
             p(
               style = "margin-top: 10px; color: rgba(255,255,255,0.6);",
-              "Based on Mean ± 1 Std Dev"
+              t("difference_guide_optimal", lang)
             ),
             p(
               style = "color: rgba(255,255,255,0.8);",
-              paste0("Covers ~68% of all draws")
+              t("difference_guide_coverage", lang)
             )
           ),
           
-          # Category Recommendations
+          # Category Guide
           div(
             class = "value-box-custom",
             style = "text-align: left;",
@@ -554,23 +690,23 @@ differenceMetricServer <- function(id, filtered_data) {
               style = "padding: 8px 0;",
               tags$div(
                 style = "margin: 8px 0;",
-                tags$span(style = "color: #4169E1; font-weight: bold;", "Small (≤15): "),
-                tags$span(style = "color: rgba(255,255,255,0.7);", "Compact spread")
+                tags$span(style = "color: #4169E1; font-weight: bold;", paste0(t("difference_label_small", lang), ": ")),
+                tags$span(style = "color: rgba(255,255,255,0.7);", t("difference_label_compact", lang))
               ),
               tags$div(
                 style = "margin: 8px 0;",
-                tags$span(style = "color: #8b5cf6; font-weight: bold;", "Medium (16-25): "),
-                tags$span(style = "color: rgba(255,255,255,0.7);", "Balanced spread")
+                tags$span(style = "color: #8b5cf6; font-weight: bold;", paste0(t("difference_label_medium", lang), ": ")),
+                tags$span(style = "color: rgba(255,255,255,0.7);", t("difference_label_balanced", lang))
               ),
               tags$div(
                 style = "margin: 8px 0;",
-                tags$span(style = "color: #ec4899; font-weight: bold;", "Large (26-35): "),
-                tags$span(style = "color: rgba(255,255,255,0.7);", "Wide spread")
+                tags$span(style = "color: #ec4899; font-weight: bold;", paste0(t("difference_label_large", lang), ": ")),
+                tags$span(style = "color: rgba(255,255,255,0.7);", t("difference_label_wide", lang))
               ),
               tags$div(
                 style = "margin: 8px 0;",
-                tags$span(style = "color: #DC143C; font-weight: bold;", "Very Large (>35): "),
-                tags$span(style = "color: rgba(255,255,255,0.7);", "Maximum spread")
+                tags$span(style = "color: #DC143C; font-weight: bold;", paste0(t("difference_label_very_large", lang), ": ")),
+                tags$span(style = "color: rgba(255,255,255,0.7);", t("difference_label_maximum", lang))
               )
             )
           )
@@ -580,6 +716,7 @@ differenceMetricServer <- function(id, filtered_data) {
     
     # Range Table
     output$rangeTable <- DT::renderDataTable({
+      lang <- get_lang()
       stats <- range_stats()
       df <- stats$range_df
       

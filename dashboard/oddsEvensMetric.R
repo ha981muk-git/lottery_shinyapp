@@ -1,4 +1,4 @@
-# ---------- Odd/Even Analysis Module ----------
+# ---------- Odd/Even Analysis Module with Language Support ----------
 
 oddsEvensMetricUI <- function(id) {
   ns <- NS(id)
@@ -7,11 +7,8 @@ oddsEvensMetricUI <- function(id) {
       style = "padding: 20px;",
       div(
         style = "margin-bottom: 32px;",
-        h1(class = "header-title", "Odd/Even Analysis"),
-        p(class = "header-subtitle", "Analyze the distribution of odd and even numbers in lottery draws")
+        uiOutput(ns("header"))
       ),
-      
-      
       
       # Statistics Row
       layout_column_wrap(
@@ -25,12 +22,8 @@ oddsEvensMetricUI <- function(id) {
       # Pascal Triangle Distribution Card
       div(
         class = "content-card",
-        div(
-          class = "card-title",
-          span("📊"),
-          span("Pascal Triangle Distribution")
-        ),
-        p(class = "info-text", "Frequency of Odd/Even combinations across all draws"),
+        uiOutput(ns("chartTitle1")),
+        p(class = "info-text", uiOutput(ns("chartDesc1"))),
         plotlyOutput(ns("pascalChart"), height = "450px")
       ),
       
@@ -40,12 +33,12 @@ oddsEvensMetricUI <- function(id) {
         heights_equal = "row",
         div(
           class = "content-card",
-          div(class = "card-title", span("🥧"), span("Overall Distribution")),
+          uiOutput(ns("chartTitle2")),
           plotlyOutput(ns("pie"), height = "350px")
         ),
         div(
           class = "content-card",
-          div(class = "card-title", span("📈"), span("Trend Over Time")),
+          uiOutput(ns("chartTitle3")),
           plotlyOutput(ns("trendLine"), height = "350px")
         )
       ),
@@ -54,7 +47,7 @@ oddsEvensMetricUI <- function(id) {
       div(
         class = "content-card",
         style = "margin-top: 20px;",
-        div(class = "card-title", span("📊"), span("Odds vs Evens per Draw")),
+        uiOutput(ns("chartTitle4")),
         plotlyOutput(ns("stacked"), height = "400px")
       )
     )
@@ -64,35 +57,45 @@ oddsEvensMetricUI <- function(id) {
 oddsEvensMetricServer <- function(id, filtered_data) {
   moduleServer(id, function(input, output, session) {
     
-    # Metric Cards
-    output$metricCard1 <- renderUI({
-      stats <- odds_evens_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "🎲"),
-        div(class = "value-box-value", round(stats$avg_odds, 2)),
-        div(class = "value-box-label", "Avg Odds per Draw")
+    # Get current language from URL
+    get_lang <- reactive({
+      query <- parseQueryString(isolate(session$clientData$url_search))
+      query$lang %||% "de"
+    })
+    
+    # Render header
+    output$header <- renderUI({
+      lang <- get_lang()
+      tagList(
+        h1(class = "header-title", t("odds_evens_title", lang)),
+        p(class = "header-subtitle", t("odds_evens_subtitle", lang))
       )
     })
     
-    output$metricCard2 <- renderUI({
-      stats <- odds_evens_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "⚖️"),
-        div(class = "value-box-value", round(6 - stats$avg_odds, 2)),
-        div(class = "value-box-label", "Avg Evens per Draw")
-      )
+    # Chart titles
+    output$chartTitle1 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📊"), span(t("odds_evens_chart_pascal", lang)))
     })
     
-    output$metricCard3 <- renderUI({
-      stats <- odds_evens_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "⭐"),
-        div(class = "value-box-value", style = "font-size: 20px;", stats$most_common),
-        div(class = "value-box-label", "Most Common Combo")
-      )
+    output$chartDesc1 <- renderUI({
+      lang <- get_lang()
+      t("odds_evens_chart_pascal_desc", lang)
+    })
+    
+    output$chartTitle2 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("🥧"), span(t("odds_evens_chart_pie", lang)))
+    })
+    
+    output$chartTitle3 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📈"), span(t("odds_evens_chart_trend", lang)))
+    })
+    
+    output$chartTitle4 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📊"), span(t("odds_evens_chart_stacked", lang)))
     })
     
     # Calculate odd/even statistics
@@ -115,8 +118,43 @@ oddsEvensMetricServer <- function(id, filtered_data) {
       )
     })
     
+    # Metric Cards
+    output$metricCard1 <- renderUI({
+      lang <- get_lang()
+      stats <- odds_evens_stats()
+      div(
+        class = "value-box-custom",
+        div(class = "value-box-icon", "🎲"),
+        div(class = "value-box-value", round(stats$avg_odds, 2)),
+        div(class = "value-box-label", t("odds_evens_metric_avg_odds", lang))
+      )
+    })
+    
+    output$metricCard2 <- renderUI({
+      lang <- get_lang()
+      stats <- odds_evens_stats()
+      div(
+        class = "value-box-custom",
+        div(class = "value-box-icon", "⚖️"),
+        div(class = "value-box-value", round(6 - stats$avg_odds, 2)),
+        div(class = "value-box-label", t("odds_evens_metric_avg_evens", lang))
+      )
+    })
+    
+    output$metricCard3 <- renderUI({
+      lang <- get_lang()
+      stats <- odds_evens_stats()
+      div(
+        class = "value-box-custom",
+        div(class = "value-box-icon", "⭐"),
+        div(class = "value-box-value", style = "font-size: 20px;", stats$most_common),
+        div(class = "value-box-label", t("odds_evens_metric_most_common", lang))
+      )
+    })
+    
     # Pascal Triangle Distribution Chart
     output$pascalChart <- renderPlotly({
+      lang <- get_lang()
       stats <- odds_evens_stats()
       
       # Count frequency of each combination
@@ -144,13 +182,13 @@ oddsEvensMetricServer <- function(id, filtered_data) {
                 color = colors,
                 line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
               ),
-              text = ~paste0(count, " draws<br>", percentage, "%"),
+              text = ~paste0(count, " ", t("odds_evens_hover_draws", lang), "<br>", percentage, "%"),
               textposition = "outside",
               textfont = list(color = "#e8eaed", size = 14, family = "Inter"),
               hovertemplate = paste0(
                 "<b>%{x}</b><br>",
-                "Frequency: %{y} draws<br>",
-                "Percentage: %{text}<br>",
+                t("odds_evens_label_frequency", lang), ": %{y} ", t("odds_evens_hover_draws", lang), "<br>",
+                t("odds_evens_hover_percentage", lang), ": %{text}<br>",
                 "<extra></extra>"
               )) %>%
         layout(
@@ -158,26 +196,25 @@ oddsEvensMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Combination",
+            title = t("odds_evens_label_combination", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             tickangle = -45,
             tickfont = list(size = 12)
           ),
           yaxis = list(
-            title = "Frequency",
+            title = t("odds_evens_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           margin = list(b = 100, t = 40)
         )
     })
     
-    
-    
     # Pie Chart
     output$pie <- renderPlotly({
+      lang <- get_lang()
       stats <- odds_evens_stats()
       df <- data.frame(
-        category = c("Odds", "Evens"),
+        category = c(t("odds_evens_label_odds", lang), t("odds_evens_label_evens", lang)),
         count = c(stats$total_odds, stats$total_evens)
       )
       
@@ -191,8 +228,8 @@ oddsEvensMetricServer <- function(id, filtered_data) {
               textfont = list(size = 16, color = "#FFFFFF", family = "Inter"),
               hovertemplate = paste0(
                 "<b>%{label}</b><br>",
-                "Count: %{value}<br>",
-                "Percentage: %{percent}<br>",
+                t("odds_evens_label_count", lang), ": %{value}<br>",
+                t("odds_evens_hover_percentage", lang), ": %{percent}<br>",
                 "<extra></extra>"
               )) %>%
         layout(
@@ -211,6 +248,7 @@ oddsEvensMetricServer <- function(id, filtered_data) {
     
     # Trend Line Chart
     output$trendLine <- renderPlotly({
+      lang <- get_lang()
       stats <- odds_evens_stats()
       data <- filtered_data()
       
@@ -227,16 +265,16 @@ oddsEvensMetricServer <- function(id, filtered_data) {
       }
       
       plot_ly(df, x = ~draw) %>%
-        add_trace(y = ~odds, name = "Odds", type = "scatter", mode = "lines",
+        add_trace(y = ~odds, name = t("odds_evens_label_odds", lang), type = "scatter", mode = "lines",
                   line = list(color = "#ec4899", width = 2),
-                  hovertemplate = paste0("Draw: %{x}<br>Odds: %{y}<extra></extra>")) %>%
-        add_trace(y = ~evens, name = "Evens", type = "scatter", mode = "lines",
+                  hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>", t("odds_evens_label_odds", lang), ": %{y}<extra></extra>")) %>%
+        add_trace(y = ~evens, name = t("odds_evens_label_evens", lang), type = "scatter", mode = "lines",
                   line = list(color = "#4169E1", width = 2),
-                  hovertemplate = paste0("Draw: %{x}<br>Evens: %{y}<extra></extra>")) %>%
+                  hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>", t("odds_evens_label_evens", lang), ": %{y}<extra></extra>")) %>%
         {if("ma_odds" %in% names(df)) 
-          add_trace(., y = ~ma_odds, name = "MA (Odds)", type = "scatter", mode = "lines",
+          add_trace(., y = ~ma_odds, name = paste("MA (", t("odds_evens_label_odds", lang), ")"), type = "scatter", mode = "lines",
                     line = list(color = "#8b5cf6", width = 3, dash = "dash"),
-                    hovertemplate = paste0("Draw: %{x}<br>MA: %{y:.2f}<extra></extra>"))
+                    hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>MA: %{y:.2f}<extra></extra>"))
           else .
         } %>%
         layout(
@@ -244,11 +282,11 @@ oddsEvensMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Draw Number",
+            title = t("odds_evens_label_draw_number", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           yaxis = list(
-            title = "Count",
+            title = t("odds_evens_label_count", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             range = c(0, 6)
           ),
@@ -264,6 +302,7 @@ oddsEvensMetricServer <- function(id, filtered_data) {
     
     # Stacked Bar Chart
     output$stacked <- renderPlotly({
+      lang <- get_lang()
       stats <- odds_evens_stats()
       data <- filtered_data()
       
@@ -278,23 +317,23 @@ oddsEvensMetricServer <- function(id, filtered_data) {
       )
       
       plot_ly(df, x = ~draw) %>%
-        add_trace(y = ~odds, name = "Odds", type = "bar",
+        add_trace(y = ~odds, name = t("odds_evens_label_odds", lang), type = "bar",
                   marker = list(color = "#ec4899"),
-                  hovertemplate = paste0("Draw: %{x}<br>Odds: %{y}<extra></extra>")) %>%
-        add_trace(y = ~evens, name = "Evens", type = "bar",
+                  hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>", t("odds_evens_label_odds", lang), ": %{y}<extra></extra>")) %>%
+        add_trace(y = ~evens, name = t("odds_evens_label_evens", lang), type = "bar",
                   marker = list(color = "#4169E1"),
-                  hovertemplate = paste0("Draw: %{x}<br>Evens: %{y}<extra></extra>")) %>%
+                  hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>", t("odds_evens_label_evens", lang), ": %{y}<extra></extra>")) %>%
         layout(
           barmode = "stack",
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Draw Number",
+            title = t("odds_evens_label_draw_number", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           yaxis = list(
-            title = "Count",
+            title = t("odds_evens_label_count", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             range = c(0, 6)
           ),

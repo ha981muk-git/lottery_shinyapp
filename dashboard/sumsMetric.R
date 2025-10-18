@@ -1,6 +1,4 @@
-
-
-# ---------- Sum Analysis Module ----------
+# ---------- Sum Analysis Module with Language Support ----------
 
 sumsMetricUI <- function(id) {
   ns <- NS(id)
@@ -9,14 +7,13 @@ sumsMetricUI <- function(id) {
       style = "padding: 20px;",
       div(
         style = "margin-bottom: 32px;",
-        h1(class = "header-title", "Sum Analysis"),
-        p(class = "header-subtitle", "Analyze the sum of numbers in lottery draws and identify patterns")
+        uiOutput(ns("header"))
       ),
       
       # Statistics Row
       layout_column_wrap(
         width = 1/5,
-        gap = "12px",  # ← Compact, they're small cards
+        gap = "12px",
         heights_equal = "row",
         uiOutput(ns("metricCard1")),
         uiOutput(ns("metricCard2")),
@@ -28,20 +25,18 @@ sumsMetricUI <- function(id) {
       # Distribution and Trend Row
       layout_column_wrap(
         width = 1/2,
-
-        
         heights_equal = "row",
-        gap = "20px",  # ← Compact, they're small cards
+        gap = "20px",
         div(
           class = "content-card",
-          div(class = "card-title", span("📊"), span("Sum Distribution")),
-          p(class = "info-text", "Frequency distribution of sum values across all draws"),
+          uiOutput(ns("chartTitle1")),
+          p(class = "info-text", uiOutput(ns("chartDesc1"))),
           plotlyOutput(ns("hist"), height = "400px")
         ),
         div(
           class = "content-card",
-          div(class = "card-title", span("📈"), span("Sum Trend Over Time")),
-          p(class = "info-text", "Track how sums change across consecutive draws"),
+          uiOutput(ns("chartTitle2")),
+          p(class = "info-text", uiOutput(ns("chartDesc2"))),
           plotlyOutput(ns("trend"), height = "400px")
         )
       ),
@@ -49,27 +44,28 @@ sumsMetricUI <- function(id) {
       # Range Analysis and Box Plot Row
       layout_column_wrap(
         width = 1/2,
-        gap = "20px",  # ← Compact, they're small cards
+        gap = "20px",
         heights_equal = "row",
         div(
           class = "content-card",
-          div(class = "card-title", span("🎯"), span("Sum Range Analysis")),
-          p(class = "info-text", "Distribution of sums across different ranges"),
+          uiOutput(ns("chartTitle3")),
+          p(class = "info-text", uiOutput(ns("chartDesc3"))),
           plotlyOutput(ns("rangeChart"), height = "400px")
         ),
         div(
           class = "content-card",
-          div(class = "card-title", span("📦"), span("Statistical Distribution")),
-          p(class = "info-text", "Box plot showing quartiles, median, and outliers"),
+          uiOutput(ns("chartTitle4")),
+          p(class = "info-text", uiOutput(ns("chartDesc4"))),
           plotlyOutput(ns("boxPlot"), height = "400px")
         )
       ),
+      
       # Moving Average and Volatility
       div(
         class = "content-card",
         style = "margin-top: 20px;",
-        div(class = "card-title", span("📉"), span("Moving Average & Volatility")),
-        p(class = "info-text", "20-draw moving average with upper and lower bands"),
+        uiOutput(ns("chartTitle5")),
+        p(class = "info-text", uiOutput(ns("chartDesc5"))),
         plotlyOutput(ns("movingAvg"), height = "400px")
       )
     )
@@ -79,8 +75,71 @@ sumsMetricUI <- function(id) {
 sumsMetricServer <- function(id, filtered_data) {
   moduleServer(id, function(input, output, session) {
     
+    # Get current language from URL
+    get_lang <- reactive({
+      query <- parseQueryString(isolate(session$clientData$url_search))
+      query$lang %||% "de"
+    })
     
-
+    # Render header
+    output$header <- renderUI({
+      lang <- get_lang()
+      tagList(
+        h1(class = "header-title", t("sums_title", lang)),
+        p(class = "header-subtitle", t("sums_subtitle", lang))
+      )
+    })
+    
+    # Chart titles and descriptions
+    output$chartTitle1 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📊"), span(t("sums_chart_distribution", lang)))
+    })
+    
+    output$chartDesc1 <- renderUI({
+      lang <- get_lang()
+      t("sums_chart_distribution_desc", lang)
+    })
+    
+    output$chartTitle2 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📈"), span(t("sums_chart_trend", lang)))
+    })
+    
+    output$chartDesc2 <- renderUI({
+      lang <- get_lang()
+      t("sums_chart_trend_desc", lang)
+    })
+    
+    output$chartTitle3 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("🎯"), span(t("sums_chart_range", lang)))
+    })
+    
+    output$chartDesc3 <- renderUI({
+      lang <- get_lang()
+      t("sums_chart_range_desc", lang)
+    })
+    
+    output$chartTitle4 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📦"), span(t("sums_chart_boxplot", lang)))
+    })
+    
+    output$chartDesc4 <- renderUI({
+      lang <- get_lang()
+      t("sums_chart_boxplot_desc", lang)
+    })
+    
+    output$chartTitle5 <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📉"), span(t("sums_chart_moving", lang)))
+    })
+    
+    output$chartDesc5 <- renderUI({
+      lang <- get_lang()
+      t("sums_chart_moving_desc", lang)
+    })
     
     # Calculate sum statistics
     sum_stats <- reactive({
@@ -105,7 +164,7 @@ sumsMetricServer <- function(id, filtered_data) {
         class = "value-box-custom",
         div(class = "value-box-icon", "📊"),
         div(class = "value-box-value", round(stats$mean, 1)),
-        div(class = "value-box-label", "Average Sum")
+        div(class = "value-box-label", t("sums_metric_average", get_lang()))
       )
     })
     
@@ -115,7 +174,7 @@ sumsMetricServer <- function(id, filtered_data) {
         class = "value-box-custom",
         div(class = "value-box-icon", "🎯"),
         div(class = "value-box-value", stats$median),
-        div(class = "value-box-label", "Median Sum")
+        div(class = "value-box-label", t("sums_metric_median", get_lang()))
       )
     })
     
@@ -125,7 +184,7 @@ sumsMetricServer <- function(id, filtered_data) {
         class = "value-box-custom",
         div(class = "value-box-icon", "⭐"),
         div(class = "value-box-value", stats$most_common),
-        div(class = "value-box-label", "Most Common")
+        div(class = "value-box-label", t("sums_metric_most_common", get_lang()))
       )
     })
     
@@ -135,7 +194,7 @@ sumsMetricServer <- function(id, filtered_data) {
         class = "value-box-custom",
         div(class = "value-box-icon", "📉"),
         div(class = "value-box-value", stats$min),
-        div(class = "value-box-label", "Minimum Sum")
+        div(class = "value-box-label", t("sums_metric_minimum", get_lang()))
       )
     })
     
@@ -145,12 +204,13 @@ sumsMetricServer <- function(id, filtered_data) {
         class = "value-box-custom",
         div(class = "value-box-icon", "📈"),
         div(class = "value-box-value", stats$max),
-        div(class = "value-box-label", "Maximum Sum")
+        div(class = "value-box-label", t("sums_metric_maximum", get_lang()))
       )
     })
     
     # Histogram
     output$hist <- renderPlotly({
+      lang <- get_lang()
       stats <- sum_stats()
       sums <- stats$sums
       
@@ -164,30 +224,30 @@ sumsMetricServer <- function(id, filtered_data) {
               ),
               xbins = list(size = 5),
               hovertemplate = paste0(
-                "Sum Range: %{x}<br>",
-                "Frequency: %{y}<br>",
+                t("sums_label_sum_value", lang), ": %{x}<br>",
+                t("sums_label_frequency", lang), ": %{y}<br>",
                 "<extra></extra>"
               )) %>%
         add_trace(x = rep(stats$mean, 2), y = c(0, max(hist(sums, plot = FALSE)$counts) * 1.1),
                   type = "scatter", mode = "lines",
                   line = list(color = "#ec4899", width = 3, dash = "dash"),
-                  name = "Mean",
-                  hovertemplate = paste0("Mean: ", round(stats$mean, 1), "<extra></extra>")) %>%
+                  name = t("sums_metric_average", lang),
+                  hovertemplate = paste0(t("sums_metric_average", lang), ": ", round(stats$mean, 1), "<extra></extra>")) %>%
         add_trace(x = rep(stats$median, 2), y = c(0, max(hist(sums, plot = FALSE)$counts) * 1.1),
                   type = "scatter", mode = "lines",
                   line = list(color = "#10b981", width = 3, dash = "dot"),
-                  name = "Median",
-                  hovertemplate = paste0("Median: ", stats$median, "<extra></extra>")) %>%
+                  name = t("sums_metric_median", lang),
+                  hovertemplate = paste0(t("sums_metric_median", lang), ": ", stats$median, "<extra></extra>")) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Sum Value",
+            title = t("sums_label_sum_value", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           yaxis = list(
-            title = "Frequency",
+            title = t("sums_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           showlegend = TRUE,
@@ -203,6 +263,7 @@ sumsMetricServer <- function(id, filtered_data) {
     
     # Trend Line
     output$trend <- renderPlotly({
+      lang <- get_lang()
       stats <- sum_stats()
       sums <- stats$sums
       
@@ -219,25 +280,25 @@ sumsMetricServer <- function(id, filtered_data) {
                 line = list(color = "rgba(255, 255, 255, 0.5)", width = 1)
               ),
               hovertemplate = paste0(
-                "Draw #%{x}<br>",
-                "Sum: %{y}<br>",
+                t("sums_label_draw", lang), " #%{x}<br>",
+                t("sums_label_sum_value", lang), ": %{y}<br>",
                 "<extra></extra>"
               )) %>%
         add_trace(x = range(df$draw), y = rep(stats$mean, 2),
                   type = "scatter", mode = "lines",
                   line = list(color = "#10b981", width = 2, dash = "dash"),
-                  name = "Average",
+                  name = t("sums_metric_average", lang),
                   hoverinfo = "skip") %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Draw Number",
+            title = t("sums_label_draw_number", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           yaxis = list(
-            title = "Sum Value",
+            title = t("sums_label_sum_value", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           showlegend = TRUE,
@@ -253,6 +314,7 @@ sumsMetricServer <- function(id, filtered_data) {
     
     # Range Analysis
     output$rangeChart <- renderPlotly({
+      lang <- get_lang()
       stats <- sum_stats()
       sums <- stats$sums
       
@@ -281,8 +343,8 @@ sumsMetricServer <- function(id, filtered_data) {
               textfont = list(color = "#e8eaed", size = 12),
               hovertemplate = paste0(
                 "<b>%{x}</b><br>",
-                "Count: %{y}<br>",
-                "Percentage: %{text}<br>",
+                t("sums_hover_count", lang), ": %{y}<br>",
+                t("sums_hover_percentage", lang), ": %{text}<br>",
                 "<extra></extra>"
               )) %>%
         layout(
@@ -290,12 +352,12 @@ sumsMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Sum Range",
+            title = t("sums_label_sum_range", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)",
             tickangle = -45
           ),
           yaxis = list(
-            title = "Frequency",
+            title = t("sums_label_frequency", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           margin = list(b = 100)
@@ -304,16 +366,17 @@ sumsMetricServer <- function(id, filtered_data) {
     
     # Box Plot
     output$boxPlot <- renderPlotly({
+      lang <- get_lang()
       stats <- sum_stats()
       
       plot_ly(y = ~stats$sums, type = "box",
               marker = list(color = "#8b5cf6"),
               line = list(color = "#ec4899", width = 2),
               fillcolor = "rgba(139, 92, 246, 0.3)",
-              name = "Sum Distribution",
+              name = t("sums_label_sum_value", lang),
               boxmean = "sd",
               hovertemplate = paste0(
-                "Value: %{y}<br>",
+                t("sums_hover_value", lang), ": %{y}<br>",
                 "<extra></extra>"
               )) %>%
         layout(
@@ -321,7 +384,7 @@ sumsMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           yaxis = list(
-            title = "Sum Value",
+            title = t("sums_label_sum_value", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           xaxis = list(
@@ -331,9 +394,9 @@ sumsMetricServer <- function(id, filtered_data) {
         )
     })
     
-    
     # Moving Average with Bands
     output$movingAvg <- renderPlotly({
+      lang <- get_lang()
       stats <- sum_stats()
       sums <- stats$sums
       
@@ -350,9 +413,9 @@ sumsMetricServer <- function(id, filtered_data) {
       
       plot_ly(df, x = ~draw) %>%
         # Actual values
-        add_trace(y = ~sum, name = "Sum", type = "scatter", mode = "lines",
+        add_trace(y = ~sum, name = t("sums_label_sum_value", lang), type = "scatter", mode = "lines",
                   line = list(color = "rgba(139, 92, 246, 0.4)", width = 1),
-                  hovertemplate = paste0("Draw: %{x}<br>Sum: %{y}<extra></extra>")) %>%
+                  hovertemplate = paste0(t("sums_label_draw", lang), ": %{x}<br>", t("sums_label_sum_value", lang), ": %{y}<extra></extra>")) %>%
         # Upper band
         {if("upper" %in% names(df))
           add_trace(., y = ~upper, name = "Upper Band", type = "scatter", mode = "lines",
@@ -370,7 +433,7 @@ sumsMetricServer <- function(id, filtered_data) {
         } %>%
         # Moving average
         {if("ma" %in% names(df))
-          add_trace(., y = ~ma, name = "Moving Avg", type = "scatter", mode = "lines",
+          add_trace(., y = ~ma, name = t("sums_metric_average", lang), type = "scatter", mode = "lines",
                     line = list(color = "#10b981", width = 3),
                     hovertemplate = paste0("MA: %{y:.1f}<extra></extra>"))
           else .
@@ -380,11 +443,11 @@ sumsMetricServer <- function(id, filtered_data) {
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
           xaxis = list(
-            title = "Draw Number",
+            title = t("sums_label_draw_number", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           yaxis = list(
-            title = "Sum Value",
+            title = t("sums_label_sum_value", lang),
             gridcolor = "rgba(255, 255, 255, 0.1)"
           ),
           hovermode = "x unified",

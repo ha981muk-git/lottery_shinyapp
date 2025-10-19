@@ -61,6 +61,8 @@ translations <- list(
     balls_raincloud_title = "Raincloud Plot of Balls 1 to 6",
     balls_chart_density = "Density Distribution",
     balls_chart_density_title = "Density of Numbers for Each Ball",
+    balls_line_chart_title = "Line Chart of Numbers for Each Ball",
+    balls_line_chart = "Each line shows the values of Balls 1–6 for a draw",
     
     # Axis Labels
     ball_label = "Ball",
@@ -380,6 +382,8 @@ translations <- list(
     balls_raincloud_title = "Raincloud-Plot der Kugeln 1 bis 6",
     balls_chart_density = "Dichteverteilung",
     balls_chart_density_title = "Dichte der Zahlen für jede Kugel",
+    balls_line_chart_title = "Liniendiagramm der Zahlen für jede Kugel",
+    balls_line_chart = "Jede Linie zeigt die Werte der Kugeln 1–6 für eine Ziehung an.",
     
     # Axis Labels
     ball_label = "Kugel",

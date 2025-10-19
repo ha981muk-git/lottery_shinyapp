@@ -47,6 +47,12 @@ ballsMetricUI <- function(id) {
         style = "margin-top: 20px;",
         uiOutput(ns("overviewChartTitle")),
         plotlyOutput(ns("overviewChart"), height = "400px")
+      ),
+      div(
+        class = "chart-card",
+        style = "margin-top: 20px;",
+        uiOutput(ns("lineChartTitle")),
+        plotlyOutput(ns("lineChart"), height = "400px")
       )
     )
   )
@@ -99,6 +105,11 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     output$overviewChartTitle <- renderUI({
       lang <- get_lang()
       div(class = "chart-title", t("balls_overview_title", lang))
+    })
+    
+    output$lineChartTitle <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", t("balls_line_chart_title", lang))
     })
     
     create_metric_card <- function(title, value, value_symbol) {
@@ -230,9 +241,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     })
     
     output$densityChart <- renderPlotly({
-      # The key is lang <- get_lang() must be inside the renderPlotly, not outside.
-      # Otherwise, lang is undefined when t() is called.
-      lang <- get_lang()  # <-- add this
+      lang <- get_lang()
       data <- filtered_data()
       
       # Convert data to long format
@@ -245,7 +254,6 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
         dplyr::mutate(ball = stringr::str_replace(ball, "ball_", "Ball "))
       
       p <- plot_ly()
-      
       
       # Smooth overlay (optional)
       for (ball_name in unique(df_long$ball)) {
@@ -348,6 +356,63 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
           plot_bgcolor = 'rgba(0,0,0,0)',
           font = list(color = 'rgba(255,255,255,0.6)'),
           showlegend = FALSE
+        ) %>%
+        config(displayModeBar = FALSE)
+    })
+    
+    # Line Chart - Each row represents a line connecting Ball 1 to Ball 6
+    output$lineChart <- renderPlotly({
+      lang <- get_lang()
+      data <- filtered_data()
+      
+      p <- plot_ly()
+      
+      # X-axis positions for each ball (1 to 6)
+      x_positions <- 1:6
+      ball_labels <- sapply(1:6, function(i) t(paste0("ball_", i), lang))
+      
+      # Loop through each row in filtered_data and add a line trace
+      for(row in 1:nrow(data)) {
+        y_values <- c(
+          data[[row, "ball_1"]],
+          data[[row, "ball_2"]],
+          data[[row, "ball_3"]],
+          data[[row, "ball_4"]],
+          data[[row, "ball_5"]],
+          data[[row, "ball_6"]]
+        )
+        
+        p <- add_trace(p,
+                       x = x_positions,
+                       y = y_values,
+                       type = 'scatter',
+                       mode = 'lines+markers',
+                       line = list(color = 'rgba(255,255,255,0.3)', width = 1),
+                       marker = list(size = 4, color = 'rgba(255,255,255,0.4)'),
+                       hoverinfo = 'y+x',
+                       showlegend = FALSE,
+                       name = paste("Row", row))
+      }
+      
+      p %>%
+        layout(
+          title = t("balls_line_chart", lang),
+          xaxis = list(
+            title = t("ball_label", lang),
+            color = 'rgba(255,255,255,0.6)',
+            tickmode = 'array',
+            tickvals = x_positions,
+            ticktext = ball_labels,
+            range = c(0.5, 6.5)
+          ),
+          yaxis = list(
+            title = t("value_label", lang),
+            color = 'rgba(255,255,255,0.6)'
+          ),
+          paper_bgcolor = 'rgba(0,0,0,0)',
+          plot_bgcolor = 'rgba(0,0,0,0)',
+          font = list(color = 'rgba(255,255,255,0.6)'),
+          hovermode = 'closest'
         ) %>%
         config(displayModeBar = FALSE)
     })

@@ -125,6 +125,12 @@ ui <- function(request) {
       tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
       useShinyjs(),
       use_waiter(),
+      # ============================================================================
+      # FIX 6: QUICK WINS - Update app.R theme CSS
+      # ============================================================================
+      # In the tags$head section of app.R, update the skeleton loader animation:
+      
+      # Replace the @keyframes shimmer with faster animation:
       
       # Fix sidebar overlay
       tags$script(HTML("

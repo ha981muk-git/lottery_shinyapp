@@ -1,5 +1,5 @@
 # ============================================================
-# ULTRA-SMOOTH UI MODULE - OPTIMIZED FOR BUTTER-LIKE PERFORMANCE
+# ULTRA-SMOOTH UI MODULE - MAXIMUM PERFORMANCE OPTIMIZATION
 # ============================================================
 
 # UI Module - Enhanced with better debouncing and visual feedback
@@ -20,9 +20,9 @@ lotteryInputUI <- function(id, lang = "de") {
   )
   
   tagList(
-    # Add CSS for smooth transitions
+    # Optimized CSS for smooth transitions
     tags$style(HTML("
-      .smooth-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .smooth-transition { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
       .slider-updating { opacity: 0.7; pointer-events: none; }
       .btn-primary:active { transform: scale(0.98); }
       @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
@@ -82,12 +82,12 @@ lotteryInputServer <- function(id) {
     # Ultra-smooth refresh with rate limiting
     refresh_throttled <- reactive({
       input$refresh
-    }) %>% throttle(800)  # Increased for smoother experience
+    }) %>% throttle(600)  # Reduced from 800ms
     
-    # Debounced outputs for smoother updates
-    range_debounced <- reactive(input$range) %>% debounce(300)
-    metric_debounced <- reactive(input$metric) %>% debounce(100)
-    timeRange_debounced <- reactive(input$timeRange) %>% debounce(200)
+    # Optimized debounced outputs
+    range_debounced <- reactive(input$range) %>% debounce(200)  # Reduced from 300ms
+    metric_debounced <- reactive(input$metric) %>% debounce(50)  # Reduced from 100ms
+    timeRange_debounced <- reactive(input$timeRange) %>% debounce(150)  # Reduced from 200ms
     
     return(reactive({
       list(
@@ -123,15 +123,15 @@ dashboardUI <- function(id) {
           rgba(139,92,246,0.15) 50%, 
           rgba(139,92,246,0.08) 75%);
         background-size: 200% 100%;
-        animation: shimmer 2s ease-in-out infinite;
+        animation: shimmer 1.5s ease-in-out infinite;
         border-radius: 12px;
         margin-bottom: 20px;
       }
       .metric-container {
-        animation: fadeIn 0.4s ease-out;
+        animation: fadeIn 0.3s ease-out;
       }
       #", ns("metricsContainer"), " > div {
-        transition: opacity 0.3s ease, transform 0.3s ease;
+        transition: opacity 0.25s ease, transform 0.25s ease;
       }
     ")),
     
@@ -139,8 +139,8 @@ dashboardUI <- function(id) {
     div(id = ns("skeleton-loader"),
         style = "padding: 20px;",
         div(class = "skeleton-card", style = "height: 180px;"),
-        div(class = "skeleton-card", style = "height: 320px; animation-delay: 0.1s;"),
-        div(class = "skeleton-card", style = "height: 220px; animation-delay: 0.2s;")
+        div(class = "skeleton-card", style = "height: 320px; animation-delay: 0.05s;"),
+        div(class = "skeleton-card", style = "height: 220px; animation-delay: 0.1s;")
     ),
     
     # Metrics container with smooth transitions
@@ -178,8 +178,8 @@ dashboardServer <- function(id, input_controls) {
     metrics_data <- generate_metrics()
     draws_per_week <- 2
     
-    # Increased debounce for butter-smooth updates
-    debounced_range <- reactive(input_controls()$range) %>% debounce(350)
+    # Reduced debounce for faster updates
+    debounced_range <- reactive(input_controls()$range) %>% debounce(250)  # Reduced from 350ms
     
     # Smart filtered data with caching
     filtered_data <- eventReactive(
@@ -209,7 +209,6 @@ dashboardServer <- function(id, input_controls) {
     
     # Track initialized servers
     initialized_servers <- reactiveVal(list())
-    loading_queue <- reactiveVal(character(0))
     
     # Optimized initialization
     initialize_server <- function(metric, priority = FALSE) {
@@ -234,31 +233,31 @@ dashboardServer <- function(id, input_controls) {
       })
     }
     
-    # STEP 1: Fast first render
+    # STEP 1: Fast first render (50ms delay)
     observe({
       req(input_controls()$metric)
       metric <- input_controls()$metric
       
-      # Smooth transition: hide skeleton, show container
-      shinyjs::delay(100, {
-        shinyjs::hide("skeleton-loader", anim = TRUE, animType = "fade")
-        shinyjs::show("metricsContainer", anim = TRUE, animType = "fade")
+      # Quick transition: hide skeleton, show container
+      shinyjs::delay(50, {
+        shinyjs::hide("skeleton-loader", anim = TRUE, animType = "fade", time = 0.15)
+        shinyjs::show("metricsContainer", anim = TRUE, animType = "fade", time = 0.15)
       })
       
-      # Load and show first metric
+      # Load and show first metric immediately
       if (initialize_server(metric, priority = TRUE)) {
-        shinyjs::show(id = paste0("metric-", metric), anim = TRUE, animType = "fade")
+        shinyjs::show(id = paste0("metric-", metric), anim = TRUE, animType = "fade", time = 0.2)
       }
       
     }) %>% bindEvent(input_controls()$metric, once = TRUE)
     
-    # STEP 2: Background lazy loading with priority queue
+    # STEP 2: Background lazy loading with optimized priority queue
     observe({
       req(input_controls()$metric)
       first_metric <- input_controls()$metric
       
-      # Wait before starting background load
-      invalidateLater(1500)
+      # Reduced wait time before background load
+      invalidateLater(800)  # Reduced from 1500ms
       
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       remaining <- setdiff(all_metrics, first_metric)
@@ -267,34 +266,34 @@ dashboardServer <- function(id, input_controls) {
       priority_order <- c("sums", "table", "odds_evens", "difference", "lag", "balls")
       remaining <- intersect(priority_order, remaining)
       
-      # Load metrics with breathing room
+      # Load metrics with minimal spacing
       for (m in remaining) {
         initialize_server(m)
-        Sys.sleep(0.12)  # Smooth spacing between loads
+        Sys.sleep(0.08)  # Reduced from 0.12s - faster sequential loading
       }
       
     }) %>% bindEvent(input_controls()$metric, once = TRUE)
     
-    # STEP 3: Instant metric switching with fade transitions
+    # STEP 3: Instant metric switching with optimized fade transitions
     observeEvent(input_controls()$metric, {
       req(input_controls()$metric)
       new_metric <- input_controls()$metric
       
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       
-      # Smooth fade out all metrics
+      # Quick fade out all metrics
       for (m in all_metrics) {
         if (m != new_metric) {
-          shinyjs::hide(id = paste0("metric-", m), anim = TRUE, animType = "fade", time = 0.2)
+          shinyjs::hide(id = paste0("metric-", m), anim = TRUE, animType = "fade", time = 0.15)
         }
       }
       
       # Initialize if needed (instant for cached)
       initialize_server(new_metric, priority = TRUE)
       
-      # Smooth fade in selected metric
-      shinyjs::delay(200, {
-        shinyjs::show(id = paste0("metric-", new_metric), anim = TRUE, animType = "fade", time = 0.3)
+      # Quick fade in selected metric
+      shinyjs::delay(120, {  # Reduced from 200ms
+        shinyjs::show(id = paste0("metric-", new_metric), anim = TRUE, animType = "fade", time = 0.2)
       })
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)

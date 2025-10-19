@@ -1,6 +1,6 @@
 # Source main files
-script_folder <- "."
-data_path <- file.path(script_folder,'data',"LOTTO_ab_2018.csv")
+# Source main files
+data_path <- file.path(getwd(), "data", "LOTTO_ab_2018.csv")
 
 
 # ==== Loading data

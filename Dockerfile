@@ -1,20 +1,24 @@
+# Use an official R Shiny image
 FROM rocker/shiny:latest
 
-# Install system dependencies
+# System dependencies
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libssl-dev \
     libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install R packages FIRST before copying app
-RUN R -e "pkgs <- c('shiny','vroom','dplyr','janitor','bslib','shinyjs','plotly','waiter','tidyr','purrr','DT'); install.packages(pkgs, repos='http://cran.rstudio.com/')" && \
-    rm -rf /tmp/downloaded_packages
+# Copy app files
+WORKDIR /srv/shiny-server/
+COPY . .
 
-# Copy app after packages are installed
-COPY . /srv/shiny-server/
+# Install R dependencies
+RUN Rscript requirements.R
 
+# Expose port
 EXPOSE 3838
 
-CMD ["/usr/bin/shiny-server"]
+# Run the Shiny app
+CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=3838)"]
+
 

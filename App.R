@@ -57,7 +57,6 @@ lapply(metric_files, function(f) {
   })
 })
 
-
 # ============================================================================
 # UI - SEPARATE, with language parameter
 ui <- function(request) {
@@ -125,40 +124,42 @@ ui <- function(request) {
       tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
       useShinyjs(),
       use_waiter(),
-      # ============================================================================
-      # FIX 6: QUICK WINS - Update app.R theme CSS
-      # ============================================================================
-      # In the tags$head section of app.R, update the skeleton loader animation:
       
-      # Replace the @keyframes shimmer with faster animation:
-     # Replace the @keyframes shimmer with faster animation:
-        tags$style(HTML("
-              @keyframes shimmer {
-                0% { background-position: -200% 0; }
-                100% { background-position: 200% 0; }
-              }
-              @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(5px); }
-                to { opacity: 1; transform: translateY(0); }
-              }
-              .skeleton-card {
-                height: 200px;
-                background: linear-gradient(90deg, 
-                  rgba(139,92,246,0.08) 25%, 
-                  rgba(139,92,246,0.15) 50%, 
-                  rgba(139,92,246,0.08) 75%);
-                background-size: 200% 100%;
-                animation: shimmer 1.2s ease-in-out infinite; /* ✅ Reduced from 2s */
-                border-radius: 12px;
-                margin-bottom: 20px;
-              }
-              .metric-container {
-                animation: fadeIn 0.3s ease-out; /* ✅ Faster */
-              }
-            ")),
-      # Fix sidebar overlay
+      # ✅ OPTIMIZED INLINE STYLES WITH GPU ACCELERATION
+      tags$style(HTML("
+            @keyframes shimmer {
+              0% { background-position: -200% 0; }
+              100% { background-position: 200% 0; }
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(5px) translateZ(0); }
+              to { opacity: 1; transform: translateY(0) translateZ(0); }
+            }
+            .skeleton-card {
+              height: 200px;
+              background: linear-gradient(90deg, 
+                rgba(139,92,246,0.08) 25%, 
+                rgba(139,92,246,0.15) 50%, 
+                rgba(139,92,246,0.08) 75%);
+              background-size: 200% 100%;
+              animation: shimmer 1.2s linear infinite;
+              will-change: background-position;
+              border-radius: 12px;
+              margin-bottom: 20px;
+            }
+            .metric-container {
+              animation: fadeIn 0.3s ease-out;
+              will-change: opacity, transform;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              * { animation: none !important; transition: none !important; }
+            }
+      ")),
+      
+      # ✅ FIX: STOP MUTATIONOBSERVER AFTER 3 SECONDS + DEBOUNCE
       tags$script(HTML("
         $(document).ready(function() {
+          let debounceTimer;
           function fixSidebarOverlay() {
             $('.bslib-sidebar-layout > .main').css({
               'opacity': '1',
@@ -176,8 +177,16 @@ ui <- function(request) {
           fixSidebarOverlay();
           setTimeout(fixSidebarOverlay, 100);
           setTimeout(fixSidebarOverlay, 500);
-          const observer = new MutationObserver(fixSidebarOverlay);
-          observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+          
+          // Debounced observer - only runs every 100ms
+          const observer = new MutationObserver(() => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fixSidebarOverlay, 100);
+          });
+          observer.observe(document.body, { childList: true, subtree: true });
+          
+          // CRITICAL: Stop observing after 3 seconds - sidebar is stable
+          setTimeout(() => observer.disconnect(), 3000);
         });
       ")),
       
@@ -221,13 +230,13 @@ ui <- function(request) {
       "))
     ),
     
-    # ✅ Language switcher - updates URL to change language
+    # ✅ Language switcher
     div(class = "lang-switcher",
         tags$a(href = "?lang=de", class = paste0("lang-btn", if(LANG == "de") " active" else ""), "🇩🇪 DE"),
         tags$a(href = "?lang=en", class = paste0("lang-btn", if(LANG == "en") " active" else ""), "🇬🇧 EN")
     ),
     
-    # Professional Header with semantic HTML - ✅ TRANSLATED TO GERMAN
+    # Professional Header
     div(class = "professional-header", role = "banner",
         div(class = "header-content",
             div(class = "logo-section",
@@ -247,7 +256,7 @@ ui <- function(request) {
         )
     ),
     
-    # Main Content with semantic structure
+    # Main Content
     div(class = "main-content",
         # Main Analyzer Section
         div(id = "analyzer", role = "region", `aria-label` = if(LANG == "de") "Analyse-Dashboard" else "Analysis Dashboard",
@@ -272,7 +281,7 @@ ui <- function(request) {
             )
         ),
         
-        # Educational Notice - ✅ TRANSLATED TO GERMAN
+        # Educational Notice
         div(class = "educational-notice", role = "note",
             h3(t("notice_title", LANG)),
             tags$ul(
@@ -287,7 +296,7 @@ ui <- function(request) {
               t("notice_purpose", LANG))
         ),
         
-        # Additional Educational Section - ✅ TRANSLATED TO GERMAN
+        # Additional Educational Section
         div(id = "educational", role = "region", `aria-label` = if(LANG == "de") "Bildungsinformationen" else "Educational Information",
             style = "margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px;",
             h2(t("edu_title", LANG), style = "color: #e8eaed;"),
@@ -305,7 +314,7 @@ ui <- function(request) {
         )
     ),
     
-    # Professional Footer with semantic HTML - ✅ TRANSLATED TO GERMAN
+    # Professional Footer
     div(class = "professional-footer", role = "contentinfo",
         div(class = "footer-content",
             div(class = "footer-sections",
@@ -360,18 +369,17 @@ ui <- function(request) {
 }
 
 # ============================================================================
-# Server - SEPARATE, NO CHANGES NEEDED
+# Server
 # ============================================================================
 server <- function(input, output, session) {
   # Call input module
-  input_controls <- lotteryInputServer("inputs1")  # CORRECT!
+  input_controls <- lotteryInputServer("inputs1")
   
   # Call modules
   dashboardServer("dashboard1", input_controls = input_controls)
 }
 
-
 # -------------------------
-# Run app - ✅ Enable bookmarking for URL parameters
+# Run app
 # -------------------------
 shinyApp(ui = ui, server = server, enableBookmarking = "url")

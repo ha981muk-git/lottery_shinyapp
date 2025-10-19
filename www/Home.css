@@ -1,9 +1,9 @@
 /* ============================================
    OPTIMIZED RESPONSIVE DASHBOARD CSS
-   All devices supported (desktop, tablet, mobile)
+   Performance & Animation Improvements
    ============================================ */
 
-/* ========== CRITICAL SIDEBAR FIX (TOP PRIORITY) ========== */
+/* ========== CRITICAL SIDEBAR FIX ========== */
 .bslib-sidebar-layout {
   display: grid !important;
   grid-template-columns: minmax(260px, 25%) 1fr !important;
@@ -28,7 +28,6 @@
   z-index: 1 !important;
 }
 
-/* Remove ALL backdrop/overlay elements */
 .sidebar-backdrop,
 .bslib-sidebar-backdrop,
 .bslib-sidebar-layout::before,
@@ -44,10 +43,16 @@
   visibility: visible !important;
 }
 
-/* ========== ANIMATIONS ========== */
+/* ========== ANIMATIONS - OPTIMIZED WITH GPU HINTS ========== */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0; 
+    transform: translateY(30px) translateZ(0);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) translateZ(0);
+  }
 }
 
 @keyframes pulse {
@@ -56,13 +61,28 @@
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { 
+    opacity: 0; 
+    transform: translateX(-20px) translateZ(0);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0) translateZ(0);
+  }
 }
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
+}
+
+/* ✅ Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ========== BASE STYLES ========== */
@@ -191,10 +211,11 @@ body {
   font-size: 0.8em;
   font-weight: 700;
   margin-left: 10px;
-  animation: blink 1.5s ease-in-out infinite;
+  animation: blink 2s ease-in-out infinite;
+  will-change: opacity;
 }
 
-/* ========== CARDS ========== */
+/* ========== CARDS - GPU ACCELERATED ========== */
 .metric-card,
 .chart-card,
 .content-card,
@@ -209,6 +230,7 @@ body {
   animation: fadeInUp 0.6s ease-out;
   position: relative;
   overflow: hidden;
+  will-change: transform, box-shadow;
 }
 
 .metric-card::before,
@@ -220,25 +242,26 @@ body {
   right: 0;
   height: 3px;
   background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
-  transform: translateX(-100%);
-  transition: transform 0.6s ease;
+  transform: translateX(-100%) translateZ(0);
+  transition: transform 0.3s ease;
+  will-change: transform;
 }
 
 .metric-card:hover::before,
 .value-box-custom:hover::before {
-  transform: translateX(0);
+  transform: translateX(0) translateZ(0);
 }
 
 .metric-card:hover,
 .chart-card:hover,
 .content-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-5px) translateZ(0);
   box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
   border-color: rgba(99, 102, 241, 0.4);
 }
 
 .value-box-custom:hover {
-  transform: translateY(-3px);
+  transform: translateY(-3px) translateZ(0);
   box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
   border-color: rgba(99, 102, 241, 0.4);
 }
@@ -291,6 +314,7 @@ body {
   margin: 12px 0;
   animation: slideIn 0.8s ease-out;
   line-height: 1.2;
+  will-change: opacity;
 }
 
 .value-box-value {
@@ -335,6 +359,7 @@ body {
   display: inline-block;
   margin-right: 8px;
   animation: pulse 2s ease-in-out infinite;
+  will-change: opacity;
 }
 
 /* ========== FORM CONTROLS ========== */
@@ -343,7 +368,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   color: #e8eaed !important;
   border-radius: 10px !important;
-  transition: all 0.3s ease !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
 }
 
 .selectize-input:hover {
@@ -380,14 +405,15 @@ label {
   font-size: 0.95rem;
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin: 5px;
   color: white;
+  will-change: transform;
 }
 
 .btn-action:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) translateZ(0);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -425,6 +451,7 @@ label {
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 6px;
   margin: 0 2px;
+  transition: background 0.15s, border-color 0.15s !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
@@ -547,7 +574,7 @@ table.dataTable.stripe tbody tr.odd:hover {
   margin-bottom: 15px;
 }
 
-/* ========== PLOT SIZING - RESPONSIVE & BETTER PROPORTIONS ========== */
+/* ========== PLOT SIZING - RESPONSIVE ========== */
 .plotly,
 .js-plotly-plot {
   width: 100% !important;
@@ -555,7 +582,6 @@ table.dataTable.stripe tbody tr.odd:hover {
   min-height: 400px !important;
 }
 
-/* Make chart cards take more space */
 .chart-card {
   min-height: 450px;
 }
@@ -570,7 +596,6 @@ div[style*="display: grid"] {
 
 div[style*="display: flex"] {
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 /* ========== RESPONSIVE DESIGN ========== */
@@ -609,7 +634,6 @@ html {
   .btn-action { width: 100%; padding: 14px 18px; font-size: 1rem; }
   .value-box-value { font-size: 1.5rem; }
   
-  /* Mobile plot sizing */
   .plotly,
   .js-plotly-plot {
     height: 350px !important;
@@ -649,20 +673,16 @@ html {
 
 /* ========== SKELETON LOADER ========== */
 @keyframes shimmer {
-  0% { 
-    background-position: 200% 0; 
-  }
-  100% { 
-    background-position: -200% 0; 
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .skeleton-card {
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.2s linear infinite;
+  will-change: background-position;
 }
 
-/* Language switches */
-
+/* ========== LANGUAGE SWITCHER - OPTIMIZED ========== */
 .lang-switcher {
   position: fixed;
   top: 20px;
@@ -674,6 +694,7 @@ html {
   padding: 8px 12px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  will-change: transform;
 }
   
 .lang-btn {
@@ -684,17 +705,17 @@ html {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s;
+  transition: background 0.15s ease, border-color 0.15s ease;
   font-size: 14px;
 }
+
 .lang-btn:hover {
   background: rgba(255,255,255,0.1);
   border-color: rgba(255,255,255,0.6);
 }
+
 .lang-btn.active {
   background: #fff;
   color: #8b5cf6;
   border-color: #fff;
 }
-
-

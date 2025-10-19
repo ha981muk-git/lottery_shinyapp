@@ -1,5 +1,6 @@
 LotteryShinyApp.R
 DashboardModule_v0.R
+tests/testthat/test_performance.R
 .Renviron
 .Rhistory
 .RData

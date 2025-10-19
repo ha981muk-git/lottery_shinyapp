@@ -201,6 +201,13 @@ translations <- list(
     difference_guide_coverage = "Covers ~68% of all draws",
     difference_guide_top_hot = "Top Hot Ranges",
     
+    # English
+    difference_chart_density = "Density Distribution",
+    difference_chart_density_desc = "Histogram of differences with density curve",
+    difference_label_histogram = "Histogram",
+    difference_label_density = "Density",
+    difference_label_difference = "Difference",
+    
     # Lag Metric Module
     lag_title = "Lag Analysis - Number Jump Patterns",
     lag_subtitle = "Analyze how numbers change between consecutive draws and identify movement patterns",
@@ -509,6 +516,15 @@ translations <- list(
     difference_guide_optimal = "Basierend auf Mittelwert ± 1 Standardabweichung",
     difference_guide_coverage = "Deckt ~68% aller Ziehungen ab",
     difference_guide_top_hot = "Top Heiße Bereiche",
+    
+    # German
+    difference_chart_density = "Dichteverteilung",
+    difference_chart_density_desc = "Histogramm der Differenzen mit Dichtekurve",
+    difference_label_histogram = "Histogramm",
+    difference_label_density = "Dichte",
+    difference_label_difference = "Differenz",
+    
+
     
     # Lag Metric Module
     lag_title = "Lag-Analyse - Zahlensprung-Muster",

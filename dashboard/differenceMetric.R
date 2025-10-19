@@ -22,6 +22,19 @@ differenceMetricUI <- function(id) {
         uiOutput(ns("metricCard5"))
       ),
       
+      # ---------- Add to differenceMetricUI ----------
+      
+      # Add this section after the "Range Categories" div and before "Trend and Box Plot"
+      
+      # Density Distribution Analysis
+      div(
+        class = "content-card",
+        style = "margin-top: 25px;",
+        uiOutput(ns("chartTitle_density")),
+        p(class = "info-text", uiOutput(ns("chartDesc_density"))),
+        plotlyOutput(ns("densityDistribution"), height = "450px")
+      ),
+      
       # Main Frequency Distribution
       div(
         class = "content-card",
@@ -305,6 +318,92 @@ differenceMetricServer <- function(id, filtered_data) {
         div(class = "value-box-value", stats$max),
         div(class = "value-box-label", t("difference_metric_max", lang))
       )
+    })
+    
+    # ---------- Add to differenceMetricServer ----------
+    
+    # Add these chart title/description outputs with your other chart titles:
+    
+    output$chartTitle_density <- renderUI({
+      lang <- get_lang()
+      div(class = "chart-title", span("📊"), span(t("difference_chart_density", lang)))
+    })
+    
+    output$chartDesc_density <- renderUI({
+      lang <- get_lang()
+      t("difference_chart_density_desc", lang)
+    })
+    
+    # Add this renderPlotly section with your other chart outputs:
+    
+    # Density Distribution
+    output$densityDistribution <- renderPlotly({
+      lang <- get_lang()
+      stats <- range_stats()
+      
+      # Calculate difference (same as your code)
+      diff <- stats$ranges
+      
+      # Remove NAs
+      diff_clean <- diff[!is.na(diff)]
+      
+      # Create histogram data
+      hist_data <- hist(diff_clean, breaks = 10, plot = FALSE)
+      
+      # Calculate density
+      dens <- density(diff_clean)
+      
+      # Scale density to histogram height
+      dens_scaled <- data.frame(
+        x = dens$x,
+        y = dens$y * length(diff_clean) * diff(hist_data$breaks)[1]
+      )
+      
+      plot_ly() %>%
+        add_histogram(
+          x = diff_clean,
+          nbinsx = 10,
+          name = t("difference_label_histogram", lang),
+          marker = list(
+            color = "rgba(135, 206, 250, 0.7)",  # lightblue
+            line = list(color = "rgba(255, 255, 255, 0.3)", width = 1.5)
+          ),
+          hovertemplate = paste0(
+            t("difference_label_difference", lang), ": %{x}<br>",
+            t("difference_label_frequency", lang), ": %{y}<extra></extra>"
+          )
+        ) %>%
+        add_lines(
+          data = dens_scaled,
+          x = ~x,
+          y = ~y,
+          name = t("difference_label_density", lang),
+          line = list(color = "#DC143C", width = 3),  # red
+          hovertemplate = paste0(
+            t("difference_label_density", lang), ": %{y:.2f}<extra></extra>"
+          )
+        ) %>%
+        layout(
+          paper_bgcolor = "rgba(0,0,0,0)",
+          plot_bgcolor = "rgba(0,0,0,0)",
+          font = list(color = "#e8eaed", family = "Inter"),
+          xaxis = list(
+            title = t("difference_label_difference", lang),
+            gridcolor = "rgba(255, 255, 255, 0.1)"
+          ),
+          yaxis = list(
+            title = t("difference_label_frequency", lang),
+            gridcolor = "rgba(255, 255, 255, 0.1)"
+          ),
+          showlegend = TRUE,
+          legend = list(
+            orientation = "h",
+            x = 0.5,
+            xanchor = "center",
+            y = -0.15
+          ),
+          barmode = "overlay"
+        )
     })
     
     # Range Frequency Chart

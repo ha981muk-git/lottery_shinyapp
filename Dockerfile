@@ -19,6 +19,7 @@ RUN Rscript requirements.R
 EXPOSE 3838
 
 # Run the Shiny app
-CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=3838)"]
+CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', 10000)))"]
+# Note: The PORT environment variable is set to 10000 by default if not provided.
 
 

@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin
+Allow: /
+
+# Allow multilingual versions
+Allow: /?lang=de
+Allow: /?lang=en
+
+# Sitemap location
+Sitemap: https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/sitemap.xml
+

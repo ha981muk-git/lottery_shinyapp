@@ -158,12 +158,12 @@ lotteryInputServer <- function(id) {
     # ✅ OPTIMIZED: Reduced throttle from 800ms to 600ms
     refresh_throttled <- reactive({
       input$refresh
-    }) %>% throttle(600)
+    }) %>% throttle(300)
     
     # ✅ OPTIMIZED: Faster debounces for snappier feel
     range_debounced <- reactive(input$range) %>% debounce(250)
-    metric_debounced <- reactive(input$metric) %>% debounce(80)
-    timeRange_debounced <- reactive(input$timeRange) %>% debounce(150)
+    metric_debounced <- reactive(input$metric) %>% debounce(120)
+    timeRange_debounced <- reactive(input$timeRange) %>% debounce(120)
     
     return(reactive({
       list(
@@ -278,7 +278,7 @@ dashboardServer <- function(id, input_controls) {
     
     observe({
       # Load after 500ms to let UI render first
-      invalidateLater(500)
+      invalidateLater(200)
       
       if (!load_triggered()) {
         if (!metrics_data_ready()) {
@@ -294,7 +294,7 @@ dashboardServer <- function(id, input_controls) {
     draws_per_week <- 2
     
     # ✅ Reduced debounce from 350ms to 250ms (more responsive)
-    debounced_range <- reactive(input_controls()$range) %>% debounce(250)
+    debounced_range <- reactive(input_controls()$range) %>% debounce(150)
     
     # ✅ Smart filtered data with better caching
     filtered_data <- eventReactive(
@@ -382,7 +382,7 @@ dashboardServer <- function(id, input_controls) {
       first_metric <- input_controls()$metric
       
       # Wait before starting background load
-      invalidateLater(1200)
+      invalidateLater(300)
       
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       remaining <- setdiff(all_metrics, first_metric)
@@ -416,7 +416,7 @@ dashboardServer <- function(id, input_controls) {
       initialize_server(new_metric, priority = TRUE)
       
       # Fast fade in
-      shinyjs::delay(150, {
+      shinyjs::delay(50, {
         shinyjs::show(id = paste0("metric-", new_metric), anim = TRUE, animType = "fade", time = 0.25)
       })
       

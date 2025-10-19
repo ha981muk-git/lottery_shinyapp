@@ -148,7 +148,7 @@ ui <- function(request) {
                   rgba(139,92,246,0.15) 50%, 
                   rgba(139,92,246,0.08) 75%);
                 background-size: 200% 100%;
-                animation: shimmer 1.5s ease-in-out infinite; /* ✅ Reduced from 2s */
+                animation: shimmer 0.8s ease-in-out infinite; /* ✅ Reduced from 2s */
                 border-radius: 12px;
                 margin-bottom: 20px;
               }

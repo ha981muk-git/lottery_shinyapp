@@ -11,19 +11,6 @@ library(purrr)
 library(DT)
 
 
-# ✅ Load translations
-
-tryCatch({
-  if (!file.exists("translations.R")) {
-    stop("translations.R not found in app directory")
-  }
-  source("translations.R")
-  cat("✓ Translations loaded\n")
-}, error = function(e) {
-  cat("✗ CRITICAL ERROR:", conditionMessage(e), "\n")
-  stop(e)
-})
-
 # ---------- UI helper theme ----------
 app_theme <- bs_theme(
   version = 5,
@@ -39,34 +26,67 @@ app_theme <- bs_theme(
   heading_font = font_google("Poppins")
 )
 
-# Source main files
-script_folder <- getwd()
-
-main_files <- c(
-  "PrepareData.R",
-  "DashboardModule.R"
-)
-lapply(main_files, function(f) {
-  file_path <- file.path(script_folder, f)
-  if (file.exists(file_path)) {
-    tryCatch(source(file_path), error = function(e) {
-      warning(paste("Failed to source:", f, "-", e$message))
-    })
-  } else {
-    warning(paste("File not found:", f))
+# Load translations
+tryCatch({
+  if (!file.exists("translations.R")) {
+    stop("translations.R not found")
   }
+  source("translations.R")
+  cat("✓ Translations loaded\n")
+}, error = function(e) {
+  cat("✗ CRITICAL ERROR:", conditionMessage(e), "\n")
+  stop(e)
 })
 
-metric_files <- list.files(
-  path = file.path(script_folder, "dashboard"),
-  pattern = "\\.R$",
-  full.names = TRUE
-)
-lapply(metric_files, function(f) {
-  tryCatch(source(f), error = function(e) {
-    warning(paste("Failed to source metric file:", f, "-", e$message))
-  })
+# Load PrepareData.R
+tryCatch({
+  if (!file.exists("PrepareData.R")) {
+    stop("PrepareData.R not found")
+  }
+  source("PrepareData.R")
+  cat("✓ PrepareData loaded\n")
+}, error = function(e) {
+  cat("✗ CRITICAL ERROR:", conditionMessage(e), "\n")
+  stop(e)
 })
+
+# Load DashboardModule.R
+tryCatch({
+  if (!file.exists("DashboardModule.R")) {
+    stop("DashboardModule.R not found")
+  }
+  source("DashboardModule.R")
+  cat("✓ DashboardModule loaded\n")
+}, error = function(e) {
+  cat("✗ CRITICAL ERROR:", conditionMessage(e), "\n")
+  stop(e)
+})
+
+# Load metric files from dashboard folder (optional but warn if empty)
+dashboard_path <- "dashboard"
+if (!dir.exists(dashboard_path)) {
+  cat("⚠ Warning: dashboard folder not found\n")
+} else {
+  metric_files <- list.files(
+    path = dashboard_path,
+    pattern = "\\.R$",
+    full.names = TRUE
+  )
+  
+  if (length(metric_files) == 0) {
+    cat("⚠ Warning: No .R files in dashboard folder\n")
+  } else {
+    for (f in metric_files) {
+      tryCatch({
+        source(f)
+        cat("✓ Loaded metric:", basename(f), "\n")
+      }, error = function(e) {
+        cat("✗ ERROR loading", basename(f), ":", conditionMessage(e), "\n")
+        stop(e)
+      })
+    }
+  }
+}
 
 # ============================================================================
 # UI - SEPARATE, with language parameter

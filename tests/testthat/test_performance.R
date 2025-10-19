@@ -196,7 +196,7 @@ test_time_range_performance <- function() {
   cat("╚════════════════════════════════════════════════════════════╝\n\n")
   
   tryCatch({
-    app <- AppDriver$new(".", load_timeout = 50000, wait_ = TRUE, view = FALSE)
+    app <- AppDriver$new(".", load_timeout = 50000, view = FALSE)
     Sys.sleep(3)
     
     time_ranges <- c(7, 30, 60, 90, 120)
@@ -255,7 +255,7 @@ test_stress_interactions <- function() {
   cat("╚════════════════════════════════════════════════════════════╝\n\n")
   
   tryCatch({
-    app <- AppDriver$new(".", load_timeout = 50000, wait_ = TRUE, view = FALSE)
+    app <- AppDriver$new(".", load_timeout = 50000, view = FALSE)
     Sys.sleep(3)
     
     stress_start <- Sys.time()

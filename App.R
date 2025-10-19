@@ -60,7 +60,6 @@ lapply(metric_files, function(f) {
 
 # ============================================================================
 # UI - SEPARATE, with language parameter
-# ============================================================================
 ui <- function(request) {
   # ✅ Get language from URL or default to German
   query <- parseQueryString(request$QUERY_STRING)
@@ -70,7 +69,59 @@ ui <- function(request) {
     theme = app_theme,
     
     tags$head(
+      # ==================== SEO META TAGS (GERMAN OPTIMIZED) ====================
       tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
+      tags$meta(name = "description", content = "6/49 Lotto-Analyse Tool - Kostenlos, interaktiv, bildungsbasiert. Analysieren Sie Lottozahlen-Muster, Häufigkeiten und Trends mit unserem statistischen Dashboard."),
+      tags$meta(name = "keywords", content = "Lotto Analyse, 6/49, Lotto 6 aus 49, Zahlenanalyse, Statistik, Zahlenmuster, Häufigkeitsanalyse, Lottovorhersage, Bildungstool"),
+      tags$meta(name = "author", content = "Lottery Insights"),
+      tags$meta(name = "robots", content = "index, follow"),
+      tags$meta(name = "language", content = if(LANG == "de") "de" else "en"),
+      tags$meta(name = "geo.placename", content = "Deutschland"),
+      tags$meta(name = "geo.region", content = "DE"),
+      tags$meta(name = "google-site-verification", content = "SCaDZ-eWJCu14j6urMNGER1iqoqwf_1imzwnm5PjMeo"),
+      
+      # Open Graph Tags (Social Media - German)
+      tags$meta(property = "og:title", content = "6/49 Lotto-Analyse Tool"),
+      tags$meta(property = "og:description", content = "Kostenloses, interaktives Bildungs-Dashboard zur Analyse von Lottomustern und Zahlenstatistiken"),
+      tags$meta(property = "og:type", content = "website"),
+      tags$meta(property = "og:url", content = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/"),
+      tags$meta(property = "og:locale", content = "de_DE"),
+      
+      # Canonical Tag
+      tags$link(rel = "canonical", href = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/"),
+      
+      # Alternate Links for language versions
+      tags$link(rel = "alternate", hreflang = "de", href = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/?lang=de"),
+      tags$link(rel = "alternate", hreflang = "en", href = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/?lang=en"),
+      tags$link(rel = "alternate", hreflang = "x-default", href = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/"),
+      
+      # Schema Markup (JSON-LD - German)
+      tags$script(type = "application/ld+json", HTML('
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "6/49 Lotto-Analyse Tool",
+        "alternateName": "6 aus 49 Lottozahlen Analysator",
+        "description": "Kostenloses Bildungs-Tool zur statistischen Analyse von Lottodaten und Zahlenmuster",
+        "url": "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/",
+        "applicationCategory": "EducationalApplication",
+        "inLanguage": "de",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "creator": {
+          "@type": "Organization",
+          "name": "Lottery Insights"
+        }
+      }
+      ')),
+      
+      # Favicon
+      tags$link(rel = "icon", type = "image/svg+xml", href = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>"),
+      
+      # Existing stylesheets and scripts
       tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
       useShinyjs(),
       use_waiter(),
@@ -103,7 +154,7 @@ ui <- function(request) {
       # Responsive sidebar toggle
       tags$script(HTML("
         $(document).ready(function() {
-          const toggleButton = $('<button class=\"sidebar-toggle-btn\">☰ Menu</button>')
+          const toggleButton = $('<button class=\"sidebar-toggle-btn\">☰ Menü</button>')
             .css({
               position: 'fixed',
               top: '15px',
@@ -142,12 +193,12 @@ ui <- function(request) {
     
     # ✅ Language switcher - updates URL to change language
     div(class = "lang-switcher",
-        tags$a(href = "?lang=de", class = paste0("lang-btn", if(LANG == "de") " active" else ""), "DE"),
-        tags$a(href = "?lang=en", class = paste0("lang-btn", if(LANG == "en") " active" else ""), "EN")
+        tags$a(href = "?lang=de", class = paste0("lang-btn", if(LANG == "de") " active" else ""), "🇩🇪 DE"),
+        tags$a(href = "?lang=en", class = paste0("lang-btn", if(LANG == "en") " active" else ""), "🇬🇧 EN")
     ),
     
-    # Professional Header - ✅ TRANSLATED
-    div(class = "professional-header",
+    # Professional Header with semantic HTML - ✅ TRANSLATED TO GERMAN
+    div(class = "professional-header", role = "banner",
         div(class = "header-content",
             div(class = "logo-section",
                 span("🎲", class = "logo-icon"),
@@ -157,41 +208,42 @@ ui <- function(request) {
                     p(t("subtitle", LANG))
                 )
             ),
-            div(class = "header-nav",
+            div(class = "header-nav", role = "navigation",
                 a(href = "#", t("nav_home", LANG)),
                 a(href = "#analyzer", t("nav_analyzer", LANG)),
                 a(href = "#educational", t("nav_educational", LANG)),
                 a(href = "#disclaimer", t("nav_disclaimer", LANG))
-            ),
-            
+            )
         )
     ),
     
-    # Main Content
+    # Main Content with semantic structure
     div(class = "main-content",
         # Main Analyzer Section
-        layout_sidebar(
-          sidebar = sidebar(
-            width = 300,
-            class = "control-panel",
-            open = "desktop",
-            position = "left",
-            max_height_mobile = NULL,
-            h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
-            lotteryInputUI("inputs1", lang = LANG)
-          ),
-          # Main content
-          div(
-            style = "padding: 0; min-height: 100vh;",
-            dashboardUI("dashboard1")
-          ),
-          fillable = FALSE,
-          border = FALSE,
-          border_radius = FALSE
+        div(id = "analyzer", role = "region", `aria-label` = if(LANG == "de") "Analyse-Dashboard" else "Analysis Dashboard",
+            layout_sidebar(
+              sidebar = sidebar(
+                width = 300,
+                class = "control-panel",
+                open = "desktop",
+                position = "left",
+                max_height_mobile = NULL,
+                h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
+                lotteryInputUI("inputs1", lang = LANG)
+              ),
+              # Main content
+              div(
+                style = "padding: 0; min-height: 100vh;",
+                dashboardUI("dashboard1")
+              ),
+              fillable = FALSE,
+              border = FALSE,
+              border_radius = FALSE
+            )
         ),
         
-        # Educational Notice - ✅ TRANSLATED
-        div(class = "educational-notice",
+        # Educational Notice - ✅ TRANSLATED TO GERMAN
+        div(class = "educational-notice", role = "note",
             h3(t("notice_title", LANG)),
             tags$ul(
               tags$li(strong(t("notice_1", LANG)), t("notice_1b", LANG)),
@@ -205,8 +257,8 @@ ui <- function(request) {
               t("notice_purpose", LANG))
         ),
         
-        # Additional Educational Section - ✅ TRANSLATED
-        div(id = "educational",
+        # Additional Educational Section - ✅ TRANSLATED TO GERMAN
+        div(id = "educational", role = "region", `aria-label` = if(LANG == "de") "Bildungsinformationen" else "Educational Information",
             style = "margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px;",
             h2(t("edu_title", LANG), style = "color: #e8eaed;"),
             p(style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
@@ -223,8 +275,8 @@ ui <- function(request) {
         )
     ),
     
-    # Professional Footer - ✅ TRANSLATED
-    div(class = "professional-footer",
+    # Professional Footer with semantic HTML - ✅ TRANSLATED TO GERMAN
+    div(class = "professional-footer", role = "contentinfo",
         div(class = "footer-content",
             div(class = "footer-sections",
                 # About Section
@@ -276,7 +328,6 @@ ui <- function(request) {
     )
   )
 }
-
 
 # ============================================================================
 # Server - SEPARATE, NO CHANGES NEEDED

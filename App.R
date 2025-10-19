@@ -10,9 +10,19 @@ library(tidyr)
 library(purrr)
 library(DT)
 
-source("install.R")
+
 # ✅ Load translations
-source("translations.R")
+
+tryCatch({
+  if (!file.exists("translations.R")) {
+    stop("translations.R not found in app directory")
+  }
+  source("translations.R")
+  cat("✓ Translations loaded\n")
+}, error = function(e) {
+  cat("✗ CRITICAL ERROR:", conditionMessage(e), "\n")
+  stop(e)
+})
 
 # ---------- UI helper theme ----------
 app_theme <- bs_theme(
@@ -30,7 +40,7 @@ app_theme <- bs_theme(
 )
 
 # Source main files
-script_folder <- "."
+script_folder <- getwd()
 
 main_files <- c(
   "PrepareData.R",

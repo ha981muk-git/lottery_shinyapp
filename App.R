@@ -131,7 +131,31 @@ ui <- function(request) {
       # In the tags$head section of app.R, update the skeleton loader animation:
       
       # Replace the @keyframes shimmer with faster animation:
-      
+     # Replace the @keyframes shimmer with faster animation:
+        tags$style(HTML("
+              @keyframes shimmer {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+              }
+              @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(5px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+              .skeleton-card {
+                height: 200px;
+                background: linear-gradient(90deg, 
+                  rgba(139,92,246,0.08) 25%, 
+                  rgba(139,92,246,0.15) 50%, 
+                  rgba(139,92,246,0.08) 75%);
+                background-size: 200% 100%;
+                animation: shimmer 1.5s ease-in-out infinite; /* ✅ Reduced from 2s */
+                border-radius: 12px;
+                margin-bottom: 20px;
+              }
+              .metric-container {
+                animation: fadeIn 0.3s ease-out; /* ✅ Faster */
+              }
+            ")),
       # Fix sidebar overlay
       tags$script(HTML("
         $(document).ready(function() {

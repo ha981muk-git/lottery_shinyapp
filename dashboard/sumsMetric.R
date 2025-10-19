@@ -214,30 +214,80 @@ sumsMetricServer <- function(id, filtered_data) {
       stats <- sum_stats()
       sums <- stats$sums
       
-      # Create bins
-      breaks <- seq(min(sums), max(sums) + 5, by = 5)
+      # Calculate histogram data for proper scaling
+      hist_data <- hist(sums, breaks = seq(min(sums), max(sums) + 5, by = 5), plot = FALSE)
+      max_count <- max(hist_data$counts)
       
-      plot_ly(x = ~sums, type = "histogram",
-              marker = list(
-                color = "#8b5cf6",
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 1.5)
-              ),
-              xbins = list(size = 5),
-              hovertemplate = paste0(
-                t("sums_label_sum_value", lang), ": %{x}<br>",
-                t("sums_label_frequency", lang), ": %{y}<br>",
-                "<extra></extra>"
-              )) %>%
-        add_trace(x = rep(stats$mean, 2), y = c(0, max(hist(sums, plot = FALSE)$counts) * 1.1),
-                  type = "scatter", mode = "lines",
-                  line = list(color = "#ec4899", width = 3, dash = "dash"),
-                  name = t("sums_metric_average", lang),
-                  hovertemplate = paste0(t("sums_metric_average", lang), ": ", round(stats$mean, 1), "<extra></extra>")) %>%
-        add_trace(x = rep(stats$median, 2), y = c(0, max(hist(sums, plot = FALSE)$counts) * 1.1),
-                  type = "scatter", mode = "lines",
-                  line = list(color = "#10b981", width = 3, dash = "dot"),
-                  name = t("sums_metric_median", lang),
-                  hovertemplate = paste0(t("sums_metric_median", lang), ": ", stats$median, "<extra></extra>")) %>%
+      # Calculate density curve
+      density_data <- density(sums, adjust = 1.2)  # adjust = smoothness (higher = smoother)
+      
+      # Scale density to match histogram height
+      # density values are probabilities, so we scale them to histogram counts
+      bin_width <- 5  # your bin width
+      density_scaled <- density_data$y * length(sums) * bin_width
+      
+      plot_ly() %>%
+        # Histogram
+        add_histogram(
+          x = ~sums,
+          marker = list(
+            color = "#8b5cf6",
+            line = list(color = "rgba(255, 255, 255, 0.3)", width = 1.5)
+          ),
+          xbins = list(size = 5),
+          name = t("sums_label_frequency", lang),
+          hovertemplate = paste0(
+            t("sums_label_sum_value", lang), ": %{x}<br>",
+            t("sums_label_frequency", lang), ": %{y}<br>",
+            "<extra></extra>"
+          )
+        ) %>%
+        # Density curve (smooth overlay)
+        add_trace(
+          x = density_data$x,
+          y = density_scaled,
+          type = "scatter",
+          mode = "lines",
+          line = list(
+            color = "#DC143C",  # Amber color for visibility
+            width = 3,
+            shape = "spline"  # Makes it extra smooth
+          ),
+          name = t("sums_density_curve", lang),  # Add translation: "Density Curve" / "Dichtekurve"
+          fill = "tozeroy",
+          fillcolor = "rgba(251, 191, 36, 0.15)",  # Subtle fill under curve
+          hovertemplate = paste0(
+            t("sums_label_sum_value", lang), ": %{x:.1f}<br>",
+            t("sums_label_density", lang), ": %{y:.1f}<br>",  # Add translation
+            "<extra></extra>"
+          )
+        ) %>%
+        # Mean line
+        add_trace(
+          x = rep(stats$mean, 2),
+          y = c(0, max_count * 1.1),
+          type = "scatter",
+          mode = "lines",
+          line = list(color = "#ec4899", width = 3, dash = "dash"),
+          name = t("sums_metric_average", lang),
+          hovertemplate = paste0(
+            t("sums_metric_average", lang), ": ", round(stats$mean, 1),
+            "<extra></extra>"
+          )
+        ) %>%
+        # Median line
+        add_trace(
+          x = rep(stats$median, 2),
+          y = c(0, max_count * 1.1),
+          type = "scatter",
+          mode = "lines",
+          line = list(color = "#10b981", width = 3, dash = "dot"),
+          name = t("sums_metric_median", lang),
+          hovertemplate = paste0(
+            t("sums_metric_median", lang), ": ", stats$median,
+            "<extra></extra>"
+          )
+        ) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
@@ -257,7 +307,8 @@ sumsMetricServer <- function(id, filtered_data) {
             xanchor = "center",
             y = -0.15
           ),
-          bargap = 0.1
+          bargap = 0.1,
+          hovermode = "x unified"  # Better hover experience
         )
     })
     

@@ -102,6 +102,9 @@ translations <- list(
     sums_hover_percentage = "Percentage",
     sums_hover_value = "Value",
     
+    sums_density_curve = "Density Curve",
+    sums_label_density = "Density",
+    
     # Odds/Evens Metric Module
     odds_evens_title = "Odd/Even Analysis",
     odds_evens_subtitle = "Analyze the distribution of odd and even numbers in lottery draws",
@@ -417,6 +420,9 @@ translations <- list(
     sums_hover_count = "Anzahl",
     sums_hover_percentage = "Prozentsatz",
     sums_hover_value = "Wert",
+    
+    sums_density_curve = "Dichtekurve",
+    sums_label_density = "Dichte",
     
     # Odds/Evens Metric Module
     odds_evens_title = "Gerade/Ungerade Analyse",

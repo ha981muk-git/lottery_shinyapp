@@ -7,14 +7,16 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install R packages
-RUN R -e "install.packages(c('shiny', 'vroom', 'dplyr', 'janitor', 'bslib', 'shinyjs', 'plotly', 'waiter', 'tidyr', 'purrr', 'DT'), repos='http://cran.rstudio.com/')"
-
-# Copy your app to the container
+# Copy your app and install.R
 COPY . /srv/shiny-server/
+COPY install.R /install.R
+
+# Install R packages
+RUN Rscript /install.R
 
 # Expose Shiny port
 EXPOSE 3838
 
 # Start Shiny server
 CMD ["/usr/bin/shiny-server"]
+

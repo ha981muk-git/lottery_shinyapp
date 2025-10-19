@@ -10,6 +10,7 @@ library(tidyr)
 library(purrr)
 library(DT)
 
+source("install.R")
 # ✅ Load translations
 source("translations.R")
 

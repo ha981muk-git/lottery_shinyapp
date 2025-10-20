@@ -15,7 +15,7 @@ WORKDIR /srv/shiny-server/
 COPY renv.lock renv.lock
 COPY .Rprofile .Rprofile
 COPY renv/activate.R renv/activate.R
-COPY renv/settings.json renv/settings.json
+# COPY renv/settings.json renv/settings.json
 
 # Repair and restore R dependencies
 RUN R -e "renv::repair()" && \
@@ -37,27 +37,3 @@ USER shiny
 
 # Run as single app (better for debugging and Render)
 CMD ["R", "-e", "shiny::runApp('/srv/shiny-server/app.R', host='0.0.0.0', port=3838)"]
-
-```
-
-## Key Changes:
-
-1. **Changed CMD** to run the app directly instead of using Shiny Server
-2. **Explicit path** to `app.R`
-3. **Better file copying** - copies `app.R` explicitly first
-
-## Alternative: If You Want to Keep Shiny Server
-
-If you prefer using Shiny Server, create a config file:
-
-**Create `shiny-server.conf`:**
-```
-run_as shiny;
-server {
-  listen 3838;
-  location / {
-    site_dir /srv/shiny-server;
-    log_dir /var/log/shiny-server;
-    directory_index on;
-  }
-}

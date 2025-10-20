@@ -34,4 +34,6 @@ EXPOSE 3838
 USER shiny
 
 # Run the Shiny app
-CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', '3838')))"]
+#CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', '3838')))"]
+
+CMD ["/usr/bin/shiny-server"]

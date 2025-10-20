@@ -232,11 +232,14 @@ dashboardServer <- function(id, input_controls) {
       other_metrics <- setdiff(all_metrics, first_metric)
       
       # Delay preloading to not block initial render
-      shinyjs::delay(500, {
-        lapply(other_metrics, function(m) {
-          initialize_server(m)
-        })
-      })
+      # Remove this - it's breaking the app
+      # Just comment it out for now
+      # Delay preloading to not block initial render
+      # shinyjs::delay(500, {
+      #   lapply(other_metrics, function(m) {
+      #     initialize_server(m)
+      #   })
+      # })
       
     }, priority = 10) %>% bindEvent(input_controls()$metric, once = TRUE)
     

@@ -11,13 +11,15 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /srv/shiny-server/
 
-# Copy renv files FIRST (before app files)
+# Copy renv files
 COPY renv.lock renv.lock
 COPY .Rprofile .Rprofile
 COPY renv renv
 
-# Restore R dependencies using renv
-RUN R -e "renv::restore()"
+# Repair and restore R dependencies
+RUN R -e "renv::repair()" && \
+    R -e "renv::restore(force = TRUE)" && \
+    R -e "renv::status()"
 
 # Copy app files
 COPY . .

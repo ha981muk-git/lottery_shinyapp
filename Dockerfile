@@ -23,7 +23,7 @@ RUN R -e "renv::repair()" && \
     R -e "renv::status()"
 
 # Copy Shiny app files
-COPY app.R app.R
+COPY App.R app.R
 COPY dashboard/ dashboard/
 COPY data/ data/
 COPY www/ www/

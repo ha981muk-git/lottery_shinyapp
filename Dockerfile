@@ -16,10 +16,10 @@ COPY . .
 RUN Rscript requirements.R
 
 # Expose port
+# Expose port
 EXPOSE 3838
-
 # Run the Shiny app
-CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port='3838')"]
+CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=3838)"]
 
 
 

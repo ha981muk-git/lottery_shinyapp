@@ -11,10 +11,11 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /srv/shiny-server/
 
-# Copy renv files
+# Copy renv files first (for better caching)
 COPY renv.lock renv.lock
 COPY .Rprofile .Rprofile
-COPY renv renv
+COPY renv/activate.R renv/activate.R
+COPY renv/settings.json renv/settings.json
 
 # Repair and restore R dependencies
 RUN R -e "renv::repair()" && \
@@ -22,9 +23,10 @@ RUN R -e "renv::repair()" && \
     R -e "renv::status()"
 
 # Copy app files
+COPY app.R app.R
 COPY . .
 
-# Change ownership to the shiny user
+# Change ownership to the shiny user BEFORE switching users
 RUN chown -R shiny:shiny /srv/shiny-server
 
 # Expose the port
@@ -33,6 +35,29 @@ EXPOSE 3838
 # Switch to the shiny user
 USER shiny
 
-# Run the Shiny app
-#CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', '3838')))"]
-CMD ["/usr/bin/shiny-server"]
+# Run as single app (better for debugging and Render)
+CMD ["R", "-e", "shiny::runApp('/srv/shiny-server/app.R', host='0.0.0.0', port=3838)"]
+
+```
+
+## Key Changes:
+
+1. **Changed CMD** to run the app directly instead of using Shiny Server
+2. **Explicit path** to `app.R`
+3. **Better file copying** - copies `app.R` explicitly first
+
+## Alternative: If You Want to Keep Shiny Server
+
+If you prefer using Shiny Server, create a config file:
+
+**Create `shiny-server.conf`:**
+```
+run_as shiny;
+server {
+  listen 3838;
+  location / {
+    site_dir /srv/shiny-server;
+    log_dir /var/log/shiny-server;
+    directory_index on;
+  }
+}

@@ -18,7 +18,7 @@ COPY renv renv
 
 # Repair and restore R dependencies
 RUN R -e "renv::repair()" && \
-    R -e "renv::restore(force = TRUE)" && \
+    R -e "renv::restore(prompt = FALSE)" && \
     R -e "renv::status()"
 
 # Copy app files
@@ -35,5 +35,4 @@ USER shiny
 
 # Run the Shiny app
 #CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', '3838')))"]
-
 CMD ["/usr/bin/shiny-server"]

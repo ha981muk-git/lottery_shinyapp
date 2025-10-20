@@ -23,7 +23,7 @@ RUN R -e "renv::repair()" && \
     R -e "renv::status()"
 
 # Copy app files
-COPY app.R app.R
+COPY lottery_shinyapp/ .
 COPY . .
 
 # Change ownership to the shiny user BEFORE switching users

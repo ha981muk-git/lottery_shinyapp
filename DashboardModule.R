@@ -70,12 +70,12 @@ lotteryInputServer <- function(id) {
     # ✅ FIX 2: Debounce range slider - waits 300ms after user stops dragging
     range_debounced <- reactive({
       input$range
-    }) %>% debounce(300)
+    }) %>% debounce(100)
     
     # Throttle refresh button
     refresh_throttled <- reactive({
       input$refresh
-    }) %>% throttle(300)
+    }) %>% throttle(100)
     
     # Return debounced and throttled values
     return(reactive({

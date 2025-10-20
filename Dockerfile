@@ -8,21 +8,23 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy app files
+# Set working directory
 WORKDIR /srv/shiny-server/
+
+# Copy app files
 COPY . .
 
 # Install R dependencies
 RUN Rscript requirements.R
 
-# Expose port
-# Expose port
+# Change ownership to the shiny user
+RUN chown -R shiny:shiny /srv/shiny-server
+
+# Expose the port (Render will override via PORT environment variable)
 EXPOSE 3838
-# Run the Shiny app
-CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=3838)"]
 
+# Switch to the shiny user
+USER shiny
 
-
-# Note: The PORT environment variable is set to 10000 by default if not provided.
-
-
+# Run the Shiny app using the PORT environment variable
+CMD ["R", "-e", "shiny::runApp('.', host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', '3838')))"]

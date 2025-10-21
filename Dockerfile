@@ -24,9 +24,14 @@ COPY renv.lock renv.lock
 COPY .Rprofile .Rprofile
 COPY renv/ renv/
 
+
+# Just remove options(renv.config.cache.enabled = FALSE) or options(renv.config.cache.enabled = TRUE) after first deploy. Next time you deploy:
+# Docker reuses the installed packages from the cached layer.
+# Only your app files are copied → next deploy is almost instant.
+
 # Restore dependencies (from lockfile)
 RUN R -e "if (file.exists('renv.lock')) { \
-            options(renv.config.cache.enabled = FALSE); \
+            options(renv.config.cache.enabled = TRUE); \
             renv::restore(prompt = FALSE); \
           }"
 

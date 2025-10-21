@@ -15,8 +15,8 @@ COPY renv.lock renv.lock
 COPY .Rprofile .Rprofile
 COPY renv/ renv/
 
-# Restore packages (uses settings.json automatically)
-RUN R -e "renv::restore(prompt = FALSE)"
+# FORCE renv to install without cache - inline override
+RUN R -e "options(renv.config.cache.enabled = FALSE); renv::restore(prompt = FALSE)"
 
 # Copy app files
 COPY . .

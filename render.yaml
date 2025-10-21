@@ -9,8 +9,4 @@ services:
     envVars:
       - key: R_MAX_NUM_DLLS
         value: 150
-      - key: SHINY_PORT
-        value: "3838"
-      - key: SHINY_HOST
-        value: "0.0.0.0"
 

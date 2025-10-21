@@ -1,3 +1,15 @@
+# --- Performance optimizations for Render free plan ---
+options(
+  shiny.maxRequestSize = 30*1024^2,  # 30MB upload limit
+  shiny.reactlog = FALSE,             # Disable reactlog
+  shiny.autoreload = FALSE,           # Disable auto-reload
+  repos = c(CRAN = "https://cloud.r-project.org/")
+)
+
+library(shiny)
+# Your existing Shiny app code continues here...
+
+
 library(shiny)
 library(vroom)
 library(dplyr)
@@ -96,6 +108,14 @@ ui <- function(request) {
   LANG <- query$lang %||% "de"
   
   fluidPage(
+    conditionalPanel(
+      condition = "$('html').hasClass('shiny-busy')",
+      div(style = "position: fixed; top: 50%; left: 50%; 
+               transform: translate(-50%, -50%); z-index: 9999;",
+          h3("Loading... (first load may take 30–60 seconds)"),
+          tags$img(src = "spinner.gif")
+      )
+    ),
     theme = app_theme,
     
     tags$head(
@@ -408,6 +428,14 @@ server <- function(input, output, session) {
   
   # Call modules
   dashboardServer("dashboard1", input_controls = input_controls)
+  
+  observe({
+    query <- parseQueryString(session$clientData$url_search)
+    if (!is.null(query$health)) {
+      session$sendCustomMessage("health", "ok")
+    }
+  })
+  
 }
 
 # -------------------------

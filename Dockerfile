@@ -1,7 +1,7 @@
 # Use an official R Shiny image (includes R + Shiny Server)
 FROM rocker/shiny:latest
 
-# Install system dependencies needed by many R packages
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libssl-dev \
@@ -9,34 +9,42 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfontconfig1-dev \
+    libfreetype6-dev \
+    libtiff5-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libgit2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /srv/shiny-server/
 
-# Copy renv configuration files first (for Docker layer caching)
+# Copy renv files first (to use Docker caching)
 COPY renv.lock renv.lock
 COPY .Rprofile .Rprofile
 COPY renv/ renv/
 
-# Force renv to install all packages fresh (no cache)
-RUN R -e "options(renv.config.cache.enabled = FALSE); renv::restore(prompt = FALSE)"
+# Restore dependencies (from lockfile)
+RUN R -e "if (file.exists('renv.lock')) { \
+            options(renv.config.cache.enabled = FALSE); \
+            renv::restore(prompt = FALSE); \
+          }"
 
-# As a safety net: ensure shiny + yaml are installed (in case renv.lock doesn’t include them)
-RUN R -e "if (!requireNamespace('shiny', quietly = TRUE)) install.packages('shiny', repos='https://cloud.r-project.org'); \
-          if (!requireNamespace('yaml', quietly = TRUE)) install.packages('yaml', repos='https://cloud.r-project.org')"
+# Install fallback packages if missing
+RUN R -e "pkgs <- c('shiny', 'vroom', 'dplyr', 'DT', 'janitor', 'plotly', 'purrr', 'shinyjs', 'tidyr', 'waiter', 'stringr', 'zoo', 'bslib', 'data.table', 'ggplot2', 'readr', 'lubridate', 'yaml', 'rsconnect'); \
+          for (p in pkgs) if (!requireNamespace(p, quietly = TRUE)) install.packages(p, repos='https://cloud.r-project.org');"
 
-# Copy the rest of the app files
+# Copy all app files
 COPY . .
 
-# Fix permissions for the 'shiny' user
+# Fix permissions
 RUN chown -R shiny:shiny /srv/shiny-server
 
-# Expose port for Shiny apps
+# Expose port
 EXPOSE 3838
 
-# Switch to the 'shiny' user (for security)
+# Switch user
 USER shiny
 
-# Launch the app
-CMD ["R", "-e", "shiny::runApp('/srv/shiny-server/app.R', host='0.0.0.0', port=3838)"]
+# Run the app
+CMD ["R", "-e", "options(shiny.maxRequestSize=30*1024^2); shiny::runApp('/srv/shiny-server/app.R', host='0.0.0.0', port=3838)"]

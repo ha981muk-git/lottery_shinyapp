@@ -34,7 +34,7 @@ RUN R -e "pkgs <- c('shiny', 'vroom', 'dplyr', 'DT', 'janitor', 'plotly', 'purrr
           for (p in pkgs) if (!requireNamespace(p, quietly = TRUE)) install.packages(p, repos='https://cloud.r-project.org');"
 
 # Copy custom Shiny Server config to use the PORT environment variable
-COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
+# COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
 
 # Copy from . to . 
 # COPY . .

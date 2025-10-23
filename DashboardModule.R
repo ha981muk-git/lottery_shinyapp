@@ -1,29 +1,20 @@
-# UI Module
+# UI Module - No changes needed
 lotteryInputUI <- function(id, lang = "de") {
   ns <- NS(id)
   
-  # Dynamic choices based on language
   time_choices <- setNames(
     c(7, 30, 60, 90, 120, 150, 180),
-    c(t("time_last_7", lang),
-      t("time_last_30", lang),
-      t("time_last_60", lang),
-      t("time_last_90", lang),
-      t("time_last_120", lang),
-      t("time_last_150", lang),
-      t("time_last_180", lang)
-    ))
+    c(t("time_last_7", lang), t("time_last_30", lang),
+      t("time_last_60", lang), t("time_last_90", lang),
+      t("time_last_120", lang), t("time_last_150", lang),
+      t("time_last_180", lang))
+  )
   
   metric_choices <- setNames(
     c("balls", "sums", "odds_evens", "table", "difference", "lag"),
-    c(
-      t("metric_balls", lang),
-      t("metric_sums", lang),
-      t("metric_odds_evens", lang),
-      t("metric_tables", lang),
-      t("metric_difference", lang),
-      t("metric_lag", lang)
-    )
+    c(t("metric_balls", lang), t("metric_sums", lang),
+      t("metric_odds_evens", lang), t("metric_tables", lang),
+      t("metric_difference", lang), t("metric_lag", lang))
   )
   
   tagList(
@@ -33,33 +24,29 @@ lotteryInputUI <- function(id, lang = "de") {
         p(style = "color: rgba(255, 255, 255, 0.5); font-size: 0.875rem;", 
           t("input_realtime", lang))
     ),
-    sliderInput(ns("range"), 
-                t("input_ball_range", lang), 
+    sliderInput(ns("range"), t("input_ball_range", lang), 
                 min = 1, max = 49, value = c(1,49), step = 1),
-    selectInput(ns("metric"), 
-                t("input_analysis_type", lang), 
-                choices = metric_choices, 
-                selected = "balls"),
-    selectInput(ns("timeRange"), 
-                t("input_time_window", lang), 
-                choices = time_choices, 
-                selected = 30),
-    actionButton(ns("refresh"), 
-                 t("input_refresh", lang), 
+    selectInput(ns("metric"), t("input_analysis_type", lang), 
+                choices = metric_choices, selected = "balls"),
+    selectInput(ns("timeRange"), t("input_time_window", lang), 
+                choices = time_choices, selected = 30),
+    actionButton(ns("refresh"), t("input_refresh", lang), 
                  class = "btn-primary w-100",
                  style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;")
   )
 }
 
-# Module Server
+# Module Server - FIXED VERSION
 lotteryInputServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     minDistance <- 6
     
-    # Regular list for handles
-    handles <- list()
+    # Create debounced/throttled reactives ONCE
+    range_debounced <- debounce(reactive(input$range), 500)
+    refresh_throttled <- throttle(reactive(input$refresh), 300)
     
-    handle1 <- observeEvent(input$range, {
+    # Single observer for range validation
+    observeEvent(input$range, {
       minVal <- input$range[1]
       maxVal <- input$range[2]
       
@@ -69,22 +56,7 @@ lotteryInputServer <- function(id) {
       }
     }, ignoreInit = TRUE)
     
-    handles[[length(handles) + 1]] <- handle1
-    
-    range_debounced <- reactive({
-      input$range
-    }) %>% debounce(500)
-    
-    refresh_throttled <- reactive({
-      input$refresh
-    }) %>% throttle(300)
-    
-    session$onSessionEnded(function() {
-      lapply(handles, function(h) {
-        if (!is.null(h)) h$destroy()
-      })
-    })
-    
+    # Return reactive values
     return(reactive({
       list(
         range = range_debounced(),
@@ -96,78 +68,62 @@ lotteryInputServer <- function(id) {
   })
 }
 
-# Dashboard UI
+# Dashboard UI - No changes needed
 dashboardUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    div(id = ns("skeleton-loader"),
-        style = "padding: 20px;",
+    div(id = ns("skeleton-loader"), style = "padding: 20px;",
         div(class = "skeleton-card",
             style = "height: 200px; background: linear-gradient(90deg, rgba(139,92,246,0.1) 25%, rgba(139,92,246,0.2) 50%, rgba(139,92,246,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 12px; margin-bottom: 20px;"),
         div(class = "skeleton-card",
             style = "height: 300px; background: linear-gradient(90deg, rgba(139,92,246,0.1) 25%, rgba(139,92,246,0.2) 50%, rgba(139,92,246,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 12px;")
     ),
     
-    div(id = ns("metricsContainer"),
-        style = "display: none;",
-        
-        div(id = ns("metric-balls"), 
-            style = "display: none;",
+    div(id = ns("metricsContainer"), style = "display: none;",
+        div(id = ns("metric-balls"), style = "display: none;",
             ballsMetricUI(ns("balls"))),
-        
-        div(id = ns("metric-sums"), 
-            style = "display: none;",
+        div(id = ns("metric-sums"), style = "display: none;",
             sumsMetricUI(ns("sums"))),
-        
-        div(id = ns("metric-odds_evens"), 
-            style = "display: none;",
+        div(id = ns("metric-odds_evens"), style = "display: none;",
             oddsEvensMetricUI(ns("odds_evens"))),
-        
-        div(id = ns("metric-table"), 
-            style = "display: none;",
+        div(id = ns("metric-table"), style = "display: none;",
             tableMetricUI(ns("table"))),
-        
-        div(id = ns("metric-difference"), 
-            style = "display: none;",
+        div(id = ns("metric-difference"), style = "display: none;",
             differenceMetricUI(ns("difference"))),
-        
-        div(id = ns("metric-lag"), 
-            style = "display: none;",
+        div(id = ns("metric-lag"), style = "display: none;",
             lagMetricUI(ns("lag")))
     )
   )
 }
 
-# Server Module
+# Server Module - FIXED VERSION
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    # Load data ONCE at startup
     metrics_data <- generate_metrics()
     draws_per_week <- 2
     
-    # Regular list for handles
-    handles <- list()
-    
-    cache_env <- new.env()
+    # Use reactiveVal for cache with size limit
+    cache <- reactiveVal(list())
+    MAX_CACHE_SIZE <- 15
     
     get_filtered_data <- function(weeks, range_vals) {
       cache_key <- paste(weeks, range_vals[1], range_vals[2], sep = "_")
+      current_cache <- cache()
       
-      if (length(ls(envir = cache_env)) > 20) {
-        rm(list = ls(envir = cache_env)[1:5], envir = cache_env)
+      # Check cache
+      if (!is.null(current_cache[[cache_key]])) {
+        return(current_cache[[cache_key]])
       }
       
-      if (exists(cache_key, envir = cache_env)) {
-        return(get(cache_key, envir = cache_env))
-      }
-      
-      data <- metrics_data
-      req(!is.null(data) && nrow(data) > 0)
+      # Filter data
+      req(!is.null(metrics_data) && nrow(metrics_data) > 0)
       
       days <- weeks * draws_per_week
-      data <- tail(data, min(days, nrow(data)))
+      data <- tail(metrics_data, min(days, nrow(metrics_data)))
       
       num_from <- as.numeric(range_vals[1])
       num_to <- as.numeric(range_vals[2])
@@ -177,27 +133,31 @@ dashboardServer <- function(id, input_controls) {
       
       req(nrow(data) > 0)
       
-      assign(cache_key, data, envir = cache_env)
-      data
+      # Update cache with LRU eviction
+      if (length(current_cache) >= MAX_CACHE_SIZE) {
+        current_cache[[names(current_cache)[1]]] <- NULL
+      }
+      current_cache[[cache_key]] <- data
+      cache(current_cache)
+      
+      return(data)
     }
     
-    filtered_data <- eventReactive(
-      c(input_controls()$refresh, 
-        input_controls()$timeRange, 
-        input_controls()$range),
-      {
-        weeks <- as.numeric(input_controls()$timeRange)
-        range_vals <- input_controls()$range
-        get_filtered_data(weeks, range_vals)
-      },
-      ignoreNULL = TRUE
-    )
+    # Single reactive for filtered data
+    filtered_data <- reactive({
+      # Explicit dependencies
+      input_controls()$refresh  # Force refresh on button click
+      weeks <- as.numeric(input_controls()$timeRange)
+      range_vals <- input_controls()$range
+      
+      get_filtered_data(weeks, range_vals)
+    })
     
-    initialized_servers <- reactiveVal(list())
+    # Track initialized servers
+    initialized_servers <- reactiveVal(character(0))
     
     initialize_server <- function(metric) {
-      already_init <- initialized_servers()
-      if (metric %in% already_init) return()
+      if (metric %in% initialized_servers()) return()
       
       switch(metric,
              "balls" = ballsMetricServer("balls", filtered_data, input_controls),
@@ -208,67 +168,47 @@ dashboardServer <- function(id, input_controls) {
              "lag" = lagMetricServer("lag", filtered_data)
       )
       
-      initialized_servers(c(already_init, metric))
+      initialized_servers(c(initialized_servers(), metric))
     }
     
-    handle1 <- observe({
-      req(input_controls()$metric)
+    # Initialize first metric and show UI
+    observeEvent(input_controls()$metric, {
       metric <- input_controls()$metric
+      req(metric)
       
+      # Hide skeleton, show content
       shinyjs::hide("skeleton-loader")
       shinyjs::show("metricsContainer")
       
+      # Initialize and show current metric
       initialize_server(metric)
       shinyjs::show(id = paste0("metric-", metric))
       
-    }, priority = 100) %>% bindEvent(input_controls()$metric, once = TRUE)
-    
-    handles[[length(handles) + 1]] <- handle1
-    
-    handle2 <- observe({
-      req(input_controls()$metric)
-      first_metric <- input_controls()$metric
-      
+      # Hide other metrics
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
-      other_metrics <- setdiff(all_metrics, first_metric)
-      
-      shinyjs::delay(500, {
-        lapply(other_metrics, function(m) {
-          initialize_server(m)
-        })
+      lapply(setdiff(all_metrics, metric), function(m) {
+        shinyjs::hide(id = paste0("metric-", m))
       })
-      
-    }, priority = 10) %>% bindEvent(input_controls()$metric, once = TRUE)
+    }, ignoreNULL = TRUE)
     
-    handles[[length(handles) + 1]] <- handle2
-    
-    handle3 <- observeEvent(input_controls()$metric, {
-      req(input_controls()$metric)
+    # Lazy load remaining metrics after first render
+    observeEvent(input_controls()$metric, {
       metric <- input_controls()$metric
+      req(metric)
       
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
+      other_metrics <- setdiff(all_metrics, metric)
       
-      lapply(all_metrics, function(m) {
-        if (m != metric) {
-          shinyjs::hide(id = paste0("metric-", m))
-        }
+      # Delay initialization of other metrics
+      shinyjs::delay(1000, {
+        lapply(other_metrics, initialize_server)
       })
-      
-      initialize_server(metric)
-      shinyjs::show(id = paste0("metric-", metric))
-      
-    }, ignoreNULL = TRUE, ignoreInit = TRUE, priority = 50)
+    }, once = TRUE)
     
-    handles[[length(handles) + 1]] <- handle3
-    
+    # Cleanup on session end
     session$onSessionEnded(function() {
-      lapply(handles, function(h) {
-        if (!is.null(h)) h$destroy()
-      })
-      
-      rm(list = ls(envir = cache_env), envir = cache_env)
-      initialized_servers(list())
+      cache(list())  # Clear cache
+      initialized_servers(character(0))
     })
-    
   })
 }

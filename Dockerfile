@@ -23,7 +23,7 @@ COPY renv.lock renv.lock
 COPY .Rprofile .Rprofile
 COPY renv/ renv/
 
-# Restore dependencies (from lockfile)
+# Restore dependencies (from lockfile)  remove or put it FALSE if there is any issue while deployment options(renv.config.cache.enabled = TRUE); \
 RUN R -e "if (file.exists('renv.lock')) { \
             options(renv.config.cache.enabled = TRUE); \
             renv::restore(prompt = FALSE); \
@@ -57,4 +57,4 @@ USER shiny
 # CMD ["R", "-e", "options(shiny.maxRequestSize=30*1024^2); shiny::runApp('/srv/shiny-server/app.R', host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', 3838)))"]
 
 # Run Shiny Server (not standalone shiny::runApp) It handles multiple simultaneous users well.
-# CMD ["/usr/bin/shiny-server"]
+CMD ["/usr/bin/shiny-server"]

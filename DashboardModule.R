@@ -1,8 +1,3 @@
-
-
-# At the very top of your app.R or global.R
-options(shiny.error = browser)
-options(shiny.fullstacktrace = TRUE)
 # UI Module
 lotteryInputUI <- function(id, lang = "de") {
   ns <- NS(id)
@@ -56,36 +51,40 @@ lotteryInputUI <- function(id, lang = "de") {
   )
 }
 
-# Module Server - MEMORY LEAK FIXED
+# Module Server
 lotteryInputServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     minDistance <- 6
     
-    # FIX 1: Prevent cascade updates with proper boundary checking
-    observeEvent(input$range, {
+    # Regular list for handles
+    handles <- list()
+    
+    handle1 <- observeEvent(input$range, {
       minVal <- input$range[1]
       maxVal <- input$range[2]
       
       if ((maxVal - minVal) < minDistance) {
         newRange <- c(max(1, maxVal - minDistance), min(49, maxVal))
-        # CRITICAL: Use isolate to prevent reactive cascade
-        isolate({
-          updateSliderInput(session, "range", value = newRange)
-        })
+        updateSliderInput(session, "range", value = newRange)
       }
     }, ignoreInit = TRUE)
     
-    # FIX 2: Proper debouncing (300ms is better for UX than 100ms)
-    range_debounced <- debounce(reactive({
+    handles[[length(handles) + 1]] <- handle1
+    
+    range_debounced <- reactive({
       input$range
-    }), 300)
+    }) %>% debounce(500)
     
-    # FIX 3: Throttle refresh button (1000ms to prevent abuse)
-    refresh_throttled <- throttle(reactive({
+    refresh_throttled <- reactive({
       input$refresh
-    }), 1000)
+    }) %>% throttle(300)
     
-    # Return reactive list
+    session$onSessionEnded(function() {
+      lapply(handles, function(h) {
+        if (!is.null(h)) h$destroy()
+      })
+    })
+    
     return(reactive({
       list(
         range = range_debounced(),
@@ -102,7 +101,6 @@ dashboardUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    # Skeleton for initial load
     div(id = ns("skeleton-loader"),
         style = "padding: 20px;",
         div(class = "skeleton-card",
@@ -111,7 +109,6 @@ dashboardUI <- function(id) {
             style = "height: 300px; background: linear-gradient(90deg, rgba(139,92,246,0.1) 25%, rgba(139,92,246,0.2) 50%, rgba(139,92,246,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 12px;")
     ),
     
-    # Container for all metrics
     div(id = ns("metricsContainer"),
         style = "display: none;",
         
@@ -142,27 +139,28 @@ dashboardUI <- function(id) {
   )
 }
 
-
-# ✅ CORRECTED dashboardServer
+# Server Module
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    # Load data once at startup (NOT reactive)
     metrics_data <- generate_metrics()
     draws_per_week <- 2
     
-    # Cache using reactiveVal
-    cache <- reactiveVal(list())
-    MAX_CACHE_SIZE <- 50
+    # Regular list for handles
+    handles <- list()
     
-    # Filtering function (NOT reactive itself)
+    cache_env <- new.env()
+    
     get_filtered_data <- function(weeks, range_vals) {
       cache_key <- paste(weeks, range_vals[1], range_vals[2], sep = "_")
-      current_cache <- cache()
       
-      if (!is.null(current_cache[[cache_key]])) {
-        return(current_cache[[cache_key]])
+      if (length(ls(envir = cache_env)) > 20) {
+        rm(list = ls(envir = cache_env)[1:5], envir = cache_env)
+      }
+      
+      if (exists(cache_key, envir = cache_env)) {
+        return(get(cache_key, envir = cache_env))
       }
       
       data <- metrics_data
@@ -179,41 +177,27 @@ dashboardServer <- function(id, input_controls) {
       
       req(nrow(data) > 0)
       
-      if (length(current_cache) >= MAX_CACHE_SIZE) {
-        current_cache <- tail(current_cache, MAX_CACHE_SIZE - 1)
-      }
-      
-      current_cache[[cache_key]] <- data
-      cache(current_cache)
-      
-      return(data)
+      assign(cache_key, data, envir = cache_env)
+      data
     }
     
-    # ✅ FIXED: Use reactive() instead of eventReactive() to avoid context issues
-    # ✅ MINIMAL FIX - Only change this section
-    filtered_data <- reactive({
-      # Don't use eventReactive - use plain reactive
-      # Add req() to ensure input_controls exists
-      
-      cat("=== filtered_data called ===\n")
-      cat("Stack trace:\n")
-      print(sys.calls())
-      cat("========================\n")
-      req(input_controls())
-      
-      # Access refresh to create dependency
-      input_controls()$refresh
-      
-      weeks <- as.numeric(input_controls()$timeRange)
-      range_vals <- input_controls()$range
-      
-      get_filtered_data(weeks, range_vals)
-    })
+    filtered_data <- eventReactive(
+      c(input_controls()$refresh, 
+        input_controls()$timeRange, 
+        input_controls()$range),
+      {
+        weeks <- as.numeric(input_controls()$timeRange)
+        range_vals <- input_controls()$range
+        get_filtered_data(weeks, range_vals)
+      },
+      ignoreNULL = TRUE
+    )
     
-    initialized_servers <- reactiveVal(character(0))
+    initialized_servers <- reactiveVal(list())
     
     initialize_server <- function(metric) {
-      if (metric %in% initialized_servers()) return()
+      already_init <- initialized_servers()
+      if (metric %in% already_init) return()
       
       switch(metric,
              "balls" = ballsMetricServer("balls", filtered_data, input_controls),
@@ -224,11 +208,10 @@ dashboardServer <- function(id, input_controls) {
              "lag" = lagMetricServer("lag", filtered_data)
       )
       
-      initialized_servers(c(initialized_servers(), metric))
+      initialized_servers(c(already_init, metric))
     }
     
-    # ✅ STEP 1: Initial metric display
-    observe({
+    handle1 <- observe({
       req(input_controls()$metric)
       metric <- input_controls()$metric
       
@@ -238,34 +221,37 @@ dashboardServer <- function(id, input_controls) {
       initialize_server(metric)
       shinyjs::show(id = paste0("metric-", metric))
       
-    }, priority = 100)
+    }, priority = 100) %>% bindEvent(input_controls()$metric, once = TRUE)
     
-    # ✅ STEP 2: Lazy-load other metrics - FIXED with observeEvent
-    # ✅ FIX 2 - Replace this section (around line 232-245)
-    observeEvent(input_controls()$metric, {
+    handles[[length(handles) + 1]] <- handle1
+    
+    handle2 <- observe({
       req(input_controls()$metric)
       first_metric <- input_controls()$metric
       
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       other_metrics <- setdiff(all_metrics, first_metric)
       
-      isolate({
-        later::later(function() {
-          lapply(other_metrics, initialize_server)
-        }, delay = 0.5)
+      shinyjs::delay(500, {
+        lapply(other_metrics, function(m) {
+          initialize_server(m)
+        })
       })
       
-    }, once = TRUE, ignoreInit = TRUE, priority = 10)
+    }, priority = 10) %>% bindEvent(input_controls()$metric, once = TRUE)
     
-    # ✅ STEP 3: Metric switching
-    observeEvent(input_controls()$metric, {
+    handles[[length(handles) + 1]] <- handle2
+    
+    handle3 <- observeEvent(input_controls()$metric, {
       req(input_controls()$metric)
       metric <- input_controls()$metric
       
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       
-      lapply(setdiff(all_metrics, metric), function(m) {
-        shinyjs::hide(id = paste0("metric-", m))
+      lapply(all_metrics, function(m) {
+        if (m != metric) {
+          shinyjs::hide(id = paste0("metric-", m))
+        }
       })
       
       initialize_server(metric)
@@ -273,10 +259,16 @@ dashboardServer <- function(id, input_controls) {
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE, priority = 50)
     
-    # Cleanup on session end
+    handles[[length(handles) + 1]] <- handle3
+    
     session$onSessionEnded(function() {
-      cache(list())
-      initialized_servers(character(0))
+      lapply(handles, function(h) {
+        if (!is.null(h)) h$destroy()
+      })
+      
+      rm(list = ls(envir = cache_env), envir = cache_env)
+      initialized_servers(list())
     })
+    
   })
 }

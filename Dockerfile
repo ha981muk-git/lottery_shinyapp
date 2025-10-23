@@ -25,7 +25,7 @@ COPY renv/ renv/
 
 # Restore dependencies (from lockfile)  remove or put it FALSE if there is any issue while deployment options(renv.config.cache.enabled = TRUE); \
 RUN R -e "if (file.exists('renv.lock')) { \
-            options(renv.config.cache.enabled = FALSE); \
+            options(renv.config.cache.enabled = TRUE); \
             renv::restore(prompt = FALSE); \
           }"
 

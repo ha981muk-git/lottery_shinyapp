@@ -34,7 +34,7 @@ RUN R -e "pkgs <- c('shiny', 'vroom', 'dplyr', 'DT', 'janitor', 'plotly', 'purrr
           for (p in pkgs) if (!requireNamespace(p, quietly = TRUE)) install.packages(p, repos='https://cloud.r-project.org');"
 
 # Copy custom Shiny Server config to use the PORT environment variable
-# COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
+COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
 
 # Copy from . to . 
 # COPY . .
@@ -53,8 +53,8 @@ USER shiny
 
 # Run the app
 # you should NOT hardcode port 10000 or any specific port number.
-# You should always use the port specified by the environment variable PORT if it is set. It works
- CMD ["R", "-e", "options(shiny.maxRequestSize=30*1024^2); shiny::runApp('/srv/shiny-server/app.R', host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', 3838)))"]
+# You should always use the port specified by the environment variable PORT if it is set. It works It doesn’t handle multiple simultaneous users well.
+# CMD ["R", "-e", "options(shiny.maxRequestSize=30*1024^2); shiny::runApp('/srv/shiny-server/app.R', host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', 3838)))"]
 
-# Run Shiny Server (not standalone shiny::runApp)
+# Run Shiny Server (not standalone shiny::runApp) It handles multiple simultaneous users well.
 # CMD ["/usr/bin/shiny-server"]

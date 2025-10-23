@@ -324,7 +324,7 @@ ui <- function(request) {
               # Main content
               div(
                 style = "padding: 0; min-height: 100vh;",
-                dashboardUI("dashboard1")
+                dashboardUI("dashboard1"),
               ),
               fillable = FALSE,
               border = FALSE,
@@ -423,6 +423,8 @@ ui <- function(request) {
 # Server
 # ============================================================================
 server <- function(input, output, session) {
+  
+
   # Call input module
   input_controls <- lotteryInputServer("inputs1")
   

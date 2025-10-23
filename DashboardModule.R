@@ -106,20 +106,22 @@ dashboardServer <- function(id, input_controls) {
     metrics_data <- generate_metrics()
     draws_per_week <- 2
     
-    # Use reactiveVal for cache with size limit
-    cache <- reactiveVal(list())
+    # True LRU cache using environment
+    cache_env <- new.env(parent = emptyenv())
+    cache_keys <- character(0)  # Track order for LRU
     MAX_CACHE_SIZE <- 15
     
     get_filtered_data <- function(weeks, range_vals) {
       cache_key <- paste(weeks, range_vals[1], range_vals[2], sep = "_")
-      current_cache <- cache()
       
-      # Check cache
-      if (!is.null(current_cache[[cache_key]])) {
-        return(current_cache[[cache_key]])
+      # --- Step 1: Check cache ---
+      if (exists(cache_key, envir = cache_env)) {
+        # Move key to end to mark it as most recently used
+        cache_keys <<- c(setdiff(cache_keys, cache_key), cache_key)
+        return(get(cache_key, envir = cache_env))
       }
       
-      # Filter data
+      # --- Step 2: Filter data if not in cache ---
       req(!is.null(metrics_data) && nrow(metrics_data) > 0)
       
       days <- weeks * draws_per_week
@@ -133,25 +135,29 @@ dashboardServer <- function(id, input_controls) {
       
       req(nrow(data) > 0)
       
-      # Update cache with LRU eviction
-      if (length(current_cache) >= MAX_CACHE_SIZE) {
-        current_cache[[names(current_cache)[1]]] <- NULL
+      # --- Step 3: Add filtered data to cache ---
+      assign(cache_key, data, envir = cache_env)
+      cache_keys <<- c(cache_keys, cache_key)
+      
+      # --- Step 4: Evict oldest if cache exceeds MAX_CACHE_SIZE ---
+      if (length(cache_keys) > MAX_CACHE_SIZE) {
+        oldest_key <- cache_keys[1]
+        rm(list = oldest_key, envir = cache_env)
+        cache_keys <<- cache_keys[-1]
       }
-      current_cache[[cache_key]] <- data
-      cache(current_cache)
       
       return(data)
     }
     
+    
     # Single reactive for filtered data
-    filtered_data <- reactive({
-      # Explicit dependencies
-      input_controls()$refresh  # Force refresh on button click
+    filtered_data <- debounce(reactive({
+      input_controls()$refresh
       weeks <- as.numeric(input_controls()$timeRange)
       range_vals <- input_controls()$range
-      
       get_filtered_data(weeks, range_vals)
-    })
+    }), 500)
+    
     
     # Track initialized servers
     initialized_servers <- reactiveVal(character(0))
@@ -206,9 +212,12 @@ dashboardServer <- function(id, input_controls) {
     }, once = TRUE)
     
     # Cleanup on session end
+    # Cleanup on session end
     session$onSessionEnded(function() {
-      cache(list())  # Clear cache
-      initialized_servers(character(0))
+      rm(list = ls(cache_env), envir = cache_env)  # Clear LRU cache environment
+      cache_keys <<- character(0)                    # Reset key tracker
+      initialized_servers(character(0))             # Clear initialized servers
     })
+    
   })
 }

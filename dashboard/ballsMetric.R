@@ -120,11 +120,12 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       )
     }
     
+    total_counts <- nrow(generate_metrics())
+    
     output$metricCard1 <- renderUI({
       lang <- get_lang()
       data <- filtered_data()
       selected <- nrow(data)
-      total_counts <- nrow(generate_metrics())
       change <- (selected/total_counts) * 100
       create_metric_card(
         t("balls_metric_coverage", lang),

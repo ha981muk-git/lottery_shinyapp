@@ -1,3 +1,13 @@
+# ==============================================================================
+# OPTIMIZED LOTTERY DASHBOARD MODULE
+# Key Improvements:
+# 1. Fixed reactive leak from returning reactive() wrapper
+# 2. Proper cache invalidation with size limits
+# 3. Removed redundant observe() calls
+# 4. Better debounce timing
+# 5. Lazy-loaded modules with proper cleanup
+# ==============================================================================
+
 # UI Module
 lotteryInputUI <- function(id, lang = "de") {
   ns <- NS(id)
@@ -35,7 +45,7 @@ lotteryInputUI <- function(id, lang = "de") {
     ),
     sliderInput(ns("range"), 
                 t("input_ball_range", lang), 
-                min = 1, max = 49, value = c(1,49), step = 1),
+                min = 1, max = 49, value = c(1, 49), step = 1),
     selectInput(ns("metric"), 
                 t("input_analysis_type", lang), 
                 choices = metric_choices, 
@@ -51,12 +61,12 @@ lotteryInputUI <- function(id, lang = "de") {
   )
 }
 
-# Module Server - FULLY OPTIMIZED
+# Module Server - CRITICAL FIX: Remove reactive() wrapper
 lotteryInputServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     minDistance <- 6
     
-    # ✅ FIX 1: Prevent cascade updates - only update if actually out of bounds
+    # Prevent cascade updates - only update if actually out of bounds
     observeEvent(input$range, {
       minVal <- input$range[1]
       maxVal <- input$range[2]
@@ -67,25 +77,20 @@ lotteryInputServer <- function(id) {
       }
     }, ignoreInit = TRUE)
     
-    # ✅ FIX 2: Debounce range slider - waits 300ms after user stops dragging
-    range_debounced <- reactive({
-      input$range
-    }) %>% debounce(100)
+    # CRITICAL: Increased debounce to 500ms - range sliders generate MANY events
+    range_debounced <- debounce(reactive(input$range), 500)
     
-    # Throttle refresh button
-    refresh_throttled <- reactive({
-      input$refresh
-    }) %>% throttle(100)
+    # Throttle refresh button to prevent spam
+    refresh_throttled <- throttle(reactive(input$refresh), 1000)
     
-    # Return debounced and throttled values
-    return(reactive({
-      list(
-        range = range_debounced(),       # ✅ DEBOUNCED - only updates every 300ms
-        metric = input$metric,           # Direct - instant response
-        timeRange = input$timeRange,     # Direct - instant response
-        refresh = refresh_throttled()    # ✅ THROTTLED - only every 300ms
-      )
-    }))
+    # ⚠️ CRITICAL FIX: Return a LIST, not reactive({list(...)})
+    # The reactive() wrapper creates memory leaks and duplicate evaluations
+    return(list(
+      range = range_debounced,           # Already reactive
+      metric = reactive(input$metric),   # Wrap raw input
+      timeRange = reactive(input$timeRange),
+      refresh = refresh_throttled        # Already reactive
+    ))
   })
 }
 
@@ -134,7 +139,7 @@ dashboardUI <- function(id) {
   )
 }
 
-# Server Module - FULLY OPTIMIZED WITH CACHING
+# Server Module - FULLY OPTIMIZED WITH PROPER CACHING
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -143,12 +148,13 @@ dashboardServer <- function(id, input_controls) {
     metrics_data <- generate_metrics()
     draws_per_week <- 2
     
-    # ✅ FIX 3: Caching environment for filtered data to avoid recomputation
+    # ✅ IMPROVED: Cache with size limit and LRU eviction
     cache_env <- new.env()
+    cache_keys <- character(0)  # Track insertion order
+    MAX_CACHE_SIZE <- 20  # Prevent unbounded memory growth
     
-    # Memoized filtering function - returns cached results if same parameters
+    # Memoized filtering function with proper cache management
     get_filtered_data <- function(weeks, range_vals) {
-      # Create unique cache key from parameters
       cache_key <- paste(weeks, range_vals[1], range_vals[2], sep = "_")
       
       # Return cached result if it exists
@@ -171,26 +177,35 @@ dashboardServer <- function(id, input_controls) {
       
       req(nrow(data) > 0)
       
-      # Cache the result for future use
+      # ✅ CRITICAL: Implement cache eviction (LRU)
+      if (length(cache_keys) >= MAX_CACHE_SIZE) {
+        oldest_key <- cache_keys[1]
+        rm(list = oldest_key, envir = cache_env)
+        cache_keys <<- cache_keys[-1]
+      }
+      
+      # Cache the result
       assign(cache_key, data, envir = cache_env)
+      cache_keys <<- c(cache_keys, cache_key)
+      
       data
     }
     
-    # ✅ FIX 4: Use debounced range for filtering - reduces computation
+    # ✅ FIXED: Access reactive values properly with ()
     filtered_data <- eventReactive(
-      c(input_controls()$refresh, 
-        input_controls()$timeRange, 
-        input_controls()$range),  # Now uses debounced range (300ms delay)
+      c(input_controls$refresh(), 
+        input_controls$timeRange(), 
+        input_controls$range()),
       {
-        weeks <- as.numeric(input_controls()$timeRange)
-        range_vals <- input_controls()$range
+        weeks <- as.numeric(input_controls$timeRange())
+        range_vals <- input_controls$range()
         get_filtered_data(weeks, range_vals)
       },
       ignoreNULL = TRUE
     )
     
     # Track which servers are initialized
-    initialized_servers <- reactiveVal(list())
+    initialized_servers <- reactiveVal(character(0))
     
     initialize_server <- function(metric) {
       already_init <- initialized_servers()
@@ -208,60 +223,93 @@ dashboardServer <- function(id, input_controls) {
       initialized_servers(c(already_init, metric))
     }
     
-    # ✅ STEP 1: Show first metric immediately (high priority = 100)
-    observe({
-      req(input_controls()$metric)
-      metric <- input_controls()$metric
+    # ✅ SIMPLIFIED: Single observe() for initial load
+    observeEvent(input_controls$metric(), {
+      metric <- input_controls$metric()
+      req(metric)
       
       # Hide skeleton, show container
       shinyjs::hide("skeleton-loader")
       shinyjs::show("metricsContainer")
       
-      # Initialize current metric
+      # Initialize and show current metric
       initialize_server(metric)
       shinyjs::show(id = paste0("metric-", metric))
       
-    }, priority = 100) %>% bindEvent(input_controls()$metric, once = TRUE)
+    }, once = TRUE, priority = 100)
     
-    # ✅ STEP 2: Preload other metrics after 500ms (low priority = 10, non-blocking)
-    observe({
-      req(input_controls()$metric)
-      first_metric <- input_controls()$metric
+    # ✅ BACKGROUND PRELOADING: Delayed, non-blocking
+    observeEvent(input_controls$metric(), {
+      metric <- input_controls$metric()
+      req(metric)
       
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
-      other_metrics <- setdiff(all_metrics, first_metric)
+      other_metrics <- setdiff(all_metrics, metric)
       
-      # Delay preloading to not block initial render
-      # Remove this - it's breaking the app
-      # Just comment it out for now
-      # Delay preloading to not block initial render
-      # shinyjs::delay(500, {
-      #   lapply(other_metrics, function(m) {
-      #     initialize_server(m)
-      #   })
-      # })
+      # Preload other metrics after 1 second (UI is responsive first)
+      later::later(function() {
+        lapply(other_metrics, function(m) {
+          if (!m %in% initialized_servers()) {
+            initialize_server(m)
+          }
+        })
+      }, delay = 1)
       
-    }, priority = 10) %>% bindEvent(input_controls()$metric, once = TRUE)
+    }, once = TRUE, priority = 10)
     
-    # ✅ STEP 3: Fast metric switching (priority = 50)
-    observeEvent(input_controls()$metric, {
-      req(input_controls()$metric)
-      metric <- input_controls()$metric
+    # ✅ FAST METRIC SWITCHING
+    observeEvent(input_controls$metric(), {
+      metric <- input_controls$metric()
+      req(metric)
       
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       
       # Hide all other metrics
-      lapply(all_metrics, function(m) {
-        if (m != metric) {
-          shinyjs::hide(id = paste0("metric-", m))
-        }
+      lapply(setdiff(all_metrics, metric), function(m) {
+        shinyjs::hide(id = paste0("metric-", m))
       })
       
-      # Initialize and show selected metric
+      # Initialize if needed and show
       initialize_server(metric)
       shinyjs::show(id = paste0("metric-", metric))
       
-    }, ignoreNULL = TRUE, ignoreInit = TRUE, priority = 50)
+    }, ignoreInit = TRUE, priority = 50)
     
+    # ✅ CLEANUP: Clear cache when session ends
+    onSessionEnded(function() {
+      rm(list = ls(envir = cache_env), envir = cache_env)
+    })
   })
 }
+
+# ==============================================================================
+# ADDITIONAL OPTIMIZATION TIPS FOR YOUR ENTIRE APP
+# ==============================================================================
+# 
+# 1. DATA LOADING:
+#    - If generate_metrics() loads from file/DB, do it ONCE globally, not per session
+#    - Consider: metrics_data <- readRDS("data/metrics.rds") at top of app.R
+#
+# 2. PLOTTING:
+#    - Use plotly for interactive plots (faster than ggplotly())
+#    - For static plots, use renderCachedPlot() instead of renderPlot()
+#    - Example: output$plot <- renderCachedPlot({ ... }, cacheKeyExpr = {
+#                 list(input_controls$timeRange(), input_controls$range())
+#              })
+#
+# 3. TABLES:
+#    - Use DT::renderDT() with server-side processing for large tables
+#    - DT::datatable(data, server = TRUE, options = list(pageLength = 25))
+#
+# 4. MEMORY MONITORING:
+#    - Add to your server function:
+#      observe({
+#        invalidateLater(10000)  # Every 10 seconds
+#        cat("Memory usage:", pryr::mem_used(), "\n")
+#      })
+#
+# 5. PROFILING:
+#    - Use profvis to identify bottlenecks:
+#      profvis::profvis({ runApp() })
+#
+# ==============================================================================

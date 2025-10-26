@@ -32,7 +32,9 @@ options(
   },
   
   # Reduce stack trace verbosity
-  shiny.fullstacktrace = FALSE
+  shiny.fullstacktrace = FALSE,
+  
+  mc.cores = max(1, parallel::detectCores() - 2)
   
 )
 

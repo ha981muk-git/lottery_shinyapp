@@ -35,6 +35,9 @@ options(
   shiny.fullstacktrace = FALSE
 )
 
+# Limit CPU threads to 1 to avoid overloading 1 vCPU container
+Sys.setenv(R_THREADS = 1)
+
 library(shiny)
 library(vroom)
 library(dplyr)

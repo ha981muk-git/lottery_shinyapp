@@ -32,9 +32,7 @@ options(
   },
   
   # Reduce stack trace verbosity
-  shiny.fullstacktrace = FALSE,
-  
-  mc.cores = max(1, parallel::detectCores() - 1)
+  shiny.fullstacktrace = FALSE
   
 )
 
@@ -160,8 +158,8 @@ ui <- function(request) {
       tags$meta(name = "language", content = if(LANG == "de") "de" else "en"),
       tags$meta(name = "geo.placename", content = "Deutschland"),
       tags$meta(name = "geo.region", content = "DE"),
-      tags$meta(name = "google-site-verification", content = "SCaDZ-eWJCu14j6urMNGER1iqoqwf_1imzwnm5PjMeo"),
-      
+      tags$meta(name = "google-site-verification", content="93NjvZejo4MrJUkJ3RHuJo-_W6a3tdTAfvswURS3bbU"),
+
       # Open Graph Tags (Social Media - German)
       tags$meta(property = "og:title", content = "6/49 Lotto-Analyse Tool"),
       tags$meta(property = "og:description", content = "Kostenloses, interaktives Bildungs-Dashboard zur Analyse von Lottomustern und Zahlenstatistiken"),

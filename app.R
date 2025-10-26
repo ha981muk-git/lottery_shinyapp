@@ -32,7 +32,10 @@ options(
   },
   
   # Reduce stack trace verbosity
-  shiny.fullstacktrace = FALSE
+  shiny.fullstacktrace = FALSE,
+  
+  mc.cores = max(1, parallel::detectCores() - 1)
+  
 )
 
 # Limit CPU threads to 1 to avoid overloading 1 vCPU container

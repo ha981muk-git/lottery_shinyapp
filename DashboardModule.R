@@ -159,7 +159,7 @@ dashboardServer <- function(id, input_controls) {
       req_count <- session$clientData$shinysession$requests
       
       if (!is.null(req_count)) {
-        MAX_REQUESTS <- 50
+        MAX_REQUESTS <- 30
         if (req_count > MAX_REQUESTS) {
           session$close()
         }

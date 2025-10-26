@@ -1,9 +1,15 @@
 # --- Performance optimizations for Render free plan ---
 options(
-  shiny.maxRequestSize = 30*1024^2,  # 30MB upload limit
+#  shiny.maxRequestSize = 30*1024^2,  # 30MB upload limit
+  # In your shinyapps.io or server config
+  shiny.sanitize.errors = TRUE,
   shiny.reactlog = FALSE,             # Disable reactlog
   shiny.autoreload = FALSE,           # Disable auto-reload
-  repos = c(CRAN = "https://cloud.r-project.org/")
+  repos = c(CRAN = "https://cloud.r-project.org/"),
+  # In server.R or global.R:
+  shiny.error = function() {
+    stop("An error occurred. Please contact support.")
+  }
 )
 
 

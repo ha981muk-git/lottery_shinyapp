@@ -1,8 +1,8 @@
 LotteryShinyApp.R
 DashboardModule_v0.R
-tests/testthat/test_performance.R
+tests/
 .Renviron
 .Rhistory
 .RData
 .DS_Store
-
+rsconnect/

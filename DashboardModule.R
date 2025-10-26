@@ -149,6 +149,20 @@ dashboardUI <- function(id) {
 # ----------------------------------------------------------------------------
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
+    
+    
+    # ----------------------------
+    # Limit requests per session
+    # ----------------------------
+    if (!is.null(session$clientData$shinysession$requests)) {
+      MAX_REQUESTS <- 50  # or whatever limit you choose
+      if (session$clientData$shinysession$requests > MAX_REQUESTS) {
+        session$close()
+        return()  # stop further execution
+      }
+    }
+    
+    
     ns <- session$ns
     
     # Load data once at startup

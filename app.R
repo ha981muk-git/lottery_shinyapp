@@ -1,17 +1,39 @@
-# --- Performance optimizations for Render free plan ---
-options(
-#  shiny.maxRequestSize = 30*1024^2,  # 30MB upload limit
-  # In your shinyapps.io or server config
-  shiny.sanitize.errors = TRUE,
-  shiny.reactlog = FALSE,             # Disable reactlog
-  shiny.autoreload = FALSE,           # Disable auto-reload
-  repos = c(CRAN = "https://cloud.r-project.org/"),
-  # In server.R or global.R:
-  shiny.error = function() {
-    stop("An error occurred. Please contact support.")
-  }
-)
+# --- Production-ready Shiny options for DigitalOcean ---
 
+options(
+  # Max upload size (adjust as needed)
+  shiny.maxRequestSize = 10*1024^2,  # 10 MB
+  
+  # Sanitize errors for end users (security)
+  shiny.sanitize.errors = TRUE,
+  
+  # Disable reactive log (slightly improves performance)
+  shiny.reactlog = FALSE,
+  
+  # Disable automatic app reload (good for production)
+  shiny.autoreload = FALSE,
+  
+  # Disable bookmarking if not needed
+  shiny.enableBookmarking = "disable",
+  
+  # Session timeout (in seconds)
+  shiny.session.timeout = 3600,  # 1 hour
+  
+  # CRAN repository for package installs
+  repos = c(CRAN = "https://cloud.r-project.org/"),
+  
+  # Override default error handler
+  shiny.error = function(e) {
+    # Log the error internally (server console or log file)
+    message("[Shiny Error] ", Sys.time(), " - ", e$message)
+    
+    # Friendly error message to user
+    stop("An unexpected error occurred. Please contact support.")
+  },
+  
+  # Reduce stack trace verbosity
+  shiny.fullstacktrace = FALSE
+)
 
 library(shiny)
 library(vroom)

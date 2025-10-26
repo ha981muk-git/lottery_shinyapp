@@ -166,16 +166,16 @@ ui <- function(request) {
       tags$meta(property = "og:title", content = "6/49 Lotto-Analyse Tool"),
       tags$meta(property = "og:description", content = "Kostenloses, interaktives Bildungs-Dashboard zur Analyse von Lottomustern und Zahlenstatistiken"),
       tags$meta(property = "og:type", content = "website"),
-      tags$meta(property = "og:url", content = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/"),
+      tags$meta(property = "og:url", content = "https://lotteryinsights.dpdns.org/"),
       tags$meta(property = "og:locale", content = "de_DE"),
       
       # Canonical Tag
-      tags$link(rel = "canonical", href = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/"),
+      tags$link(rel = "canonical", href = "https://lotteryinsights.dpdns.org/"),
       
       # Alternate Links for language versions
-      tags$link(rel = "alternate", hreflang = "de", href = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/?lang=de"),
-      tags$link(rel = "alternate", hreflang = "en", href = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/?lang=en"),
-      tags$link(rel = "alternate", hreflang = "x-default", href = "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/"),
+      tags$link(rel = "alternate", hreflang = "de", href = "https://lotteryinsights.dpdns.org/?lang=de"),
+      tags$link(rel = "alternate", hreflang = "en", href = "https://lotteryinsights.dpdns.org/?lang=en"),
+      tags$link(rel = "alternate", hreflang = "x-default", href = "https://lotteryinsights.dpdns.org/"),
       
       # Schema Markup (JSON-LD - German)
       tags$script(type = "application/ld+json", HTML('
@@ -185,7 +185,7 @@ ui <- function(request) {
         "name": "6/49 Lotto-Analyse Tool",
         "alternateName": "6 aus 49 Lottozahlen Analysator",
         "description": "Kostenloses Bildungs-Tool zur statistischen Analyse von Lottodaten und Zahlenmuster",
-        "url": "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/",
+        "url": "https://lotteryinsights.dpdns.org/",
         "applicationCategory": "EducationalApplication",
         "inLanguage": "de",
         "offers": {

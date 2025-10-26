@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/sitemap.xml
+Sitemap: https://lotteryinsights.dpdns.org/sitemap.xml

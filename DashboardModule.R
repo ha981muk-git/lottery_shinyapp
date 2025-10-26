@@ -308,6 +308,7 @@ dashboardServer <- function(id, input_controls) {
       cache$data <- list()
       cache$keys <- character(0)
       initialized_servers(character(0))
+      gc()           # memory actually released
     })
     
   })

@@ -1,5 +1,7 @@
 # ============================================================================
-# DashboardModule.R - COMPLETE FIXED VERSION
+# DashboardModule.R - L1 + L2 Caching with Transparent Compute Wrappers
+# Option A: Refresh clears L2 (current metric only); filters clear L2 (all)
+# Draws/week: 2 (DE Lotto Wed + Sat)
 # ============================================================================
 
 # ----------------------------------------------------------------------------
@@ -68,32 +70,25 @@ lotteryInputServer <- function(id) {
     observeEvent(input$range, {
       minVal <- input$range[1]
       maxVal <- input$range[2]
-      
       if ((maxVal - minVal) < minDistance) {
         newRange <- c(max(1, maxVal - minDistance), min(49, maxVal))
         updateSliderInput(session, "range", value = newRange)
       }
     }, ignoreInit = TRUE)
     
-    # ✅ Debounce range slider - waits 300ms after user stops dragging
-    range_debounced <- reactive({
-      input$range
-    }) %>% debounce(300)
-    
-    # Throttle refresh button to prevent spam clicks
-    refresh_throttled <- reactive({
-      input$refresh
-    }) %>% throttle(300)
+    # Debounce/throttle
+    range_debounced <- reactive({ input$range }) %>% debounce(300)
+    refresh_throttled <- reactive({ input$refresh }) %>% throttle(300)
     
     # Return reactive list with debounced/throttled values
-    return(reactive({
+    reactive({
       list(
-        range = range_debounced(),       # Debounced - updates after 300ms delay
-        metric = input$metric,           # Direct - instant response
-        timeRange = input$timeRange,     # Direct - instant response
-        refresh = refresh_throttled()    # Throttled - max once per 300ms
+        range     = range_debounced(),   # Debounced
+        metric    = input$metric,        # Immediate
+        timeRange = input$timeRange,     # Immediate
+        refresh   = refresh_throttled()  # Throttled
       )
-    }))
+    })
   })
 }
 
@@ -116,48 +111,26 @@ dashboardUI <- function(id) {
     # Container for all metrics (all pre-rendered, hidden via CSS)
     div(id = ns("metricsContainer"),
         style = "display: none;",
-        
-        div(id = ns("metric-balls"), 
-            style = "display: none;",
-            ballsMetricUI(ns("balls"))),
-        
-        div(id = ns("metric-sums"), 
-            style = "display: none;",
-            sumsMetricUI(ns("sums"))),
-        
-        div(id = ns("metric-odds_evens"), 
-            style = "display: none;",
-            oddsEvensMetricUI(ns("odds_evens"))),
-        
-        div(id = ns("metric-table"), 
-            style = "display: none;",
-            tableMetricUI(ns("table"))),
-        
-        div(id = ns("metric-difference"), 
-            style = "display: none;",
-            differenceMetricUI(ns("difference"))),
-        
-        div(id = ns("metric-lag"), 
-            style = "display: none;",
-            lagMetricUI(ns("lag")))
+        div(id = ns("metric-balls"),       style = "display: none;", ballsMetricUI(ns("balls"))),
+        div(id = ns("metric-sums"),        style = "display: none;", sumsMetricUI(ns("sums"))),
+        div(id = ns("metric-odds_evens"),  style = "display: none;", oddsEvensMetricUI(ns("odds_evens"))),
+        div(id = ns("metric-table"),       style = "display: none;", tableMetricUI(ns("table"))),
+        div(id = ns("metric-difference"),  style = "display: none;", differenceMetricUI(ns("difference"))),
+        div(id = ns("metric-lag"),         style = "display: none;", lagMetricUI(ns("lag")))
     )
   )
 }
 
 # ----------------------------------------------------------------------------
-# DASHBOARD SERVER - FULLY OPTIMIZED WITH LRU CACHE
+# DASHBOARD SERVER - L1 filtered cache + L2 metric-result cache (transparent)
 # ----------------------------------------------------------------------------
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
-    
     ns <- session$ns
     
-    # ----------------------------
-    # Limit requests per session
-    # ----------------------------
+    # Optional request limiter (kept as-is)
     observe({
       req_count <- session$clientData$shinysession$requests
-      
       if (!is.null(req_count)) {
         MAX_REQUESTS <- 30
         if (req_count > MAX_REQUESTS) {
@@ -166,124 +139,204 @@ dashboardServer <- function(id, input_controls) {
       }
     })
     
-    
-    # Load data once at startup
+    # Load base data once (your existing global generator)
     metrics_data <- data_loader$load(force = TRUE)
-    draws_per_week <- 2
+    validate(need(!is.null(metrics_data) && nrow(metrics_data) > 0, "No data available"))
     
-    # ✅ FIX 1: Use reactiveValues for proper scoping (prevents memory leaks)
-    cache <- reactiveValues(
-      data = list(),      # Store cached filtered data
-      keys = character(0) # Track access order for LRU eviction
+    # ----------------------------
+    # L1: Filtered data cache (LRU)
+    # ----------------------------
+    draws_per_week <- 2  # DE Lotto Wed + Sat
+    
+    l1 <- reactiveValues(
+      data = list(),
+      keys = character(0)
     )
-    MAX_CACHE_SIZE <- 15
+    L1_MAX <- 15
     
-    # ✅ FIX 2: Memoized filtering function with LRU cache
     get_filtered_data <- function(weeks, range_vals) {
-      # Validate inputs first
-      if (is.null(weeks) || is.null(range_vals) || 
-          length(range_vals) != 2 || 
-          is.null(metrics_data) || nrow(metrics_data) == 0) {
-        return(NULL)
+      if (is.null(weeks) || is.null(range_vals) || length(range_vals) != 2) return(NULL)
+      if (nrow(metrics_data) == 0) return(NULL)
+      
+      key <- paste(weeks, range_vals[1], range_vals[2], sep = "_")
+      if (!is.null(l1$data[[key]])) {
+        # Mark MRU
+        l1$keys <- c(setdiff(l1$keys, key), key)
+        return(l1$data[[key]])
       }
       
-      # Create unique cache key from parameters
-      cache_key <- paste(weeks, range_vals[1], range_vals[2], sep = "_")
-      
-      # Check if result is cached
-      if (!is.null(cache$data[[cache_key]])) {
-        # Move key to end (mark as most recently used)
-        cache$keys <- c(setdiff(cache$keys, cache_key), cache_key)
-        return(cache$data[[cache_key]])
-      }
-      
-      # Perform filtering (not in cache)
       data <- metrics_data
-      days <- weeks * draws_per_week
-      data <- tail(data, min(days, nrow(data)))
+      # If you have a Date column 'datum', prefer a date window; else tail() fallback:
+      if ("datum" %in% names(data) && inherits(data$datum, "Date")) {
+        anchor <- max(data$datum, na.rm = TRUE)
+        start_date <- anchor - as.difftime(weeks * 7, units = "days")
+        data <- dplyr::filter(data, .data$datum >= start_date)
+      } else {
+        approx_rows <- weeks * draws_per_week
+        data <- utils::tail(data, min(approx_rows, nrow(data)))
+      }
       
       num_from <- as.numeric(range_vals[1])
-      num_to <- as.numeric(range_vals[2])
-      
-      data <- data %>%
-        filter(ball_1 >= num_from & ball_6 <= num_to)
-      
+      num_to   <- as.numeric(range_vals[2])
+      data <- dplyr::filter(data, .data$ball_1 >= num_from & .data$ball_6 <= num_to)
       if (nrow(data) == 0) return(NULL)
       
-      # Store result in cache
-      cache$data[[cache_key]] <- data
-      cache$keys <- c(cache$keys, cache_key)
-      
-      # Evict oldest entry if cache exceeds limit (LRU policy)
-      if (length(cache$keys) > MAX_CACHE_SIZE) {
-        oldest_key <- cache$keys[1]
-        cache$data[[oldest_key]] <- NULL
-        cache$keys <- cache$keys[-1]
+      l1$data[[key]] <- data
+      l1$keys <- c(l1$keys, key)
+      if (length(l1$keys) > L1_MAX) {
+        oldest <- l1$keys[1]
+        l1$data[[oldest]] <- NULL
+        l1$keys <- l1$keys[-1]
       }
-      
-      return(data)
+      data
     }
     
-    # ✅ FIX 3: Use isolate() to prevent cascading updates
-    # Only refresh button triggers recalculation, other inputs are isolated
+    # This is what modules call: unchanged signature & behavior.
     filtered_data <- reactive({
-      # React to refresh button
-      input_controls()$refresh
-      
-      # Isolate other inputs to prevent cascade
-      weeks <- isolate(as.numeric(input_controls()$timeRange))
+      input_controls()$refresh   # just to be consistent with your old trigger
+      weeks      <- isolate(as.numeric(input_controls()$timeRange))
       range_vals <- isolate(input_controls()$range)
       
+      # Compute key & set a global option so L2 wrappers can see current filter
+      key <- paste(weeks, range_vals[1], range_vals[2], sep = "_")
+      options(li_filter_key = key)
+      
       get_filtered_data(weeks, range_vals)
-    }) %>% debounce(300)  # Single debounce at the end
+    }) %>% debounce(300)
     
-    # Track which metric servers are initialized
+    # ----------------------------
+    # L2: Transparent wrappers for *MetricCompute()
+    # ----------------------------
+    # We wrap your existing compute functions with a cache keyed by:
+    # metric name + current filter key (from options("li_filter_key")).
+    # Because modules already call *MetricCompute(data), they will now hit the cache.
+    
+    l2_env <- new.env(parent = emptyenv())
+    l2_env$store <- new.env(parent = emptyenv())     # key -> result
+    l2_env$keys  <- character(0)                     # maintain simple LRU
+    L2_MAX <- 60                                     # generous; objects are small
+    
+    .l2_key <- function(metric_name) {
+      paste0(metric_name, "|", getOption("li_filter_key", "nokey"))
+    }
+    
+    .l2_get <- function(metric_name) {
+      k <- .l2_key(metric_name)
+      if (exists(k, envir = l2_env$store, inherits = FALSE)) {
+        # mark MRU
+        l2_env$keys <- c(setdiff(l2_env$keys, k), k)
+        get(k, envir = l2_env$store, inherits = FALSE)
+      } else {
+        NULL
+      }
+    }
+    
+    .l2_set <- function(metric_name, value) {
+      k <- .l2_key(metric_name)
+      assign(k, value, envir = l2_env$store)
+      l2_env$keys <- c(l2_env$keys, k)
+      if (length(l2_env$keys) > L2_MAX) {
+        oldest <- l2_env$keys[1]
+        rm(list = oldest, envir = l2_env$store)
+        l2_env$keys <- l2_env$keys[-1]
+      }
+      invisible(value)
+    }
+    
+    .l2_clear_all <- function() {
+      rm(list = ls(envir = l2_env$store, all.names = TRUE), envir = l2_env$store)
+      l2_env$keys <- character(0)
+    }
+    
+    .l2_clear_metric_for_current_filter <- function(metric_name) {
+      current_suffix <- paste0("|", getOption("li_filter_key", "nokey"))
+      to_remove <- grep(paste0("^", metric_name, "\\", current_suffix, "$"), l2_env$keys, value = TRUE)
+      if (length(to_remove)) {
+        rm(list = to_remove, envir = l2_env$store)
+        l2_env$keys <- setdiff(l2_env$keys, to_remove)
+      }
+    }
+    
+    # Wrap a compute function by name (if it exists)
+    .wrap_compute <- function(name) {
+      if (!exists(name, mode = "function", inherits = TRUE)) return(FALSE)
+      # Capture original
+      orig <- get(name, mode = "function")
+      # Avoid double-wrapping
+      if (!is.null(attr(orig, ".__wrapped__"))) return(FALSE)
+      
+      wrapper <- function(data) {
+        cached <- .l2_get(name)
+        if (!is.null(cached)) return(cached)
+        res <- orig(data)
+        .l2_set(name, res)
+        res
+      }
+      attr(wrapper, ".__wrapped__") <- TRUE
+      # Overwrite in the global environment so module calls hit the wrapper
+      assign(name, wrapper, envir = .GlobalEnv)
+      TRUE
+    }
+    
+    # Install wrappers for your known compute functions (if present)
+    observeEvent(TRUE, {
+      invisible(.wrap_compute("ballsMetricCompute"))       # pass-through if you created it
+      invisible(.wrap_compute("sumsMetricCompute"))
+      invisible(.wrap_compute("oddsEvensMetricCompute"))
+      invisible(.wrap_compute("tableMetricCompute"))
+      invisible(.wrap_compute("differenceMetricCompute"))
+      invisible(.wrap_compute("lagMetricCompute"))
+    }, once = TRUE)
+    
+    # Clear L2 cache whenever filters change (Option A)
+    observeEvent(list(input_controls()$timeRange, input_controls()$range), {
+      .l2_clear_all()
+    }, ignoreInit = TRUE)
+    
+    # Refresh: clear L2 cache only for current metric (Option A)
+    observeEvent(input_controls()$refresh, {
+      metric <- isolate(input_controls()$metric)
+      .l2_clear_metric_for_current_filter(metric)
+    }, ignoreInit = TRUE)
+    
+    # ----------------------------
+    # Initialize and switch metric modules (unchanged)
+    # ----------------------------
     initialized_servers <- reactiveVal(character(0))
     
-    # ✅ FIX 4: Initialize server modules with error handling
     initialize_server <- function(metric) {
       if (metric %in% initialized_servers()) return()
-      
       tryCatch({
         switch(metric,
-               "balls" = ballsMetricServer("balls", filtered_data, input_controls),
-               "sums" = sumsMetricServer("sums", filtered_data),
-               "odds_evens" = oddsEvensMetricServer("odds_evens", filtered_data),
-               "table" = tableMetricServer("table", filtered_data),
-               "difference" = differenceMetricServer("difference", filtered_data),
-               "lag" = lagMetricServer("lag", filtered_data)
+               "balls"       = ballsMetricServer("balls",       filtered_data, input_controls),
+               "sums"        = sumsMetricServer("sums",         filtered_data),
+               "odds_evens"  = oddsEvensMetricServer("odds_evens", filtered_data),
+               "table"       = tableMetricServer("table",       filtered_data),
+               "difference"  = differenceMetricServer("difference", filtered_data),
+               "lag"         = lagMetricServer("lag",           filtered_data)
         )
         initialized_servers(c(initialized_servers(), metric))
       }, error = function(e) {
-        message("Error initializing metric ", metric, ": ", e$message)
+        message("Error initializing metric ", metric, ": ", conditionMessage(e))
       })
     }
     
-    # ✅ STEP 1: Show first metric immediately (high priority)
+    # STEP 1: Show first metric immediately
     observe({
       req(input_controls()$metric)
       metric <- input_controls()$metric
-      
-      # Hide skeleton loader, show container
       shinyjs::hide("skeleton-loader")
       shinyjs::show("metricsContainer")
-      
-      # Initialize and show current metric
       initialize_server(metric)
       shinyjs::show(id = paste0("metric-", metric))
-      
     }, priority = 100) %>% bindEvent(input_controls()$metric, once = TRUE)
     
-    # ✅ STEP 2: Lazy load other metrics after initial render (low priority)
+    # STEP 2: Lazy load other metrics
     observe({
       req(input_controls()$metric)
       first_metric <- input_controls()$metric
-      
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
       other_metrics <- setdiff(all_metrics, first_metric)
-      
-      # Delay preloading to not block initial render
-      # Stagger initialization to reduce CPU spike
       shinyjs::delay(500, {
         for (i in seq_along(other_metrics)) {
           local({
@@ -292,40 +345,32 @@ dashboardServer <- function(id, input_controls) {
           })
         }
       })
-      
     }, priority = 10) %>% bindEvent(input_controls()$metric, once = TRUE)
     
-    # ✅ STEP 3: Fast metric switching (medium priority)
+    # STEP 3: Fast switching
     current_metric <- reactiveVal(NULL)
-    
     observeEvent(input_controls()$metric, {
-      req(input_controls()$metric)
       metric <- input_controls()$metric
-      
-      # Only update if metric actually changed
       if (identical(metric, current_metric())) return()
       current_metric(metric)
       
       all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
-      
-      # Hide all other metrics
       lapply(setdiff(all_metrics, metric), function(m) {
         shinyjs::hide(id = paste0("metric-", m))
       })
-      
-      # Initialize and show selected metric
       initialize_server(metric)
       shinyjs::show(id = paste0("metric-", metric))
-      
     }, ignoreNULL = TRUE, ignoreInit = TRUE, priority = 50)
     
-    # ✅ FIX 5: Proper cleanup on session end
+    # Cleanup
     session$onSessionEnded(function() {
-      cache$data <- list()
-      cache$keys <- character(0)
+      # L1
+      l1$data <- list(); l1$keys <- character(0)
+      # L2
+      .l2_clear_all()
+      # Modules
       initialized_servers(character(0))
-      gc()           # memory actually released
+      gc()
     })
-    
   })
 }

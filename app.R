@@ -496,10 +496,6 @@ ui <- function(request) {
             /* Remove the display: none from your Home.css */
             #sidebar-home-anchor > .sidebar {
               display: block !important;
-              position: static !important;
-              width: 100% !important;
-              height: auto !important;
-              transform: none !important;
             }
             
             /* When sidebar is in filters drawer, ensure it's visible */
@@ -513,203 +509,92 @@ ui <- function(request) {
       ")),
       
       # ✅ FIXED JAVASCRIPT - Aggressive sidebar reparenting
-      tags$script(HTML("
-        (function(){
-          const html = document.documentElement;
-          
-          function openNav() {
-            html.classList.add('nav-open');
-            html.classList.remove('filters-open');
-          }
-          
-          function openFilters() {
-            html.classList.add('filters-open');
-            html.classList.remove('nav-open');
-          }
-          
-          function closeAll() {
-            html.classList.remove('nav-open', 'filters-open');
-          }
-          
-          // Wire up button events
-          function wireButtons() {
-            const btnNav = document.getElementById('open-nav');
-            const btnFilters = document.getElementById('open-filters');
-            
-            if (btnNav) {
-              btnNav.removeEventListener('click', handleNavClick);
-              btnNav.addEventListener('click', handleNavClick);
-            }
-            
-            if (btnFilters) {
-              btnFilters.removeEventListener('click', handleFiltersClick);
-              btnFilters.addEventListener('click', handleFiltersClick);
-            }
-            
-            // Close buttons
-            document.querySelectorAll('.drawer-close').forEach(btn => {
-              btn.removeEventListener('click', closeAll);
-              btn.addEventListener('click', closeAll);
-            });
-            
-            // Close on link/lang button click
-            document.querySelectorAll('.drawer a, .lang-btn').forEach(link => {
-              link.removeEventListener('click', closeAll);
-              link.addEventListener('click', closeAll);
-            });
-            
-            // Close on backdrop click
-            const backdrop = document.querySelector('.drawer-backdrop');
-            if (backdrop) {
-              backdrop.removeEventListener('click', closeAll);
-              backdrop.addEventListener('click', closeAll);
-            }
-            
-            // Language switcher
-            const langSwitch = document.getElementById('lang-switch');
-            if (langSwitch) {
-              langSwitch.removeEventListener('change', handleLangChange);
-              langSwitch.addEventListener('change', handleLangChange);
-            }
-          }
-          
-          function handleNavClick(e) {
-            e.stopPropagation();
-            openNav();
-          }
-          
-          function handleFiltersClick(e) {
-            e.stopPropagation();
-            openFilters();
-          }
-          
-          function handleLangChange() {
-            const url = new URL(window.location.href);
-            url.searchParams.set('lang', this.value);
-            window.location.assign(url.toString());
-          }
-          
-          // CRITICAL: Aggressive sidebar reparenting
-          let reparentAttempts = 0;
-          const maxAttempts = 20;
-          
-          function reparentSidebar() {
-            reparentAttempts++;
-            
-            const anchor = document.getElementById('sidebar-home-anchor');
-            const filtersContainer = document.getElementById('filters-container');
-            
-            if (!anchor || !filtersContainer) {
-              if (reparentAttempts < maxAttempts) {
-                setTimeout(reparentSidebar, 200);
-              }
-              return;
-            }
-            
-            // Find sidebar - try multiple selectors
-            let sidebar = anchor.querySelector('.sidebar');
-            if (!sidebar) {
-              sidebar = anchor.querySelector('[class*=\"sidebar\"]');
-            }
-            if (!sidebar) {
-              sidebar = document.querySelector('.bslib-sidebar-layout .sidebar');
-            }
-            
-            if (!sidebar) {
-              console.log('Sidebar not found, attempt', reparentAttempts);
-              if (reparentAttempts < maxAttempts) {
-                setTimeout(reparentSidebar, 200);
-              }
-              return;
-            }
-            
-            console.log('Sidebar found!', sidebar);
-            
-            if (window.innerWidth <= 768) {
-              // Mobile: move sidebar to filters drawer
-              if (!filtersContainer.contains(sidebar)) {
-                console.log('Moving sidebar to filters drawer');
-                
-                // Create marker
-                if (!anchor.querySelector('#sidebar-marker')) {
-                  const marker = document.createElement('div');
-                  marker.id = 'sidebar-marker';
-                  marker.style.display = 'none';
-                  anchor.appendChild(marker);
-                }
-                
-                // Move sidebar
-                filtersContainer.appendChild(sidebar);
-                
-                // Make sure it's visible
-                sidebar.style.display = 'block';
-                sidebar.style.position = 'static';
-                sidebar.style.transform = 'none';
-              }
-            } else {
-              // Desktop: restore sidebar
-              const marker = document.getElementById('sidebar-marker');
-              if (marker && marker.parentNode === anchor && !anchor.contains(sidebar)) {
-                console.log('Restoring sidebar to anchor');
-                anchor.insertBefore(sidebar, marker);
-                sidebar.style.display = 'block';
-              }
-              closeAll();
-            }
-          }
-          
-          // Run reparenting multiple times
-          function startReparenting() {
-            reparentSidebar();
-            setTimeout(reparentSidebar, 100);
-            setTimeout(reparentSidebar, 300);
-            setTimeout(reparentSidebar, 500);
-            setTimeout(reparentSidebar, 1000);
-            setTimeout(reparentSidebar, 2000);
-          }
-          
-          // Initialize
-          document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing...');
-            wireButtons();
-            startReparenting();
-            window.addEventListener('resize', reparentSidebar);
-          });
-          
-          // Shiny-specific hooks
-          if (window.Shiny) {
-            Shiny.addCustomMessageHandler('sidebar-ready', startReparenting);
-          }
-          
-          // Watch for Shiny events
-          document.addEventListener('shiny:connected', function() {
-            console.log('Shiny connected');
-            startReparenting();
-          });
-          
-          document.addEventListener('shiny:value', function() {
-            reparentSidebar();
-          });
-          
-          // MutationObserver as backup
-          const observer = new MutationObserver(function(mutations) {
-            if (reparentAttempts < maxAttempts) {
-              reparentSidebar();
-            }
-          });
-          
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true
-          });
-          
-          // Stop observer after 10 seconds
-          setTimeout(function() {
-            observer.disconnect();
-            console.log('Observer stopped');
-          }, 10000);
-        })();
-      ")),
+    tags$script(HTML("
+  (function(){
+    const html = document.documentElement;
+    
+    function openNav() {
+      html.classList.add('nav-open');
+      html.classList.remove('filters-open');
+    }
+    
+    function openFilters() {
+      html.classList.add('filters-open');
+      html.classList.remove('nav-open');
+    }
+    
+    function closeAll() {
+      html.classList.remove('nav-open', 'filters-open');
+    }
+    
+    function wireButtons() {
+      const btnNav = document.getElementById('open-nav');
+      const btnFilters = document.getElementById('open-filters');
+      
+      if (btnNav) {
+        btnNav.removeEventListener('click', handleNavClick);
+        btnNav.addEventListener('click', handleNavClick);
+      }
+      
+      if (btnFilters) {
+        btnFilters.removeEventListener('click', handleFiltersClick);
+        btnFilters.addEventListener('click', handleFiltersClick);
+      }
+      
+      document.querySelectorAll('.drawer-close').forEach(btn => {
+        btn.removeEventListener('click', closeAll);
+        btn.addEventListener('click', closeAll);
+      });
+      
+      document.querySelectorAll('.drawer a, .lang-btn').forEach(link => {
+        link.removeEventListener('click', closeAll);
+        link.addEventListener('click', closeAll);
+      });
+      
+      const backdrop = document.querySelector('.drawer-backdrop');
+      if (backdrop) {
+        backdrop.removeEventListener('click', closeAll);
+        backdrop.addEventListener('click', closeAll);
+      }
+      
+      const langSwitch = document.getElementById('lang-switch');
+      if (langSwitch) {
+        langSwitch.removeEventListener('change', handleLangChange);
+        langSwitch.addEventListener('change', handleLangChange);
+      }
+    }
+    
+    function handleNavClick(e) {
+      e.stopPropagation();
+      openNav();
+    }
+    
+    function handleFiltersClick(e) {
+      e.stopPropagation();
+      openFilters();
+    }
+    
+    function handleLangChange() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', this.value);
+      window.location.assign(url.toString());
+    }
+    
+    // ✅ Initialize after DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+      wireButtons();
+      
+      // ✅ Move sidebar into mobile drawer if on small screen
+      const sidebar = document.querySelector('#sidebar-home-anchor > .sidebar');
+      const filtersContainer = document.querySelector('#filters-container');
+      
+      if (sidebar && filtersContainer && window.innerWidth <= 768) {
+        filtersContainer.appendChild(sidebar);
+      }
+    });
+    
+  })();
+")),
     
     # Backdrop
     div(class = "drawer-backdrop"),
@@ -793,16 +678,14 @@ ui <- function(request) {
     div(class = "main-content",
         div(id = "analyzer", role = "region",
             layout_sidebar(
-              sidebar = div(
-                id = "sidebar-home-anchor",
-                sidebar(
-                  class = "control-panel",
-                  open = "desktop",
-                  position = "left",
-                  max_height_mobile = NULL,
-                  h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
-                  lotteryInputUI("inputs1", lang = LANG)
-                )
+              sidebar = sidebar(
+                id = "sidebar-home-anchor",     # <- id on the actual sidebar
+                class = "control-panel",
+                position = "left",
+                open = "desktop",
+                max_height_mobile = NULL,
+                h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
+                lotteryInputUI("inputs1", lang = LANG)
               ),
               div(style = "padding: 0; min-height: 100vh;",
                   dashboardUI("dashboard1")
@@ -811,7 +694,8 @@ ui <- function(request) {
               border = FALSE,
               border_radius = FALSE
             )
-        ),
+        )
+        ,
         
         # Educational Notice
         div(class = "educational-notice", role = "note",

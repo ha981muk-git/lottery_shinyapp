@@ -15,38 +15,8 @@
    - For very wide sidebar: minmax(450px, 500px)
 */
 
-/* SIDEBAR HEIGHT - Control how tall the sidebar is */
-.bslib-sidebar-layout > .sidebar {
-  z-index: 10 !important;
-  max-height: none !important;
-  overflow: visible !important;
-}
-
-.control-panel {
-  overflow: visible !important;
-}
-
-.bslib-sidebar-layout > .main {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  filter: none !important;
-}
 
 
-.sidebar-backdrop,
-.bslib-sidebar-backdrop,
-.bslib-sidebar-layout::before,
-.bslib-sidebar-layout::after {
-  display: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  background: none !important;
-}
-
-.bslib-sidebar-layout .main > * {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
 
 /* ========== ANIMATIONS - OPTIMIZED WITH GPU HINTS ========== */
 @keyframes fadeInUp {
@@ -118,16 +88,6 @@ html, body {
   -ms-overflow-style: none;  /* IE and Edge */
 }
 
-/* Keep dropdown scrollbars visible (will be styled later) */
-.selectize-dropdown-content {
-  scrollbar-width: thin !important;
-  scrollbar-color: rgba(139, 92, 246, 0.3) transparent !important;
-}
-
-.selectize-dropdown-content::-webkit-scrollbar {
-  display: block !important;
-  width: 8px !important;
-}
 
 /* ========== HEADER ========== */
 .professional-header {
@@ -397,6 +357,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 20px;
+  overflow: visible !important;
 }
 
 .status-dot {
@@ -700,26 +661,45 @@ html {
 
 
 
+/*
 @media (max-width: 768px) {
   html { font-size: 14px; }
   .header-content { flex-direction: column; gap: 20px; }
   .header-nav { flex-wrap: wrap; justify-content: center; }
   .footer-sections { grid-template-columns: 1fr; }
   .main-content, .content-card { padding: 20px 15px; }
-
-  /* ❌ Removed sidebar overrides here */
-
+  .bslib-sidebar-layout { grid-template-columns: 1fr !important; }
+  .bslib-sidebar-layout > .sidebar {
+  }
+  
+  
   .btn-action { width: 100%; padding: 14px 18px; font-size: 1rem; }
   .value-box-value { font-size: 1.5rem; }
-
+  
   .plotly,
   .js-plotly-plot {
     height: 350px !important;
     min-height: 300px !important;
   }
-
+  
   .chart-card {
     min-height: 380px;
+  }
+}
+*/
+
+@media (max-width: 768px) {
+  /* Hide sidebar in the main layout */
+  #sidebar-home-anchor > .sidebar {
+    display: none !important;
+  }
+
+  /* Ensure sidebar is visible when inside the filter drawer */
+  #filters-container .sidebar {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    background: transparent !important;
   }
 }
 

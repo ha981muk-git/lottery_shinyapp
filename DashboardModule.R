@@ -168,7 +168,7 @@ dashboardServer <- function(id, input_controls) {
     
     
     # Load data once at startup
-    metrics_data <- generate_metrics()
+    metrics_data <- data_loader$load(force = TRUE)
     draws_per_week <- 2
     
     # ✅ FIX 1: Use reactiveValues for proper scoping (prevents memory leaks)

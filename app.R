@@ -345,7 +345,6 @@ ui <- function(request) {
         div(id = "analyzer", role = "region", `aria-label` = if(LANG == "de") "Analyse-Dashboard" else "Analysis Dashboard",
             layout_sidebar(
               sidebar = sidebar(
-                width = 300,
                 class = "control-panel",
                 open = "desktop",
                 position = "left",

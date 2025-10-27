@@ -1,4 +1,7 @@
 # balls Metrics UI with Translation Support
+get_row_count <- function() {
+  nrow(data_loader$load())
+}
 
 # -------------------------
 # Module: ballsMetricModule
@@ -126,7 +129,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       lang <- get_lang()
       data <- filtered_data()
       selected <- nrow(data)
-      total_counts <- nrow(generate_metrics())
+      total_counts <- get_row_count()
       change <- (selected/total_counts) * 100
       create_metric_card(
         t("balls_metric_coverage", lang),

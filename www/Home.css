@@ -172,6 +172,13 @@ html, body {
   overflow-x: hidden;
 }
 
+.bslib-sidebar-layout {
+  visibility: hidden;
+}
+body.ready .bslib-sidebar-layout {
+  visibility: visible;
+}
+
 /* ========== NOTICES ========== */
 .disclaimer-banner {
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);

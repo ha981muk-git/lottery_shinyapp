@@ -510,91 +510,132 @@ ui <- function(request) {
       
       # ✅ FIXED JAVASCRIPT - Aggressive sidebar reparenting
     tags$script(HTML("
-  (function(){
-    const html = document.documentElement;
+          (function(){
+            const html = document.documentElement;
+          
+            // --- Drawer open/close helpers ---
+            function openNav() { html.classList.add('nav-open'); html.classList.remove('filters-open'); }
+            function openFilters() { html.classList.add('filters-open'); html.classList.remove('nav-open'); }
+            function closeAll() { html.classList.remove('nav-open','filters-open'); }
+          
+            // --- Wire up buttons and language switch ---
+            function wireButtons(){
+              const btnNav = document.getElementById('open-nav');
+              const btnFilters = document.getElementById('open-filters');
+              if(btnNav){ btnNav.onclick = openNav; }
+              if(btnFilters){ btnFilters.onclick = openFilters; }
+          
+              document.querySelectorAll('.drawer-close,.drawer a,.lang-btn,.drawer-backdrop')
+                .forEach(el => el.addEventListener('click', closeAll));
+          
+              const langSwitch = document.getElementById('lang-switch');
+              if(langSwitch){
+                langSwitch.onchange = function(){
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('lang', this.value);
+                  window.location.assign(url);
+                };
+              }
+            }
+          
+            let attempts = 0;
+            const maxAttempts = 20;
+          
+            // --- Sidebar reparent logic ---
+              function reparentSidebar(){
+                attempts++;
+                const anchor = document.getElementById('sidebar-home-anchor');
+                const filtersContainer = document.getElementById('filters-container');
+                if(!anchor || !filtersContainer){
+                  if(attempts < maxAttempts) setTimeout(reparentSidebar,200);
+                  return;
+                }
+              
+                let sidebar = anchor.querySelector('.sidebar');
+                if(!sidebar) sidebar = document.querySelector('.bslib-sidebar-layout .sidebar');
+                if(!sidebar){
+                  if(attempts < maxAttempts) setTimeout(reparentSidebar,200);
+                  return;
+                }
+              
+                // Mobile view → move sidebar into drawer
+                if(window.innerWidth <= 768){
+                  if(!filtersContainer.contains(sidebar)){
+                    filtersContainer.appendChild(sidebar);
+                  }
+                } 
+                // Desktop view → move sidebar back to anchor
+                else {
+                  if(anchor && !anchor.contains(sidebar)){
+                    anchor.appendChild(sidebar);
+                  }
+                  closeAll();
+                }
+              
+                // ✅ Force Shiny/Plotly re-render after reparenting
+                if (window.Shiny && typeof Shiny.onInputChange === 'function') {
+                  setTimeout(() => {
+                    // Step 1: Dispatch resize for bslib & Plotly
+                    window.dispatchEvent(new Event('resize'));
+              
+                    // Step 2: Trigger reactive relayout input
+                    Shiny.onInputChange('trigger_relayout', Date.now());
+              
+                    // Step 3: (NEW) Call Plotly relayout if plots exist
+                    if (window.Plotly && document.querySelectorAll('.js-plotly-plot').length > 0) {
+                      document.querySelectorAll('.js-plotly-plot').forEach(p => {
+                        try { Plotly.Plots.resize(p); } catch(e) {}
+                      });
+                    }
+              
+                  }, 500);
+                }
+              }
+
+          
+            // --- Init on load ---
+            document.addEventListener('DOMContentLoaded', ()=>{
+              wireButtons();
+              reparentSidebar();
+              setTimeout(reparentSidebar, 300);
+              setTimeout(reparentSidebar, 600);
+              setTimeout(reparentSidebar, 1000);
+              window.addEventListener('resize', reparentSidebar);
+          
+              // ✅ Reveal the layout after all DOM movements are done
+              setTimeout(() => document.body.classList.add('ready'), 1200);
+            });
+            // ✅ Reveal the layout after all DOM movements are done
+              setTimeout(() => document.body.classList.add('ready'), 1200);
+              
+              // ✅ (NEW) Double-check plots render after mobile transition
+              setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+                if (window.Plotly) {
+                  document.querySelectorAll('.js-plotly-plot').forEach(p => {
+                    try { Plotly.Plots.resize(p); } catch(e) {}
+                  });
+                }
+              }, 2000);
+
+          
+            // --- Re-run when Shiny updates ---
+            if(window.Shiny){
+              Shiny.addCustomMessageHandler('sidebar-ready', reparentSidebar);
+            }
+            document.addEventListener('shiny:connected', reparentSidebar);
+            document.addEventListener('shiny:value', reparentSidebar);
+          
+            // --- Mutation observer to catch dynamic UI loads ---
+            const observer = new MutationObserver(()=>{
+              if(attempts < maxAttempts) reparentSidebar();
+            });
+            observer.observe(document.body,{childList:true,subtree:true});
+            setTimeout(()=>observer.disconnect(),6000);
+          })();
+          "))
+    ,
     
-    function openNav() {
-      html.classList.add('nav-open');
-      html.classList.remove('filters-open');
-    }
-    
-    function openFilters() {
-      html.classList.add('filters-open');
-      html.classList.remove('nav-open');
-    }
-    
-    function closeAll() {
-      html.classList.remove('nav-open', 'filters-open');
-    }
-    
-    function wireButtons() {
-      const btnNav = document.getElementById('open-nav');
-      const btnFilters = document.getElementById('open-filters');
-      
-      if (btnNav) {
-        btnNav.removeEventListener('click', handleNavClick);
-        btnNav.addEventListener('click', handleNavClick);
-      }
-      
-      if (btnFilters) {
-        btnFilters.removeEventListener('click', handleFiltersClick);
-        btnFilters.addEventListener('click', handleFiltersClick);
-      }
-      
-      document.querySelectorAll('.drawer-close').forEach(btn => {
-        btn.removeEventListener('click', closeAll);
-        btn.addEventListener('click', closeAll);
-      });
-      
-      document.querySelectorAll('.drawer a, .lang-btn').forEach(link => {
-        link.removeEventListener('click', closeAll);
-        link.addEventListener('click', closeAll);
-      });
-      
-      const backdrop = document.querySelector('.drawer-backdrop');
-      if (backdrop) {
-        backdrop.removeEventListener('click', closeAll);
-        backdrop.addEventListener('click', closeAll);
-      }
-      
-      const langSwitch = document.getElementById('lang-switch');
-      if (langSwitch) {
-        langSwitch.removeEventListener('change', handleLangChange);
-        langSwitch.addEventListener('change', handleLangChange);
-      }
-    }
-    
-    function handleNavClick(e) {
-      e.stopPropagation();
-      openNav();
-    }
-    
-    function handleFiltersClick(e) {
-      e.stopPropagation();
-      openFilters();
-    }
-    
-    function handleLangChange() {
-      const url = new URL(window.location.href);
-      url.searchParams.set('lang', this.value);
-      window.location.assign(url.toString());
-    }
-    
-    // ✅ Initialize after DOM ready
-    document.addEventListener('DOMContentLoaded', function() {
-      wireButtons();
-      
-      // ✅ Move sidebar into mobile drawer if on small screen
-      const sidebar = document.querySelector('#sidebar-home-anchor > .sidebar');
-      const filtersContainer = document.querySelector('#filters-container');
-      
-      if (sidebar && filtersContainer && window.innerWidth <= 768) {
-        filtersContainer.appendChild(sidebar);
-      }
-    });
-    
-  })();
-")),
     
     # Backdrop
     div(class = "drawer-backdrop"),
@@ -795,6 +836,11 @@ server <- function(input, output, session) {
       session$sendCustomMessage("health", "ok")
     }
   })
+  
+  observeEvent(input$trigger_relayout, {
+    # No action required — this just keeps Shiny quiet.
+  })
+  
 }
 
 

@@ -1,76 +1,146 @@
-# balls Metrics UI with Translation Support
+# =============================================================================
+# balls Metrics UI with Translation Support — Performance Edition (Version C)
+# Global chart caching + empty-state handling + deduped layout code
+# =============================================================================
+
+# Public helper: return total row count of your base dataset
 get_row_count <- function() {
   nrow(data_loader$load())
 }
 
-# -------------------------
-# Module: ballsMetricModule
-# -------------------------
+# -----------------------------------------------------------------------------
+# OPTIONAL: Global cache invalidation helper for the hosting app.
+# Call this after your data source refreshes (e.g., a nightly ETL).
+# You can also update options(metrics_data_version = "<new-version>")
+# and the module will segregate caches automatically by version.
+# -----------------------------------------------------------------------------
+balls_clear_cache <- function() {
+  if (exists(".balls_plot_cache", envir = .GlobalEnv, inherits = FALSE)) {
+    rm(".balls_plot_cache", envir = .GlobalEnv, inherits = FALSE)
+  }
+  invisible(TRUE)
+}
 
+# -----------------------------------------------------------------------------
+# Global shared cache accessors (persist across sessions)
+# Keyed by (version, weeks, range, lang, chart_id)
+# -----------------------------------------------------------------------------
+.balls_get_cache_env <- function() {
+  if (!exists(".balls_plot_cache", envir = .GlobalEnv, inherits = FALSE)) {
+    assign(".balls_plot_cache", new.env(parent = emptyenv()), envir = .GlobalEnv)
+  }
+  get(".balls_plot_cache", envir = .GlobalEnv, inherits = FALSE)
+}
+
+.balls_cache_get <- function(key) {
+  env <- .balls_get_cache_env()
+  if (exists(key, envir = env, inherits = FALSE)) get(key, envir = env, inherits = FALSE) else NULL
+}
+
+.balls_cache_set <- function(key, value) {
+  env <- .balls_get_cache_env()
+  assign(key, value, envir = env)
+  invisible(value)
+}
+
+# -----------------------------------------------------------------------------
+# UI
+# - Uses conditionalPanel on output$hasData to show either charts or empty state
+# -----------------------------------------------------------------------------
 ballsMetricUI <- function(id) {
   ns <- NS(id)
   tagList(
     div(
       style = "padding: 20px;",
-      div(
-        style = "margin-bottom: 32px;",
-        # Header will be rendered dynamically in server
-        uiOutput(ns("header"))
-      ),
-      layout_column_wrap(
-        width = 1/4,
-        heights_equal = "row",
-        uiOutput(ns("metricCard1")),
-        uiOutput(ns("metricCard2")),
-        uiOutput(ns("metricCard3")),
-        uiOutput(ns("metricCard4"))
-      ),
-      layout_column_wrap(
-        width = 1/2,
-        heights_equal = "row",
-        div(
-          class = "chart-card",
-          uiOutput(ns("trendChartTitle")),
-          plotlyOutput(ns("trendChart"), height = "350px")
+      
+      # Header (title + subtitle)
+      div(style = "margin-bottom: 32px;", uiOutput(ns("header"))),
+      
+      # WHEN DATA EXISTS -------------------------------------------------------
+      conditionalPanel(
+        condition = sprintf("output['%s']", ns("hasData")),
+        layout_column_wrap(
+          width = 1/4,
+          heights_equal = "row",
+          uiOutput(ns("metricCard1")),
+          uiOutput(ns("metricCard2")),
+          uiOutput(ns("metricCard3")),
+          uiOutput(ns("metricCard4"))
+        ),
+        layout_column_wrap(
+          width = 1/2,
+          heights_equal = "row",
+          div(
+            class = "chart-card",
+            uiOutput(ns("trendChartTitle")),
+            plotlyOutput(ns("trendChart"), height = "350px")
+          ),
+          div(
+            class = "chart-card",
+            uiOutput(ns("distributionChartTitle")),
+            plotlyOutput(ns("distributionChart"), height = "350px")
+          )
         ),
         div(
           class = "chart-card",
-          uiOutput(ns("distributionChartTitle")),
-          plotlyOutput(ns("distributionChart"), height = "350px")
+          style = "margin-top: 20px;",
+          uiOutput(ns("densityChartTitle")),
+          plotlyOutput(ns("densityChart"), height = "400px")
+        ),
+        div(
+          class = "chart-card",
+          style = "margin-top: 20px;",
+          uiOutput(ns("overviewChartTitle")),
+          plotlyOutput(ns("overviewChart"), height = "400px")
+        ),
+        div(
+          class = "chart-card",
+          style = "margin-top: 20px;",
+          uiOutput(ns("lineChartTitle")),
+          plotlyOutput(ns("lineChart"), height = "400px")
         )
       ),
-      div(
-        class = "chart-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("densityChartTitle")),
-        plotlyOutput(ns("densityChart"), height = "400px")
-      ),
-      div(
-        class = "chart-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("overviewChartTitle")),
-        plotlyOutput(ns("overviewChart"), height = "400px")
-      ),
-      div(
-        class = "chart-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("lineChartTitle")),
-        plotlyOutput(ns("lineChart"), height = "400px")
+      
+      # WHEN NO DATA -----------------------------------------------------------
+      conditionalPanel(
+        condition = sprintf("!output['%s']", ns("hasData")),
+        div(
+          class = "empty-state",
+          style = "padding: 32px; border-radius: 12px; background: rgba(255,255,255,0.04); text-align: center;",
+          h3(style = "margin-bottom: 8px;", uiOutput(ns("emptyTitle"))),
+          p(style = "opacity: 0.8;", uiOutput(ns("emptySubtitle")))
+        )
       )
     )
   )
 }
 
+# -----------------------------------------------------------------------------
+# SERVER
+# - Shared chart theme / helpers
+# - Global shared plot cache (keys include a data version)
+# - Empty state flow (hide charts, show friendly message)
+# -----------------------------------------------------------------------------
 ballsMetricServer <- function(id, filtered_data, input_controls) {
   moduleServer(id, function(input, output, session) {
     
-    # Get current language from URL
+    # ---------------------------
+    # i18n
+    # ---------------------------
     get_lang <- reactive({
       query <- parseQueryString(isolate(session$clientData$url_search))
       query$lang %||% "de"
     })
     
-    # Define consistent colors for each ball (hex codes)
+    # Translation shim for convenience
+    tr <- reactive({
+      lang <- get_lang()
+      function(key) t(key, lang)
+    })
+    
+    # ---------------------------
+    # Colors (stable mapping)
+    # ---------------------------
     ball_colors <- c(
       "Ball 1" = "#4169E1",  # royal blue
       "Ball 2" = "#DC143C",  # crimson red
@@ -80,346 +150,407 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       "Ball 6" = "#00CED1"   # dark cyan
     )
     
-    # Render header
+    # ---------------------------
+    # Shared chart theme helper
+    # ---------------------------
+    chart_theme <- function(p, title_txt) {
+      p %>%
+        plotly::layout(
+          title = title_txt,
+          paper_bgcolor = "rgba(0,0,0,0)",
+          plot_bgcolor  = "rgba(0,0,0,0)",
+          font = list(color = "rgba(255,255,255,0.6)")
+        ) %>%
+        plotly::config(displayModeBar = FALSE)
+    }
+    
+    # Title render helper
+    render_title <- function(id, key) {
+      output[[id]] <- renderUI({
+        div(class = "chart-title", tr()(key))
+      })
+    }
+    
+    # ---------------------------
+    # Header + Empty-state texts
+    # ---------------------------
     output$header <- renderUI({
-      lang <- get_lang()
       tagList(
-        h1(class = "header-title", t("balls_title", lang)),
-        p(class = "header-subtitle", t("balls_subtitle", lang))
+        h1(class = "header-title",   tr()("balls_title")),
+        p (class = "header-subtitle", tr()("balls_subtitle"))
       )
     })
     
-    # Chart titles
-    output$trendChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_trend_title", lang))
+    output$emptyTitle <- renderUI({
+      # Use a dedicated string if available; fallback to inline
+      HTML(tr()("no_data_title") %||% "No data for selected filters")
     })
     
-    output$distributionChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_distribution_title", lang))
+    output$emptySubtitle <- renderUI({
+      HTML(tr()("no_data_subtitle") %||% "Try expanding your number range or time window.")
     })
     
-    output$densityChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_chart_density", lang))
+    # Render chart titles
+    render_title("trendChartTitle",         "balls_trend_title")
+    render_title("distributionChartTitle",  "balls_distribution_title")
+    render_title("densityChartTitle",       "balls_chart_density")
+    render_title("overviewChartTitle",      "balls_overview_title")
+    render_title("lineChartTitle",          "balls_line_chart_title")
+    
+    # ---------------------------
+    # Has data? (export to UI)
+    # ---------------------------
+    has_data <- reactive({
+      d <- filtered_data()
+      !is.null(d) && nrow(d) > 0
     })
     
-    output$overviewChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_overview_title", lang))
-    })
+    output$hasData <- reactive({ has_data() })
+    # IMPORTANT for conditionalPanel to react
+    outputOptions(output, "hasData", suspendWhenHidden = FALSE)
     
-    output$lineChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_line_chart_title", lang))
-    })
-    
-    create_metric_card <- function(title, value, value_symbol) {
+    # ---------------------------
+    # Metric Cards (only compute if data exists)
+    # ---------------------------
+    create_metric_card <- function(title, value, suffix = "") {
       div(
         class = "metric-card",
         div(class = "metric-label", title),
-        div(class = "metric-value", paste0(value, value_symbol))
+        div(class = "metric-value", paste0(value, suffix))
       )
     }
     
-    
-    
     output$metricCard1 <- renderUI({
-      lang <- get_lang()
-      data <- filtered_data()
-      selected <- nrow(data)
-      total_counts <- get_row_count()
-      change <- (selected/total_counts) * 100
+      req(has_data())
+      d <- filtered_data()
+      sel <- nrow(d)
+      total <- get_row_count()
+      cov  <- if (isTRUE(total > 0)) (sel / total) * 100 else 0
       create_metric_card(
-        t("balls_metric_coverage", lang),
-        paste0("", format(round(change), big.mark = ",")),
+        tr()("balls_metric_coverage"),
+        format(round(cov), big.mark = ","),
         "%"
       )
     })
     
     output$metricCard2 <- renderUI({
-      lang <- get_lang()
-      data <- filtered_data()
-      n_tickets <- nrow(data)
+      req(has_data())
+      d <- filtered_data()
       create_metric_card(
-        t("balls_metric_occurrence", lang),
-        format(round(n_tickets)),
-        ""
+        tr()("balls_metric_occurrence"),
+        format(round(nrow(d)), big.mark = ",")
       )
     })
     
     output$metricCard3 <- renderUI({
-      lang <- get_lang()
-      data <- filtered_data()
+      req(has_data())
+      d <- filtered_data()
+      # Constant: combinations of 6 from 49 = 13,983,816
       N_Tickets <- 13983816
-      n_tickets <- nrow(data)
-      chance <- n_tickets / N_Tickets * 100
+      chance <- (nrow(d) / N_Tickets) * 100
       create_metric_card(
-        t("balls_metric_chance", lang),
-        paste0(format(chance, digits = 2)),
+        tr()("balls_metric_chance"),
+        format(round(chance, 2), nsmall = 2),
         "%"
       )
     })
     
     output$metricCard4 <- renderUI({
-      lang <- get_lang()
-      num_from <- as.numeric(input_controls()$range[1])
-      num_to <- as.numeric(input_controls()$range[2])
-      difference <- num_to - num_from + 1
+      req(has_data())
+      rng <- input_controls()$range
+      num_from <- as.numeric(rng[1])
+      num_to   <- as.numeric(rng[2])
       create_metric_card(
-        t("balls_metric_range", lang),
-        difference,
-        ""
+        tr()("balls_metric_range"),
+        (num_to - num_from + 1)
       )
     })
     
-    # Trend Chart - Box Plot
-    output$trendChart <- renderPlotly({
-      lang <- get_lang()
-      data <- filtered_data()
-      p <- plot_ly()
+    # ---------------------------
+    # Cache key helpers
+    # data_version: use options(metrics_data_version) if provided by host app.
+    # This lets you invalidate globally when data updates without digesting data.
+    # Fallback version uses row count & max of numeric columns as a light fingerprint.
+    # ---------------------------
+    compute_light_version <- function(d) {
+      if (is.null(d) || !nrow(d)) return("empty")
+      nc <- ncol(d)
+      max_num <- suppressWarnings({
+        suppressWarnings(max(unlist(lapply(d, function(x) if (is.numeric(x)) max(x, na.rm = TRUE) else NA_real_)), na.rm = TRUE))
+      })
+      max_date <- if ("datum" %in% names(d) && inherits(d$datum, "Date")) {
+        as.character(max(d$datum, na.rm = TRUE))
+      } else ""
+      paste0("rows", nrow(d), "_cols", nc, "_max", max_num, "_date", max_date)
+    }
+    
+    cache_key <- function(chart_id) {
+      rng   <- input_controls()$range %||% c(1, 49)
+      weeks <- as.numeric(input_controls()$timeRange %||% 7)
+      lang  <- get_lang()
+      data_version <- getOption("metrics_data_version", NULL)
       
-      for(i in 1:6) {
-        ball_name <- paste0("Ball ", i)
-        ball_label <- t(paste0("ball_", i), lang)
-        p <- add_trace(p, 
-                       x = ball_label,
-                       y = data[[paste0("ball_", i)]], 
-                       name = ball_label, 
-                       type = "box",
-                       fillcolor = ball_colors[ball_name],
-                       marker = list(color = ball_colors[ball_name]),
-                       line = list(color = ball_colors[ball_name]))
+      # We want a version that changes only when the *underlying* dataset changes.
+      # If host app didn't set a global version, fallback to a lightweight signature
+      # based on current filtered data shape. (Okay trade-off in practice.)
+      if (is.null(data_version)) {
+        d <- filtered_data()
+        data_version <- compute_light_version(d)
       }
       
-      p %>%
-        layout(
-          title = t("balls_boxplot_title", lang),
-          paper_bgcolor = 'rgba(0,0,0,0)',
-          plot_bgcolor = 'rgba(0,0,0,0)',
-          xaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
-          yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
-          font = list(color = 'rgba(255,255,255,0.6)'),
-          showlegend = TRUE
-        ) %>%
-        config(displayModeBar = FALSE)
-    })
+      sprintf("v=%s|w=%s|r=%s-%s|lang=%s|chart=%s",
+              data_version, weeks, rng[1], rng[2], lang, chart_id)
+    }
     
-    # Distribution Chart - Full Violin Plot
-    output$distributionChart <- renderPlotly({
-      lang <- get_lang()
-      data <- filtered_data()
-      p <- plot_ly()
-      
-      for(i in 1:6) {
-        ball_name <- paste0("Ball ", i)
-        ball_label <- t(paste0("ball_", i), lang)
-        p <- add_trace(p, 
-                       x = ball_label,
-                       y = data[[paste0("ball_", i)]], 
-                       type = 'violin', 
-                       name = ball_label,
-                       side = 'both',
-                       box = list(
-                         visible = TRUE,
-                         fillcolor = toRGB(ball_colors[ball_name], alpha = 0.3),
-                         line = list(color = ball_colors[ball_name], width = 2)
-                       ),
-                       meanline = list(visible = TRUE),
-                       fillcolor = toRGB(ball_colors[ball_name], alpha = 0.6),
-                       line = list(color = ball_colors[ball_name]),
-                       opacity = 0.6)
+    # ---------------------------
+    # Plot builders (return plotly objects)
+    # ---------------------------
+    build_box_plot <- function(d) {
+      p <- plotly::plot_ly()
+      for (i in 1:6) {
+        ball_name  <- paste0("Ball ", i)
+        ball_label <- tr()(paste0("ball_", i))
+        p <- plotly::add_trace(
+          p,
+          x = ball_label,
+          y = d[[paste0("ball_", i)]],
+          type = "box",
+          name = ball_label,
+          fillcolor = ball_colors[ball_name],
+          marker    = list(color = ball_colors[ball_name]),
+          line      = list(color = ball_colors[ball_name])
+        )
       }
-      
-      p %>%
-        layout(
-          title = t("balls_violin_title", lang),
-          yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
-          xaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
-          paper_bgcolor = 'rgba(0,0,0,0)',
-          plot_bgcolor = 'rgba(0,0,0,0)',
-          font = list(color = 'rgba(255,255,255,0.6)'),
+      chart_theme(
+        p %>% plotly::layout(
+          xaxis = list(title = tr()("ball_label"),  color = "rgba(255,255,255,0.6)"),
+          yaxis = list(title = tr()("value_label"), color = "rgba(255,255,255,0.6)"),
           showlegend = TRUE
-        ) %>%
-        config(displayModeBar = FALSE)
-    })
+        ),
+        title_txt = tr()("balls_boxplot_title")
+      )
+    }
     
-    output$densityChart <- renderPlotly({
-      lang <- get_lang()
-      data <- filtered_data()
-      
-      # Convert data to long format
-      df_long <- data %>%
+    build_violin_plot <- function(d) {
+      p <- plotly::plot_ly()
+      for (i in 1:6) {
+        ball_name  <- paste0("Ball ", i)
+        ball_label <- tr()(paste0("ball_", i))
+        p <- plotly::add_trace(
+          p,
+          x = ball_label,
+          y = d[[paste0("ball_", i)]],
+          type = "violin",
+          name = ball_label,
+          side = "both",
+          box = list(
+            visible   = TRUE,
+            fillcolor = plotly::toRGB(ball_colors[ball_name], alpha = 0.3),
+            line      = list(color = ball_colors[ball_name], width = 2)
+          ),
+          meanline = list(visible = TRUE),
+          fillcolor = plotly::toRGB(ball_colors[ball_name], alpha = 0.6),
+          line      = list(color = ball_colors[ball_name]),
+          opacity   = 0.6
+        )
+      }
+      chart_theme(
+        p %>% plotly::layout(
+          xaxis = list(title = tr()("ball_label"),  color = "rgba(255,255,255,0.6)"),
+          yaxis = list(title = tr()("value_label"), color = "rgba(255,255,255,0.6)"),
+          showlegend = TRUE
+        ),
+        title_txt = tr()("balls_violin_title")
+      )
+    }
+    
+    build_density_plot <- function(d) {
+      df_long <- d %>%
         tidyr::pivot_longer(
-          cols = starts_with("ball_"),
+          cols = dplyr::starts_with("ball_"),
           names_to = "ball",
           values_to = "value"
         ) %>%
-        dplyr::mutate(ball = stringr::str_replace(ball, "ball_", "Ball "))
+        dplyr::mutate(ball = stringr::str_replace(.data$ball, "ball_", "Ball "))
       
-      p <- plot_ly()
-      
-      # Smooth overlay (optional)
+      p <- plotly::plot_ly()
       for (ball_name in unique(df_long$ball)) {
-        ball_values <- df_long$value[df_long$ball == ball_name]
-        density_data <- density(ball_values)
-        p <- add_trace(
+        vals <- df_long$value[df_long$ball == ball_name]
+        if (!length(vals)) next
+        dens <- stats::density(vals)
+        p <- plotly::add_trace(
           p,
-          x = density_data$x,
-          y = density_data$y,
+          x = dens$x,
+          y = dens$y,
           type = "scatter",
           mode = "lines",
           name = paste(ball_name, "(Smooth)"),
           line = list(color = ball_colors[ball_name], width = 2)
         )
       }
-      
-      p %>%
-        layout(
-          title = t("balls_chart_density_title", lang),
-          xaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
-          yaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
-          paper_bgcolor = 'rgba(0,0,0,0)',
-          plot_bgcolor = 'rgba(0,0,0,0)',
-          font = list(color = 'rgba(255,255,255,0.6)'),
-          barmode = "overlay",
-          legend = list(orientation = 'h', y = -0.2)
-        ) %>%
-        config(displayModeBar = FALSE)
-    })
+      chart_theme(
+        p %>% plotly::layout(
+          xaxis = list(title = tr()("value_label"), color = "rgba(255,255,255,0.6)"),
+          yaxis = list(title = tr()("ball_label"),  color = "rgba(255,255,255,0.6)"),
+          legend = list(orientation = "h", y = -0.2)
+        ),
+        title_txt = tr()("balls_chart_density_title")
+      )
+    }
     
-    # Overview Chart - Raincloud / Half Violin
-    output$overviewChart <- renderPlotly({
-      lang <- get_lang()
-      data <- filtered_data()
-      p <- plot_ly()
-      
-      ball_labels <- sapply(1:6, function(i) t(paste0("ball_", i), lang))
-      
-      for(i in 1:6){
-        ball_name <- paste0("Ball ", i)
-        ball_label <- ball_labels[i]
-        ball_values <- data[[paste0("ball_", i)]]
+    build_raincloud_plot <- function(d) {
+      p <- plotly::plot_ly()
+      ball_labels <- vapply(1:6, function(i) tr()(paste0("ball_", i)), character(1))
+      for (i in 1:6) {
+        ball_name   <- paste0("Ball ", i)
+        ball_label  <- ball_labels[i]
+        ball_values <- d[[paste0("ball_", i)]]
         color <- ball_colors[ball_name]
         
-        # 1️⃣ Half violin (raincloud)
-        p <- add_trace(p,
-                       x = rep(i, length(ball_values)),
-                       y = ball_values,
-                       type = 'violin',
-                       side = 'positive',
-                       width = 0.6,
-                       fillcolor = toRGB(color, alpha = 0.5),
-                       line = list(color = color),
-                       opacity = 0.6,
-                       points = FALSE,
-                       showlegend = FALSE,
-                       name = ball_label)
+        # Half violin
+        p <- plotly::add_trace(
+          p,
+          x = rep(i, length(ball_values)),
+          y = ball_values,
+          type = "violin",
+          side = "positive",
+          width = 0.6,
+          fillcolor = plotly::toRGB(color, alpha = 0.5),
+          line = list(color = color),
+          opacity = 0.6,
+          points = FALSE,
+          showlegend = FALSE,
+          name = ball_label
+        )
         
-        # 2️⃣ Box plot (centered)
-        p <- add_trace(p,
-                       x = rep(i, length(ball_values)),
-                       y = ball_values,
-                       type = 'box',
-                       fillcolor = toRGB(color, alpha = 0.8),
-                       line = list(color = color, width = 2),
-                       boxpoints = FALSE,
-                       width = 0.3,
-                       name = ball_label,
-                       showlegend = FALSE)
+        # Centered box
+        p <- plotly::add_trace(
+          p,
+          x = rep(i, length(ball_values)),
+          y = ball_values,
+          type = "box",
+          fillcolor = plotly::toRGB(color, alpha = 0.8),
+          line = list(color = color, width = 2),
+          boxpoints = FALSE,
+          width = 0.3,
+          name = ball_label,
+          showlegend = FALSE
+        )
         
-        # 3️⃣ Jittered points (manual jitter) - positioned to the left
+        # Jittered points (left)
         set.seed(42 + i)
-        jitter_amount <- runif(length(ball_values), -0.35, -0.05)
+        jitter_amount <- stats::runif(length(ball_values), -0.35, -0.05)
         x_jittered <- rep(i, length(ball_values)) + jitter_amount
         
-        p <- add_trace(p,
-                       x = x_jittered,
-                       y = ball_values,
-                       type = 'scatter',
-                       mode = 'markers',
-                       marker = list(color = color, size = 4, opacity = 0.6),
-                       showlegend = FALSE,
-                       hoverinfo = 'y',
-                       name = ball_label)
+        p <- plotly::add_trace(
+          p,
+          x = x_jittered,
+          y = ball_values,
+          type = "scatter",
+          mode = "markers",
+          marker = list(color = color, size = 4, opacity = 0.6),
+          showlegend = FALSE,
+          hoverinfo = "y",
+          name = ball_label
+        )
       }
       
-      p %>%
-        layout(
-          title = t("balls_raincloud_title", lang),
-          yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
+      chart_theme(
+        p %>% plotly::layout(
+          yaxis = list(title = tr()("value_label"), color = "rgba(255,255,255,0.6)"),
           xaxis = list(
-            title = t("ball_label", lang), 
-            color = 'rgba(255,255,255,0.6)',
-            tickmode = 'array',
+            title = tr()("ball_label"),
+            color = "rgba(255,255,255,0.6)",
+            tickmode = "array",
             tickvals = 1:6,
             ticktext = ball_labels,
             range = c(0.5, 6.5)
           ),
-          paper_bgcolor = 'rgba(0,0,0,0)',
-          plot_bgcolor = 'rgba(0,0,0,0)',
-          font = list(color = 'rgba(255,255,255,0.6)'),
           showlegend = FALSE
-        ) %>%
-        config(displayModeBar = FALSE)
-    })
+        ),
+        title_txt = tr()("balls_raincloud_title")
+      )
+    }
     
-    # Line Chart - Each row represents a line connecting Ball 1 to Ball 6
-    output$lineChart <- renderPlotly({
-      lang <- get_lang()
-      data <- filtered_data()
-      
-      p <- plot_ly()
-      
-      # X-axis positions for each ball (1 to 6)
+    build_line_plot <- function(d) {
+      p <- plotly::plot_ly()
       x_positions <- 1:6
-      ball_labels <- sapply(1:6, function(i) t(paste0("ball_", i), lang))
+      ball_labels <- vapply(1:6, function(i) tr()(paste0("ball_", i)), character(1))
       
-      # Loop through each row in filtered_data and add a line trace
-      for(row in 1:nrow(data)) {
-        y_values <- c(
-          data[[row, "ball_1"]],
-          data[[row, "ball_2"]],
-          data[[row, "ball_3"]],
-          data[[row, "ball_4"]],
-          data[[row, "ball_5"]],
-          data[[row, "ball_6"]]
+      # NOTE: For large n, consider sampling recent rows to avoid heavy DOM.
+      nr <- nrow(d)
+      for (row in 1:nr) {
+        y_values <- as.numeric(d[row, paste0("ball_", 1:6), drop = TRUE])
+        p <- plotly::add_trace(
+          p,
+          x = x_positions,
+          y = y_values,
+          type = "scatter",
+          mode = "lines+markers",
+          line = list(color = "rgba(255,255,255,0.30)", width = 1),
+          marker = list(size = 4, color = "rgba(255,255,255,0.4)"),
+          hoverinfo = "y+x",
+          showlegend = FALSE,
+          name = paste("Row", row)
         )
-        
-        p <- add_trace(p,
-                       x = x_positions,
-                       y = y_values,
-                       type = 'scatter',
-                       mode = 'lines+markers',
-                       line = list(color = 'rgba(255,255,255,0.3)', width = 1),
-                       marker = list(size = 4, color = 'rgba(255,255,255,0.4)'),
-                       hoverinfo = 'y+x',
-                       showlegend = FALSE,
-                       name = paste("Row", row))
       }
       
-      p %>%
-        layout(
-          title = t("balls_line_chart", lang),
+      chart_theme(
+        p %>% plotly::layout(
           xaxis = list(
-            title = t("ball_label", lang),
-            color = 'rgba(255,255,255,0.6)',
-            tickmode = 'array',
+            title = tr()("ball_label"),
+            color = "rgba(255,255,255,0.6)",
+            tickmode = "array",
             tickvals = x_positions,
             ticktext = ball_labels,
             range = c(0.5, 6.5)
           ),
           yaxis = list(
-            title = t("value_label", lang),
-            color = 'rgba(255,255,255,0.6)'
+            title = tr()("value_label"),
+            color = "rgba(255,255,255,0.6)"
           ),
-          paper_bgcolor = 'rgba(0,0,0,0)',
-          plot_bgcolor = 'rgba(0,0,0,0)',
-          font = list(color = 'rgba(255,255,255,0.6)'),
-          hovermode = 'closest'
-        ) %>%
-        config(displayModeBar = FALSE)
+          hovermode = "closest"
+        ),
+        title_txt = tr()("balls_line_chart")
+      )
+    }
+    
+    # ---------------------------
+    # Renderers with GLOBAL CACHE
+    # ---------------------------
+    render_cached_plot <- function(output_id, chart_id, builder_fn) {
+      output[[output_id]] <- plotly::renderPlotly({
+        req(has_data())
+        key <- cache_key(chart_id)
+        cached <- .balls_cache_get(key)
+        if (!is.null(cached)) return(cached)
+        d <- filtered_data()
+        req(d, nrow(d) > 0)
+        plt <- builder_fn(d)
+        .balls_cache_set(key, plt)
+        plt
+      })
+    }
+    
+    render_cached_plot("trendChart",        "box",       build_box_plot)
+    render_cached_plot("distributionChart", "violin",    build_violin_plot)
+    render_cached_plot("densityChart",      "density",   build_density_plot)
+    render_cached_plot("overviewChart",     "raincloud", build_raincloud_plot)
+    render_cached_plot("lineChart",         "lines",     build_line_plot)
+    
+    # ---------------------------
+    # Invalidate charts on refresh for current metric only (if host uses it)
+    # Here we conservatively clear all balls* charts for current filter key.
+    # Host app can also call balls_clear_cache() after data updates.
+    # ---------------------------
+    observeEvent(input_controls()$refresh, ignoreInit = TRUE, {
+      # Rebuild cache keys for current state and clear them
+      ids <- c("box", "violin", "density", "raincloud", "lines")
+      keys <- vapply(ids, function(cid) cache_key(cid), character(1))
+      env <- .balls_get_cache_env()
+      rm(list = intersect(ls(envir = env, all.names = TRUE), keys), envir = env)
+      invisible(TRUE)
     })
+    
   })
 }

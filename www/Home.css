@@ -14,16 +14,9 @@
    - For wide sidebar: minmax(400px, 450px)
    - For very wide sidebar: minmax(450px, 500px)
 */
-.bslib-sidebar-layout {
-  display: grid !important;
-  grid-template-columns: minmax(320px, 350px) 1fr !important;
-  gap: 15px !important;
-  align-items: start !important;
-}
 
 /* SIDEBAR HEIGHT - Control how tall the sidebar is */
 .bslib-sidebar-layout > .sidebar {
-  position: relative !important;
   z-index: 10 !important;
   max-height: none !important;
   overflow: visible !important;
@@ -33,17 +26,12 @@
   overflow: visible !important;
 }
 
-.bslib-sidebar-layout > .main,
-.bslib-sidebar-layout:not(.sidebar-collapsed) > .main,
-.bslib-sidebar-layout[data-bslib-sidebar-open="always"] > .main,
-.bslib-sidebar-layout[data-bslib-sidebar-open="desktop"] > .main {
+.bslib-sidebar-layout > .main {
   opacity: 1 !important;
-  filter: none !important;
   pointer-events: auto !important;
-  transition: none !important;
-  position: relative !important;
-  z-index: 1 !important;
+  filter: none !important;
 }
+
 
 .sidebar-backdrop,
 .bslib-sidebar-backdrop,
@@ -710,9 +698,7 @@ html {
   html { font-size: 15px; }
 }
 
-@media (max-width: 1024px) {
-  .bslib-sidebar-layout { grid-template-columns: 220px 1fr !important; }
-}
+
 
 @media (max-width: 768px) {
   html { font-size: 14px; }
@@ -720,33 +706,23 @@ html {
   .header-nav { flex-wrap: wrap; justify-content: center; }
   .footer-sections { grid-template-columns: 1fr; }
   .main-content, .content-card { padding: 20px 15px; }
-  .bslib-sidebar-layout { grid-template-columns: 1fr !important; }
-  .bslib-sidebar-layout > .sidebar {
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    width: 75%;
-    height: 100%;
-    background: #1a1f3a;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  .bslib-sidebar-layout[data-sidebar-open="true"] > .sidebar {
-    transform: translateX(0);
-  }
+
+  /* ❌ Removed sidebar overrides here */
+
   .btn-action { width: 100%; padding: 14px 18px; font-size: 1rem; }
   .value-box-value { font-size: 1.5rem; }
-  
+
   .plotly,
   .js-plotly-plot {
     height: 350px !important;
     min-height: 300px !important;
   }
-  
+
   .chart-card {
     min-height: 380px;
   }
 }
+
 
 @media (max-width: 480px) {
   html { font-size: 13px; }

@@ -1,5 +1,4 @@
 # --- Production-ready Shiny options for DigitalOcean ---
-
 options(
   # Max upload size (adjust as needed)
   shiny.maxRequestSize = 10*1024^2,  # 10 MB
@@ -35,9 +34,7 @@ options(
   shiny.fullstacktrace = FALSE,
   
   mc.cores = max(1, parallel::detectCores() - 2)
-  
 )
-
 # Limit CPU threads to 1 to avoid overloading 1 vCPU container
 Sys.setenv(R_THREADS = 1)
 
@@ -53,19 +50,18 @@ library(tidyr)
 library(purrr)
 library(DT)
 
-
 # ---------- UI helper theme ----------
 app_theme <- bs_theme(
   version = 5,
-  preset = "shiny",
-  bg = "#0a0e27",
-  fg = "#e8eaed",
+  preset  = "shiny",
+  bg      = "#0a0e27",
+  fg      = "#e8eaed",
   primary = "#8b5cf6",
   secondary = "#ec4899",
   success = "#10b981",
   warning = "#f59e0b",
-  danger = "#ef4444",
-  base_font = font_google("Inter"),
+  danger  = "#ef4444",
+  base_font    = font_google("Inter"),
   heading_font = font_google("Poppins")
 )
 
@@ -131,231 +127,685 @@ if (!dir.exists(dashboard_path)) {
   }
 }
 
-
 # ============================================================================
 # UI - SEPARATE, with language parameter
+# ============================================================================
+# UI - SEPARATE, with language parameter
+# ============================================================================
+# UI - SEPARATE, with language parameter
+# ============================================================================
+# ============================================================================
+# UI - COMPLETE FIXED VERSION
+# ============================================================================
 ui <- function(request) {
-  # ✅ Get language from URL or default to German
   query <- parseQueryString(request$QUERY_STRING)
   LANG <- query$lang %||% "de"
   
   fluidPage(
-    # conditionalPanel(
-    #   condition = "$('html').hasClass('shiny-busy')",
-    #   div(style = "position: fixed; top: 50%; left: 50%; 
-    #            transform: translate(-50%, -50%); z-index: 9999;",
-    #       h3("Loading... (first load may take 30–60 seconds)"),
-    #       tags$img(src = "spinner.gif")
-    #   )
-    # ),
     theme = app_theme,
     
     tags$head(
-      # ==================== SEO META TAGS (GERMAN OPTIMIZED) ====================
+    # ==================== SEO META TAGS ====================
       tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
-      tags$meta(name = "description", content = "6/49 Lotto-Analyse Tool - Kostenlos, interaktiv, bildungsbasiert. Analysieren Sie Lottozahlen-Muster, Häufigkeiten und Trends mit unserem statistischen Dashboard."),
-      tags$meta(name = "keywords", content = "Lotto Analyse, 6/49, Lotto 6 aus 49, Zahlenanalyse, Statistik, Zahlenmuster, Häufigkeitsanalyse, Lottovorhersage, Bildungstool"),
+      tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
+      tags$meta(name = "description", content = "6/49 Lotto-Analyse Tool - Kostenlos, interaktiv, bildungsbasiert."),
+      tags$meta(name = "keywords", content = "Lotto Analyse, 6/49, Lotto 6 aus 49, Zahlenanalyse, Statistik"),
       tags$meta(name = "author", content = "Lottery Insights"),
       tags$meta(name = "robots", content = "index, follow"),
       tags$meta(name = "language", content = if(LANG == "de") "de" else "en"),
-      tags$meta(name = "geo.placename", content = "Deutschland"),
-      tags$meta(name = "geo.region", content = "DE"),
       tags$meta(name = "google-site-verification", content="93NjvZejo4MrJUkJ3RHuJo-_W6a3tdTAfvswURS3bbU"),
-
-      # Open Graph Tags (Social Media - German)
+      
       tags$meta(property = "og:title", content = "6/49 Lotto-Analyse Tool"),
-      tags$meta(property = "og:description", content = "Kostenloses, interaktives Bildungs-Dashboard zur Analyse von Lottomustern und Zahlenstatistiken"),
+      tags$meta(property = "og:description", content = "Kostenloses, interaktives Bildungs-Dashboard"),
       tags$meta(property = "og:type", content = "website"),
       tags$meta(property = "og:url", content = "https://lotteryinsights.dpdns.org/"),
-      tags$meta(property = "og:locale", content = "de_DE"),
       
-      # Canonical Tag
       tags$link(rel = "canonical", href = "https://lotteryinsights.dpdns.org/"),
-      
-      # Alternate Links for language versions
       tags$link(rel = "alternate", hreflang = "de", href = "https://lotteryinsights.dpdns.org/?lang=de"),
       tags$link(rel = "alternate", hreflang = "en", href = "https://lotteryinsights.dpdns.org/?lang=en"),
-      tags$link(rel = "alternate", hreflang = "x-default", href = "https://lotteryinsights.dpdns.org/"),
       
-      # Schema Markup (JSON-LD - German)
       tags$script(type = "application/ld+json", HTML('
-      {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "6/49 Lotto-Analyse Tool",
-        "alternateName": "6 aus 49 Lottozahlen Analysator",
-        "description": "Kostenloses Bildungs-Tool zur statistischen Analyse von Lottodaten und Zahlenmuster",
-        "url": "https://lotteryinsights.dpdns.org/",
-        "applicationCategory": "EducationalApplication",
-        "inLanguage": "de",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "EUR"
-        },
-        "creator": {
-          "@type": "Organization",
-          "name": "Lottery Insights"
+        {
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": "6/49 Lotto-Analyse Tool",
+          "url": "https://lotteryinsights.dpdns.org/",
+          "applicationCategory": "EducationalApplication",
+          "inLanguage": "de"
         }
-      }
       ')),
       
-      # Favicon
       tags$link(rel = "icon", type = "image/svg+xml", href = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>"),
       
-      # Existing stylesheets and scripts
-      tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
       useShinyjs(),
       use_waiter(),
       
-      # ✅ OPTIMIZED INLINE STYLES WITH GPU ACCELERATION
+      # ✅ COMPLETE RESPONSIVE STYLES
       tags$style(HTML("
-            @keyframes shimmer {
-              0% { background-position: -200% 0; }
-              100% { background-position: 200% 0; }
-            }
-            @keyframes fadeIn {
-              from { opacity: 0; transform: translateY(5px) translateZ(0); }
-              to { opacity: 1; transform: translateY(0) translateZ(0); }
-            }
-            .skeleton-card {
-              height: 200px;
-              background: linear-gradient(90deg, 
-                rgba(139,92,246,0.08) 25%, 
-                rgba(139,92,246,0.15) 50%, 
-                rgba(139,92,246,0.08) 75%);
-              background-size: 200% 100%;
-              animation: shimmer 1.2s linear infinite;
-              will-change: background-position;
-              border-radius: 12px;
-              margin-bottom: 20px;
-            }
-            .metric-container {
-              animation: fadeIn 0.3s ease-out;
-              will-change: opacity, transform;
-            }
-            @media (prefers-reduced-motion: reduce) {
-              * { animation: none !important; transition: none !important; }
-            }
-      ")),
-      
-      # ✅ FIX: STOP MUTATIONOBSERVER AFTER 3 SECONDS + DEBOUNCE
-      tags$script(HTML("
-        $(document).ready(function() {
-          let debounceTimer;
-          function fixSidebarOverlay() {
-            $('.bslib-sidebar-layout > .main').css({
-              'opacity': '1',
-              'filter': 'none',
-              'pointer-events': 'auto',
-              'transition': 'none'
-            });
-            $('.sidebar-backdrop, .bslib-sidebar-backdrop').remove();
-            $('.bslib-sidebar-layout').css({
-              'display': 'grid',
-              'grid-template-columns': 'auto 1fr',
-              'gap': '20px'
-            });
+        /* Base animations */
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Desktop Header */
+        .desktop-header {
+          position: sticky;
+          top: 0;
+          z-index: 1100;
+          background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+          color: white;
+          padding: 20px 30px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        
+        .desktop-logo {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+        
+        .desktop-logo-icon {
+          font-size: 2.5rem;
+        }
+        
+        .desktop-logo-text h1 {
+          margin: 0;
+          font-size: 1.5rem;
+          font-weight: 600;
+        }
+        
+        .desktop-logo-text p {
+          margin: 5px 0 0;
+          font-size: 0.9rem;
+          opacity: 0.9;
+        }
+        
+        .desktop-nav {
+          display: flex;
+          align-items: center;
+          gap: 25px;
+        }
+        
+        .desktop-nav a {
+          color: white;
+          text-decoration: none;
+          font-weight: 500;
+          transition: opacity 0.2s;
+        }
+        
+        .desktop-nav a:hover {
+          opacity: 0.8;
+        }
+        
+        .desktop-lang {
+          display: flex;
+          gap: 8px;
+          margin-left: 15px;
+          padding-left: 15px;
+          border-left: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .lang-pill {
+          padding: 6px 12px;
+          border-radius: 20px;
+          background: rgba(255,255,255,0.15);
+          color: white;
+          text-decoration: none;
+          font-size: 0.85rem;
+          font-weight: 600;
+          transition: background 0.2s;
+        }
+        
+        .lang-pill:hover {
+          background: rgba(255,255,255,0.25);
+        }
+        
+        .lang-pill.active {
+          background: rgba(255,255,255,0.3);
+        }
+        
+        .testing-badge {
+          display: inline-block;
+          background: #ff9800;
+          color: white;
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 0.7rem;
+          font-weight: 700;
+          margin-left: 10px;
+        }
+        
+        /* Mobile App Bar */
+        .mobile-app-bar {
+          display: none;
+          position: sticky;
+          top: 0;
+          z-index: 1100;
+          background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+          color: white;
+          padding: 12px 16px;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .mobile-title {
+          flex: 1;
+          font-size: 1rem;
+          font-weight: 600;
+          text-align: center;
+          line-height: 1.3;
+        }
+        
+        .icon-btn {
+          background: rgba(255,255,255,0.15);
+          border: none;
+          color: white;
+          padding: 10px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 1.3rem;
+          transition: background 0.2s;
+          min-width: 44px;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .icon-btn:hover {
+          background: rgba(255,255,255,0.25);
+        }
+        
+        .mobile-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .lang-select {
+          background: rgba(255,255,255,0.18);
+          border: none;
+          color: #fff;
+          padding: 8px 10px;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 0.9rem;
+        }
+        
+        .lang-select option {
+          color: #000;
+          background: #fff;
+        }
+        
+        /* Drawer Styles */
+        .drawer {
+          position: fixed;
+          top: 0;
+          bottom: 0;
+          width: 85%;
+          max-width: 320px;
+          background: #1a1f3a;
+          z-index: 1200;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+          overflow-y: auto;
+          box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        }
+        
+        .drawer.drawer-right {
+          right: 0;
+          left: auto;
+          transform: translateX(100%);
+        }
+        
+        html.nav-open #nav-drawer {
+          transform: translateX(0);
+        }
+        
+        html.filters-open #filters-drawer {
+          transform: translateX(0);
+        }
+        
+        .drawer-content {
+          padding: 20px;
+          padding-top: 60px;
+        }
+        
+        .drawer-close {
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          background: rgba(255,255,255,0.1);
+          border: none;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 1.3rem;
+          z-index: 10;
+        }
+        
+        .drawer h3 {
+          color: #8b5cf6;
+          margin: 20px 0 15px;
+          font-size: 1.1rem;
+          font-weight: 600;
+        }
+        
+        .drawer ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        
+        .drawer li {
+          margin: 5px 0;
+        }
+        
+        .drawer a {
+          color: rgba(255,255,255,0.85);
+          text-decoration: none;
+          display: block;
+          padding: 12px 15px;
+          border-radius: 8px;
+          transition: background 0.2s;
+          font-size: 0.95rem;
+        }
+        
+        .drawer a:hover {
+          background: rgba(139,92,246,0.2);
+          color: white;
+        }
+        
+        .drawer-lang {
+          display: flex;
+          gap: 10px;
+          margin-top: 10px;
+        }
+        
+        .lang-btn {
+          flex: 1;
+          padding: 10px;
+          text-align: center;
+          background: rgba(255,255,255,0.08);
+          color: white;
+          text-decoration: none;
+          border-radius: 8px;
+          transition: background 0.2s;
+          font-weight: 600;
+        }
+        
+        .lang-btn.active {
+          background: #8b5cf6;
+        }
+        
+        .lang-btn:hover {
+          background: rgba(139,92,246,0.4);
+        }
+        
+        /* Backdrop */
+        .drawer-backdrop {
+          display: none;
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.6);
+          z-index: 1150;
+          backdrop-filter: blur(2px);
+        }
+        
+        html.nav-open .drawer-backdrop,
+        html.filters-open .drawer-backdrop {
+          display: block;
+        }
+        
+        /* Desktop Sidebar visible */
+        @media (min-width: 769px) {
+          .mobile-app-bar { display: none !important; }
+          .desktop-header { display: flex !important; }
+          .drawer { display: none !important; }
+          .drawer-backdrop { display: none !important; }
+        }
+        
+        /* Mobile: hide desktop header, show mobile bar */
+        @media (max-width: 768px) {
+          .desktop-header { display: none !important; }
+          .mobile-app-bar { display: flex !important; }
+          
+          /* Hide desktop sidebar on mobile */
+          #sidebar-home-anchor > .sidebar {
+            display: none !important;
           }
-          fixSidebarOverlay();
-          setTimeout(fixSidebarOverlay, 100);
-          setTimeout(fixSidebarOverlay, 500);
-          
-          // Debounced observer - only runs every 100ms
-          const observer = new MutationObserver(() => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(fixSidebarOverlay, 100);
-          });
-          observer.observe(document.body, { childList: true, subtree: true });
-          
-          // CRITICAL: Stop observing after 3 seconds - sidebar is stable
-          setTimeout(() => observer.disconnect(), 3000);
-        });
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+          * { animation: none !important; transition: none !important; }
+        }
+        
+        /* CRITICAL FIX: Don't hide sidebar on mobile, let JS move it */
+          @media (max-width: 768px) {
+            /* Remove the display: none from your Home.css */
+            #sidebar-home-anchor > .sidebar {
+              display: block !important;
+              position: static !important;
+              width: 100% !important;
+              height: auto !important;
+              transform: none !important;
+            }
+            
+            /* When sidebar is in filters drawer, ensure it's visible */
+            #filters-container .sidebar {
+              display: block !important;
+              position: static !important;
+              width: 100% !important;
+              background: transparent !important;
+            }
+          }
       ")),
       
-      # Responsive sidebar toggle
+      # ✅ FIXED JAVASCRIPT - Aggressive sidebar reparenting
       tags$script(HTML("
-        $(document).ready(function() {
-          const toggleButton = $('<button class=\"sidebar-toggle-btn\">☰ Menü</button>')
-            .css({
-              position: 'fixed',
-              top: '15px',
-              left: '15px',
-              background: '#8b5cf6',
-              color: '#fff',
-              border: 'none',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '18px',
-              cursor: 'pointer',
-              zIndex: 2000,
-              display: 'none'
-            })
-            .appendTo('body')
-            .on('click', function() {
-              const layout = document.querySelector('.bslib-sidebar-layout');
-              if (layout) {
-                const open = layout.dataset.sidebarOpen === 'true';
-                layout.dataset.sidebarOpen = !open;
+        (function(){
+          const html = document.documentElement;
+          
+          function openNav() {
+            html.classList.add('nav-open');
+            html.classList.remove('filters-open');
+          }
+          
+          function openFilters() {
+            html.classList.add('filters-open');
+            html.classList.remove('nav-open');
+          }
+          
+          function closeAll() {
+            html.classList.remove('nav-open', 'filters-open');
+          }
+          
+          // Wire up button events
+          function wireButtons() {
+            const btnNav = document.getElementById('open-nav');
+            const btnFilters = document.getElementById('open-filters');
+            
+            if (btnNav) {
+              btnNav.removeEventListener('click', handleNavClick);
+              btnNav.addEventListener('click', handleNavClick);
+            }
+            
+            if (btnFilters) {
+              btnFilters.removeEventListener('click', handleFiltersClick);
+              btnFilters.addEventListener('click', handleFiltersClick);
+            }
+            
+            // Close buttons
+            document.querySelectorAll('.drawer-close').forEach(btn => {
+              btn.removeEventListener('click', closeAll);
+              btn.addEventListener('click', closeAll);
+            });
+            
+            // Close on link/lang button click
+            document.querySelectorAll('.drawer a, .lang-btn').forEach(link => {
+              link.removeEventListener('click', closeAll);
+              link.addEventListener('click', closeAll);
+            });
+            
+            // Close on backdrop click
+            const backdrop = document.querySelector('.drawer-backdrop');
+            if (backdrop) {
+              backdrop.removeEventListener('click', closeAll);
+              backdrop.addEventListener('click', closeAll);
+            }
+            
+            // Language switcher
+            const langSwitch = document.getElementById('lang-switch');
+            if (langSwitch) {
+              langSwitch.removeEventListener('change', handleLangChange);
+              langSwitch.addEventListener('change', handleLangChange);
+            }
+          }
+          
+          function handleNavClick(e) {
+            e.stopPropagation();
+            openNav();
+          }
+          
+          function handleFiltersClick(e) {
+            e.stopPropagation();
+            openFilters();
+          }
+          
+          function handleLangChange() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('lang', this.value);
+            window.location.assign(url.toString());
+          }
+          
+          // CRITICAL: Aggressive sidebar reparenting
+          let reparentAttempts = 0;
+          const maxAttempts = 20;
+          
+          function reparentSidebar() {
+            reparentAttempts++;
+            
+            const anchor = document.getElementById('sidebar-home-anchor');
+            const filtersContainer = document.getElementById('filters-container');
+            
+            if (!anchor || !filtersContainer) {
+              if (reparentAttempts < maxAttempts) {
+                setTimeout(reparentSidebar, 200);
               }
-            });
-
-          function checkScreen() {
-            if (window.innerWidth < 768) {
-              toggleButton.show();
+              return;
+            }
+            
+            // Find sidebar - try multiple selectors
+            let sidebar = anchor.querySelector('.sidebar');
+            if (!sidebar) {
+              sidebar = anchor.querySelector('[class*=\"sidebar\"]');
+            }
+            if (!sidebar) {
+              sidebar = document.querySelector('.bslib-sidebar-layout .sidebar');
+            }
+            
+            if (!sidebar) {
+              console.log('Sidebar not found, attempt', reparentAttempts);
+              if (reparentAttempts < maxAttempts) {
+                setTimeout(reparentSidebar, 200);
+              }
+              return;
+            }
+            
+            console.log('Sidebar found!', sidebar);
+            
+            if (window.innerWidth <= 768) {
+              // Mobile: move sidebar to filters drawer
+              if (!filtersContainer.contains(sidebar)) {
+                console.log('Moving sidebar to filters drawer');
+                
+                // Create marker
+                if (!anchor.querySelector('#sidebar-marker')) {
+                  const marker = document.createElement('div');
+                  marker.id = 'sidebar-marker';
+                  marker.style.display = 'none';
+                  anchor.appendChild(marker);
+                }
+                
+                // Move sidebar
+                filtersContainer.appendChild(sidebar);
+                
+                // Make sure it's visible
+                sidebar.style.display = 'block';
+                sidebar.style.position = 'static';
+                sidebar.style.transform = 'none';
+              }
             } else {
-              toggleButton.hide();
+              // Desktop: restore sidebar
+              const marker = document.getElementById('sidebar-marker');
+              if (marker && marker.parentNode === anchor && !anchor.contains(sidebar)) {
+                console.log('Restoring sidebar to anchor');
+                anchor.insertBefore(sidebar, marker);
+                sidebar.style.display = 'block';
+              }
+              closeAll();
             }
           }
-          checkScreen();
-          $(window).on('resize', checkScreen);
-        });
-      "))
-    ),
+          
+          // Run reparenting multiple times
+          function startReparenting() {
+            reparentSidebar();
+            setTimeout(reparentSidebar, 100);
+            setTimeout(reparentSidebar, 300);
+            setTimeout(reparentSidebar, 500);
+            setTimeout(reparentSidebar, 1000);
+            setTimeout(reparentSidebar, 2000);
+          }
+          
+          // Initialize
+          document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing...');
+            wireButtons();
+            startReparenting();
+            window.addEventListener('resize', reparentSidebar);
+          });
+          
+          // Shiny-specific hooks
+          if (window.Shiny) {
+            Shiny.addCustomMessageHandler('sidebar-ready', startReparenting);
+          }
+          
+          // Watch for Shiny events
+          document.addEventListener('shiny:connected', function() {
+            console.log('Shiny connected');
+            startReparenting();
+          });
+          
+          document.addEventListener('shiny:value', function() {
+            reparentSidebar();
+          });
+          
+          // MutationObserver as backup
+          const observer = new MutationObserver(function(mutations) {
+            if (reparentAttempts < maxAttempts) {
+              reparentSidebar();
+            }
+          });
+          
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true
+          });
+          
+          // Stop observer after 10 seconds
+          setTimeout(function() {
+            observer.disconnect();
+            console.log('Observer stopped');
+          }, 10000);
+        })();
+      ")),
     
-    # ✅ Language switcher
-    div(class = "lang-switcher",
-        tags$a(href = "?lang=de", class = paste0("lang-btn", if(LANG == "de") " active" else ""), "🇩🇪 DE"),
-        tags$a(href = "?lang=en", class = paste0("lang-btn", if(LANG == "en") " active" else ""), "🇬🇧 EN")
-    ),
+    # Backdrop
+    div(class = "drawer-backdrop"),
     
-    # Professional Header
-    div(class = "professional-header", role = "banner",
-        div(class = "header-content",
-            div(class = "logo-section",
-                span("🎲", class = "logo-icon"),
-                div(class = "logo-text",
-                    h1(t("title", LANG), 
-                       span(class = "testing-badge", t("testing_badge", LANG))),
-                    p(t("subtitle", LANG))
-                )
-            ),
-            div(class = "header-nav", role = "navigation",
-                a(href = "#", t("nav_home", LANG)),
-                a(href = "#analyzer", t("nav_analyzer", LANG)),
-                a(href = "#educational", t("nav_educational", LANG)),
-                a(href = "#disclaimer", t("nav_disclaimer", LANG))
+    # ==================== DESKTOP HEADER ====================
+    div(class = "desktop-header",
+        div(class = "desktop-logo",
+            span("🎲", class = "desktop-logo-icon"),
+            div(class = "desktop-logo-text",
+                h1(t("title", LANG),
+                   span(class = "testing-badge", t("testing_badge", LANG))),
+                p(t("subtitle", LANG))
+            )
+        ),
+        div(class = "desktop-nav",
+            a(href = "#", t("nav_home", LANG)),
+            a(href = "#analyzer", t("nav_analyzer", LANG)),
+            a(href = "#educational", t("nav_educational", LANG)),
+            a(href = "#disclaimer", t("nav_disclaimer", LANG)),
+            div(class = "desktop-lang",
+                tags$a(href = "?lang=de", 
+                       class = paste0("lang-pill", if(LANG=="de") " active" else ""),
+                       "🇩🇪 DE"),
+                tags$a(href = "?lang=en",
+                       class = paste0("lang-pill", if(LANG=="en") " active" else ""),
+                       "🇬🇧 EN")
             )
         )
     ),
     
-    # Main Content
+    # ==================== MOBILE APP BAR ====================
+    div(class = "mobile-app-bar",
+        tags$button(id = "open-nav", class = "icon-btn", "☰"),
+        div(class = "mobile-title",
+            div(t("title", LANG))
+        ),
+        div(class = "mobile-actions",
+            tags$select(
+              id = "lang-switch",
+              class = "lang-select",
+              tags$option(value = "de", selected = if(LANG == "de") NA else NULL, "DE"),
+              tags$option(value = "en", selected = if(LANG == "en") NA else NULL, "EN")
+            ),
+            tags$button(id = "open-filters", class = "icon-btn", "⚙")
+        )
+    ),
+    
+    # ==================== NAV DRAWER (Mobile) ====================
+    div(id = "nav-drawer", class = "drawer drawer-left",
+        div(class = "drawer-content",
+            tags$button(class="drawer-close", "✕"),
+            h3(if (LANG=="de") "Navigation" else "Navigation"),
+            tags$ul(
+              tags$li(a(href="#", paste0("🏠 ", t("nav_home", LANG)))),
+              tags$li(a(href="#analyzer", paste0("📊 ", t("nav_analyzer", LANG)))),
+              tags$li(a(href="#educational", paste0("📚 ", t("nav_educational", LANG)))),
+              tags$li(a(href="#disclaimer", paste0("⚠️ ", t("nav_disclaimer", LANG))))
+            ),
+            h3(if (LANG=="de") "Sprache" else "Language"),
+            div(class = "drawer-lang",
+                tags$a(href = "?lang=de", 
+                       class = paste0("lang-btn", if(LANG=="de") " active" else ""),
+                       "🇩🇪 DE"),
+                tags$a(href = "?lang=en",
+                       class = paste0("lang-btn", if(LANG=="en") " active" else ""),
+                       "🇬🇧 EN")
+            )
+        )
+    ),
+    
+    # ==================== FILTERS DRAWER (Mobile) ====================
+    div(id = "filters-drawer", class = "drawer drawer-right",
+        div(class = "drawer-content",
+            tags$button(class="drawer-close", "✕"),
+            h3(if (LANG=="de") "Filter" else "Filters"),
+            div(id = "filters-container")
+        )
+    ),
+    
+    # ==================== MAIN CONTENT ====================
     div(class = "main-content",
-        # Main Analyzer Section
-        div(id = "analyzer", role = "region", `aria-label` = if(LANG == "de") "Analyse-Dashboard" else "Analysis Dashboard",
+        div(id = "analyzer", role = "region",
             layout_sidebar(
-              sidebar = sidebar(
-                class = "control-panel",
-                open = "desktop",
-                position = "left",
-                max_height_mobile = NULL,
-                h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
-                lotteryInputUI("inputs1", lang = LANG)
+              sidebar = div(
+                id = "sidebar-home-anchor",
+                sidebar(
+                  class = "control-panel",
+                  open = "desktop",
+                  position = "left",
+                  max_height_mobile = NULL,
+                  h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
+                  lotteryInputUI("inputs1", lang = LANG)
+                )
               ),
-              # Main content
-              div(
-                style = "padding: 0; min-height: 100vh;",
-                dashboardUI("dashboard1"),
+              div(style = "padding: 0; min-height: 100vh;",
+                  dashboardUI("dashboard1")
               ),
               fillable = FALSE,
               border = FALSE,
@@ -378,13 +828,12 @@ ui <- function(request) {
               t("notice_purpose", LANG))
         ),
         
-        # Additional Educational Section
-        div(id = "educational", role = "region", `aria-label` = if(LANG == "de") "Bildungsinformationen" else "Educational Information",
+        # Educational Section
+        div(id = "educational", role = "region",
             style = "margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px;",
             h2(t("edu_title", LANG), style = "color: #e8eaed;"),
             p(style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
-              t("edu_intro", LANG)
-            ),
+              t("edu_intro", LANG)),
             h3(t("edu_objectives", LANG), style = "color: #e8eaed; margin-top: 20px;"),
             tags$ul(
               style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
@@ -396,19 +845,17 @@ ui <- function(request) {
         )
     ),
     
-    # Professional Footer
+    # ==================== FOOTER ====================
     div(class = "professional-footer", role = "contentinfo",
         div(class = "footer-content",
             div(class = "footer-sections",
-                # About Section
                 div(class = "footer-section",
                     h3(t("footer_about", LANG)),
                     p(strong(t("footer_edu_only", LANG))),
                     p(t("footer_desc", LANG)),
-                    p(style = "color: #ffc107; font-weight: 600;", 
+                    p(style = "color: #ffc107; font-weight: 600;",
                       t("footer_construction", LANG))
                 ),
-                # Quick Links
                 div(class = "footer-section",
                     h3(t("footer_quick", LANG)),
                     tags$ul(
@@ -418,7 +865,6 @@ ui <- function(request) {
                       tags$li(a(href = "#disclaimer", t("nav_disclaimer", LANG)))
                     )
                 ),
-                # Legal & Disclaimer
                 div(class = "footer-section",
                     h3(t("footer_legal", LANG)),
                     tags$ul(
@@ -430,7 +876,6 @@ ui <- function(request) {
                     p(style = "color: #e74c3c; font-size: 0.85em; margin-top: 10px;",
                       t("footer_no_gambling", LANG))
                 ),
-                # Important Information
                 div(class = "footer-section",
                     h3(t("footer_info", LANG)),
                     p(t("footer_project_type", LANG)),
@@ -438,38 +883,36 @@ ui <- function(request) {
                 )
             ),
             div(class = "footer-bottom",
-                p(paste0("© ", format(Sys.Date(), "%Y"), 
+                p(paste0("© ", format(Sys.Date(), "%Y"),
                          " 6/49 ", t("footer_copyright", LANG), " | ",
-                         strong(t("footer_for_edu", LANG)), " | ",
-                         t("footer_play_resp", LANG), " | ", 
-                         t("footer_no_services", LANG), " | ",
-                         t("footer_under_const", LANG)))
+                         t("footer_for_edu", LANG), " | ",
+                         t("footer_play_resp", LANG)))
             )
         )
     )
   )
-}
+)}
+
 
 # ============================================================================
 # Server
 # ============================================================================
 server <- function(input, output, session) {
-  
-
   # Call input module
   input_controls <- lotteryInputServer("inputs1")
   
   # Call modules
   dashboardServer("dashboard1", input_controls = input_controls)
   
+  # Health check endpoint
   observe({
     query <- parseQueryString(session$clientData$url_search)
     if (!is.null(query$health)) {
       session$sendCustomMessage("health", "ok")
     }
   })
-  
 }
+
 
 # -------------------------
 # Run app

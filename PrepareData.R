@@ -1,61 +1,94 @@
-tryCatch({
-  # Source main files
-  data_path <- file.path(getwd(), "data", "LOTTO_ab_2018.csv")
+create_data_loader <- function(file_path = file.path(getwd(), "data", "LOTTO_ab_2018.csv")) {
   
-  # ==== Loading data
-  data <- vroom(data_path, delim = ";",
-                col_types = cols(
-                  Datum = col_character(),
-                  Gewinnzahlen = col_double(),
-                  ZZ = col_double(),
-                  S = col_double(),
-                  Spiel77 = col_double(),
-                  Super6 = col_double(),
-                  Spieleinsatz = col_double(),
-                  `Anz. Kl. 2` = col_double()
-                ))
-  data <- clean_names(data)  # make column names safe
+  cache <- new.env(parent = emptyenv())
+  cache$data <- NULL
+  cache$last_modified <- NULL
   
-  # ==== Cleaning and Preparation
-  lotto_clean <- data %>%
-    filter(datum != "Datum") %>%  # remove repeated header rows
-    select(
-      datum,
-      ball_1    = gewinnzahlen,
-      ball_2    = zz,
-      ball_3    = s,
-      ball_4    = spiel77,
-      ball_5    = super6,
-      ball_6    = spieleinsatz,
-      superzahl = anz_kl_2
+  load_data <- function(force = FALSE) {
+    
+    if (!file.exists(file_path)) {
+      stop("❌ Data file does not exist: ", file_path)
+    }
+    
+    current_modified <- file.info(file_path)$mtime
+    
+    if (!force && !is.null(cache$data) && identical(current_modified, cache$last_modified)) {
+      message("⚡ Using cached data")
+      return(cache$data)
+    }
+    
+    message("🔄 Loading data from file...")
+    
+    # Load ALL columns as character to avoid parsing issues
+    data <- vroom(
+      file_path,
+      delim = ";",
+      col_types = cols(.default = col_character()),
+      trim_ws = TRUE,
+      locale = locale(encoding = "ISO-8859-1")   # 👈 Fix UTF-8 issue
     ) %>%
-    filter(if_all(everything(), ~ !is.na(.)))  # remove rows with any NA
+      clean_names()
+    
+    # Remove empty rows and junk column (x2 / ...2)
+    data <- data %>%
+      filter(!if_all(everything(), ~ is.na(.) | . == "")) %>%
+      select(-matches("^x\\d+$"), -matches("^\\.\\.\\d+$"))
+    
+    # Validate and convert date
+    data <- data %>%
+      mutate(datum = trimws(datum))
+    
+    valid_date_pattern <- "^\\d{2}\\.\\d{2}\\.\\d{4}$"
+    invalid_dates <- data %>% filter(!grepl(valid_date_pattern, datum))
+    
+    if (nrow(invalid_dates) > 0) {
+      warning("⚠️ Removing ", nrow(invalid_dates), " invalid date rows")
+    }
+    
+    data <- data %>%
+      filter(grepl(valid_date_pattern, datum)) %>%
+      mutate(datum = as.Date(datum, format = "%d.%m.%Y"))
+    
+    # Convert relevant numeric columns
+    num_cols <- c("gewinnzahlen", "zz", "s", "spiel77", "super6", "spieleinsatz", "anz_kl_2")
+    data <- data %>%
+      mutate(across(any_of(num_cols), ~ suppressWarnings(as.numeric(.))))
+    
+    lotto_clean <- data %>%
+      select(
+        datum,
+        ball_1    = gewinnzahlen,
+        ball_2    = zz,
+        ball_3    = s,
+        ball_4    = spiel77,
+        ball_5    = super6,
+        ball_6    = spieleinsatz,
+        superzahl = anz_kl_2
+      ) %>%
+      filter(if_all(everything(), ~ !is.na(.))) %>%
+      mutate(
+        sorted = purrr::pmap(list(ball_1, ball_2, ball_3, ball_4, ball_5, ball_6), ~ sort(c(...))),
+        ball_1 = map_dbl(sorted, 1),
+        ball_2 = map_dbl(sorted, 2),
+        ball_3 = map_dbl(sorted, 3),
+        ball_4 = map_dbl(sorted, 4),
+        ball_5 = map_dbl(sorted, 5),
+        ball_6 = map_dbl(sorted, 6)
+      ) %>%
+      select(-sorted)
+    
+    cache$data <- lotto_clean
+    cache$last_modified <- current_modified
+    
+    message("✅ Data loaded: ", nrow(lotto_clean), " rows")
+    return(lotto_clean)
+  }
   
-  lotto_clean_sorted <- lotto_clean %>%
-    # sort balls row-wise
-    rowwise() %>%
-    mutate(
-      sorted_balls = list(sort(c(ball_1, ball_2, ball_3, ball_4, ball_5, ball_6)))
-    ) %>%
-    mutate(
-      ball_1 = sorted_balls[1],
-      ball_2 = sorted_balls[2],
-      ball_3 = sorted_balls[3],
-      ball_4 = sorted_balls[4],
-      ball_5 = sorted_balls[5],
-      ball_6 = sorted_balls[6]
-    ) %>%
-    ungroup() %>%
-    select(datum, ball_1, ball_2, ball_3, ball_4, ball_5, ball_6, superzahl)
-  
-  cat("Data loaded successfully:", nrow(lotto_clean_sorted), "rows\n")
-  
-}, error = function(e) {
-  cat("ERROR LOADING DATA:", conditionMessage(e), "\n")
-  stop(e)
-})
-
-# Gets Lottery data to work with
-generate_metrics <- function() {
-  return(lotto_clean_sorted)
+  list(
+    load = load_data
+  )
 }
+
+
+# Usage
+data_loader <- create_data_loader()

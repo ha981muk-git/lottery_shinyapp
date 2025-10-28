@@ -59,6 +59,12 @@ library(waiter)
 library(tidyr)
 library(purrr)
 library(DT)
+library(shinymanager)
+library(DBI)
+library(RSQLite)
+library(sodium)
+library(httr)
+library(jose)
 
 
 # ---------- UI helper theme ----------
@@ -112,6 +118,16 @@ tryCatch({
   stop(e)
 })
 
+# ✅ Add this block here
+# Load authentication system
+tryCatch({
+  source("AuthenticationSystem.R")
+  if (!file.exists("lottery_users.db")) init_database()
+  message("✓ Auth system ready")
+}, error = function(e) {
+  message("✗ Auth system load failed: ", e$message)
+})
+
 # Load metric files from dashboard folder (optional but warn if empty)
 dashboard_path <- "dashboard"
 if (!dir.exists(dashboard_path)) {
@@ -156,6 +172,13 @@ ui <- function(request) {
     #   )
     # ),
     theme = app_theme,
+    
+    conditionalPanel(
+      condition = "output.logged_in == false",
+      auth_ui("auth_module")
+    ),
+    conditionalPanel(
+    condition = "output.logged_in == true",
     
     tags$head(
       # ==================== SEO META TAGS (GERMAN OPTIMIZED) ====================
@@ -454,6 +477,7 @@ ui <- function(request) {
             )
         )
     )
+   )
   )
 }
 
@@ -462,21 +486,32 @@ ui <- function(request) {
 # ============================================================================
 server <- function(input, output, session) {
   
-
-  # Call input module
-  input_controls <- lotteryInputServer("inputs1")
+  # --- Authentication system ---
+  user_info <- auth_server("auth_module")
   
-  # Call modules
-  dashboardServer("dashboard1", input_controls = input_controls)
+  output$logged_in <- reactive({
+    !is.null(user_info())
+  })
+  outputOptions(output, "logged_in", suspendWhenHidden = FALSE)
   
+  # --- Run main dashboard only when logged in ---
+  observe({
+    req(user_info())
+    
+    # Load input + dashboard modules
+    input_controls <- lotteryInputServer("inputs1")
+    dashboardServer("dashboard1", input_controls = input_controls)
+  })
+  
+  # Health check
   observe({
     query <- parseQueryString(session$clientData$url_search)
     if (!is.null(query$health)) {
       session$sendCustomMessage("health", "ok")
     }
   })
-  
 }
+
 
 # -------------------------
 # Run app

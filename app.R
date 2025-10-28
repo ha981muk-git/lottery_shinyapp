@@ -1,16 +1,8 @@
 # --- Production-ready Shiny options for DigitalOcean ---
-if (!requireNamespace("config", quietly = TRUE)) {
-  stop("Package 'config' is required for configuration management.")
-}
-
-cfg <- tryCatch(config::get(), error = function(e) {
-  message("⚠ Using default config (no config.yml found)")
-  list(maxRequestSize = 10, sessionTimeout = 3600)
-})
 
 options(
   # Max upload size (adjust as needed)
-  shiny.maxRequestSize = cfg$maxRequestSize * 1024^2,  # 10 MB
+  shiny.maxRequestSize = 10*1024^2,  # 10 MB
   
   # Sanitize errors for end users (security)
   shiny.sanitize.errors = TRUE,
@@ -25,23 +17,24 @@ options(
   shiny.enableBookmarking = "disable",
   
   # Session timeout (in seconds)
-  shiny.session.timeout = cfg$sessionTimeout,  # 1 hour
+  shiny.session.timeout = 3600,  # 1 hour
   
   # CRAN repository for package installs
   repos = c(CRAN = "https://cloud.r-project.org/"),
   
   # Override default error handler
   shiny.error = function(e) {
+    # Log the error internally (server console or log file)
     message("[Shiny Error] ", Sys.time(), " - ", e$message)
-    showNotification("Ein unerwarteter Fehler ist aufgetreten. Bitte laden Sie die Seite neu.", type = "error")
+    
+    # Friendly error message to user
+    stop("An unexpected error occurred. Please contact support.")
   },
-  
   
   # Reduce stack trace verbosity
   shiny.fullstacktrace = FALSE,
   
-  mc.cores = min(2, parallel::detectCores() - 1)
-  
+  mc.cores = max(1, parallel::detectCores() - 2)
   
 )
 

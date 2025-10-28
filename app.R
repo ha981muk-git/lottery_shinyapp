@@ -46,13 +46,7 @@ options(
 )
 
 # Limit CPU threads to 1 to avoid overloading 1 vCPU container
-Sys.setenv(
-  R_THREADS = 1,
-  OMP_THREAD_LIMIT = 1,
-  OPENBLAS_NUM_THREADS = 1,
-  MKL_NUM_THREADS = 1
-)
-
+Sys.setenv(R_THREADS = 1)
 
 library(shiny)
 library(vroom)
@@ -166,12 +160,6 @@ ui <- function(request) {
     tags$head(
       # ==================== SEO META TAGS (GERMAN OPTIMIZED) ====================
       tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
-      tags$meta(name = "theme-color", content = "#0a0e27"),
-      
-      tags$meta(name = "apple-mobile-web-app-capable", content = "yes"),
-      tags$meta(name = "apple-mobile-web-app-status-bar-style", content = "black-translucent"),
-      
-      
       tags$meta(name = "description", content = "6/49 Lotto-Analyse Tool - Kostenlos, interaktiv, bildungsbasiert. Analysieren Sie Lottozahlen-Muster, Häufigkeiten und Trends mit unserem statistischen Dashboard."),
       tags$meta(name = "keywords", content = "Lotto Analyse, 6/49, Lotto 6 aus 49, Zahlenanalyse, Statistik, Zahlenmuster, Häufigkeitsanalyse, Lottovorhersage, Bildungstool"),
       tags$meta(name = "author", content = "Lottery Insights"),
@@ -195,7 +183,6 @@ ui <- function(request) {
       tags$link(rel = "alternate", hreflang = "de", href = "https://lotteryinsights.dpdns.org/?lang=de"),
       tags$link(rel = "alternate", hreflang = "en", href = "https://lotteryinsights.dpdns.org/?lang=en"),
       tags$link(rel = "alternate", hreflang = "x-default", href = "https://lotteryinsights.dpdns.org/"),
-      tags$link(rel = "apple-touch-icon", href = "www/icon.png"),
       
       # Schema Markup (JSON-LD - German)
       tags$script(type = "application/ld+json", HTML('

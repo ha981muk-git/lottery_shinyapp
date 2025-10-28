@@ -1,0 +1,5 @@
+default:
+  maxRequestSize: 10
+  sessionTimeout: 3600
+  repos: "https://cloud.r-project.org/"
+

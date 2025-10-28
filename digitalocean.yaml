@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: lotteryinsights
+    env: docker
+    region: frankfurt
+    plan: free
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: R_MAX_NUM_DLLS
+        value: 150
+    default:
+    maxRequestSize: 10
+    sessionTimeout: 3600
+    repos: "https://cloud.r-project.org/"

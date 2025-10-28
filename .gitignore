@@ -2,6 +2,7 @@ LotteryShinyApp.R
 DashboardModule_v0.R
 tests/
 lottery_users.db
+.env
 .Renviron
 .Rhistory
 .RData

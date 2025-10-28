@@ -1,41 +1,20 @@
 # --- Production-ready Shiny options for DigitalOcean ---
 options(
-  # Max upload size (adjust as needed)
-  shiny.maxRequestSize = 10*1024^2,  # 10 MB
-  
-  # Sanitize errors for end users (security)
+  shiny.maxRequestSize = 10*1024^2,
   shiny.sanitize.errors = TRUE,
-  
-  # Disable reactive log (slightly improves performance)
   shiny.reactlog = FALSE,
-  
-  # Disable automatic app reload (good for production)
   shiny.autoreload = FALSE,
-  
-  # Disable bookmarking if not needed
   shiny.enableBookmarking = "disable",
-  
-  # Session timeout (in seconds)
-  shiny.session.timeout = 3600,  # 1 hour
-  
-  # CRAN repository for package installs
+  shiny.session.timeout = 3600,
   repos = c(CRAN = "https://cloud.r-project.org/"),
-  
-  # Override default error handler
   shiny.error = function(e) {
-    # Log the error internally (server console or log file)
     message("[Shiny Error] ", Sys.time(), " - ", e$message)
-    
-    # Friendly error message to user
     stop("An unexpected error occurred. Please contact support.")
   },
-  
-  # Reduce stack trace verbosity
   shiny.fullstacktrace = FALSE,
-  
   mc.cores = max(1, parallel::detectCores() - 2)
 )
-# Limit CPU threads to 1 to avoid overloading 1 vCPU container
+
 Sys.setenv(R_THREADS = 1)
 
 library(shiny)
@@ -101,7 +80,7 @@ tryCatch({
   stop(e)
 })
 
-# Load metric files from dashboard folder (optional but warn if empty)
+# Load metric files from dashboard folder
 dashboard_path <- "dashboard"
 if (!dir.exists(dashboard_path)) {
   cat("⚠ Warning: dashboard folder not found\n")
@@ -128,14 +107,7 @@ if (!dir.exists(dashboard_path)) {
 }
 
 # ============================================================================
-# UI - SEPARATE, with language parameter
-# ============================================================================
-# UI - SEPARATE, with language parameter
-# ============================================================================
-# UI - SEPARATE, with language parameter
-# ============================================================================
-# ============================================================================
-# UI - COMPLETE FIXED VERSION
+# UI - LET CSS HANDLE RESPONSIVE, NOT JAVASCRIPT
 # ============================================================================
 ui <- function(request) {
   query <- parseQueryString(request$QUERY_STRING)
@@ -145,8 +117,8 @@ ui <- function(request) {
     theme = app_theme,
     
     tags$head(
-    # ==================== SEO META TAGS ====================
-      tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
+      # SEO META TAGS
+      tags$meta(name = "viewport", content = "width=device-width, initial-scale=1, maximum-scale=5"),
       tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
       tags$meta(name = "description", content = "6/49 Lotto-Analyse Tool - Kostenlos, interaktiv, bildungsbasiert."),
       tags$meta(name = "keywords", content = "Lotto Analyse, 6/49, Lotto 6 aus 49, Zahlenanalyse, Statistik"),
@@ -180,462 +152,80 @@ ui <- function(request) {
       useShinyjs(),
       use_waiter(),
       
-      # ✅ COMPLETE RESPONSIVE STYLES
-      tags$style(HTML("
-        /* Base animations */
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(5px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Desktop Header */
-        .desktop-header {
-          position: sticky;
-          top: 0;
-          z-index: 1100;
-          background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-          color: white;
-          padding: 20px 30px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        
-        .desktop-logo {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-        }
-        
-        .desktop-logo-icon {
-          font-size: 2.5rem;
-        }
-        
-        .desktop-logo-text h1 {
-          margin: 0;
-          font-size: 1.5rem;
-          font-weight: 600;
-        }
-        
-        .desktop-logo-text p {
-          margin: 5px 0 0;
-          font-size: 0.9rem;
-          opacity: 0.9;
-        }
-        
-        .desktop-nav {
-          display: flex;
-          align-items: center;
-          gap: 25px;
-        }
-        
-        .desktop-nav a {
-          color: white;
-          text-decoration: none;
-          font-weight: 500;
-          transition: opacity 0.2s;
-        }
-        
-        .desktop-nav a:hover {
-          opacity: 0.8;
-        }
-        
-        .desktop-lang {
-          display: flex;
-          gap: 8px;
-          margin-left: 15px;
-          padding-left: 15px;
-          border-left: 1px solid rgba(255,255,255,0.3);
-        }
-        
-        .lang-pill {
-          padding: 6px 12px;
-          border-radius: 20px;
-          background: rgba(255,255,255,0.15);
-          color: white;
-          text-decoration: none;
-          font-size: 0.85rem;
-          font-weight: 600;
-          transition: background 0.2s;
-        }
-        
-        .lang-pill:hover {
-          background: rgba(255,255,255,0.25);
-        }
-        
-        .lang-pill.active {
-          background: rgba(255,255,255,0.3);
-        }
-        
-        .testing-badge {
-          display: inline-block;
-          background: #ff9800;
-          color: white;
-          padding: 4px 10px;
-          border-radius: 12px;
-          font-size: 0.7rem;
-          font-weight: 700;
-          margin-left: 10px;
-        }
-        
-        /* Mobile App Bar */
-        .mobile-app-bar {
-          display: none;
-          position: sticky;
-          top: 0;
-          z-index: 1100;
-          background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-          color: white;
-          padding: 12px 16px;
-          align-items: center;
-          gap: 12px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        
-        .mobile-title {
-          flex: 1;
-          font-size: 1rem;
-          font-weight: 600;
-          text-align: center;
-          line-height: 1.3;
-        }
-        
-        .icon-btn {
-          background: rgba(255,255,255,0.15);
-          border: none;
-          color: white;
-          padding: 10px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 1.3rem;
-          transition: background 0.2s;
-          min-width: 44px;
-          height: 44px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .icon-btn:hover {
-          background: rgba(255,255,255,0.25);
-        }
-        
-        .mobile-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        
-        .lang-select {
-          background: rgba(255,255,255,0.18);
-          border: none;
-          color: #fff;
-          padding: 8px 10px;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          font-size: 0.9rem;
-        }
-        
-        .lang-select option {
-          color: #000;
-          background: #fff;
-        }
-        
-        /* Drawer Styles */
-        .drawer {
-          position: fixed;
-          top: 0;
-          bottom: 0;
-          width: 85%;
-          max-width: 320px;
-          background: #1a1f3a;
-          z-index: 1200;
-          transform: translateX(-100%);
-          transition: transform 0.3s ease;
-          overflow-y: auto;
-          box-shadow: 2px 0 10px rgba(0,0,0,0.3);
-        }
-        
-        .drawer.drawer-right {
-          right: 0;
-          left: auto;
-          transform: translateX(100%);
-        }
-        
-        html.nav-open #nav-drawer {
-          transform: translateX(0);
-        }
-        
-        html.filters-open #filters-drawer {
-          transform: translateX(0);
-        }
-        
-        .drawer-content {
-          padding: 20px;
-          padding-top: 60px;
-        }
-        
-        .drawer-close {
-          position: absolute;
-          top: 15px;
-          right: 15px;
-          background: rgba(255,255,255,0.1);
-          border: none;
-          color: white;
-          padding: 8px 16px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 1.3rem;
-          z-index: 10;
-        }
-        
-        .drawer h3 {
-          color: #8b5cf6;
-          margin: 20px 0 15px;
-          font-size: 1.1rem;
-          font-weight: 600;
-        }
-        
-        .drawer ul {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-        
-        .drawer li {
-          margin: 5px 0;
-        }
-        
-        .drawer a {
-          color: rgba(255,255,255,0.85);
-          text-decoration: none;
-          display: block;
-          padding: 12px 15px;
-          border-radius: 8px;
-          transition: background 0.2s;
-          font-size: 0.95rem;
-        }
-        
-        .drawer a:hover {
-          background: rgba(139,92,246,0.2);
-          color: white;
-        }
-        
-        .drawer-lang {
-          display: flex;
-          gap: 10px;
-          margin-top: 10px;
-        }
-        
-        .lang-btn {
-          flex: 1;
-          padding: 10px;
-          text-align: center;
-          background: rgba(255,255,255,0.08);
-          color: white;
-          text-decoration: none;
-          border-radius: 8px;
-          transition: background 0.2s;
-          font-weight: 600;
-        }
-        
-        .lang-btn.active {
-          background: #8b5cf6;
-        }
-        
-        .lang-btn:hover {
-          background: rgba(139,92,246,0.4);
-        }
-        
-        /* Backdrop */
-        .drawer-backdrop {
-          display: none;
-          position: fixed;
-          inset: 0;
-          background: rgba(0,0,0,0.6);
-          z-index: 1150;
-          backdrop-filter: blur(2px);
-        }
-        
-        html.nav-open .drawer-backdrop,
-        html.filters-open .drawer-backdrop {
-          display: block;
-        }
-        
-        /* Desktop Sidebar visible */
-        @media (min-width: 769px) {
-          .mobile-app-bar { display: none !important; }
-          .desktop-header { display: flex !important; }
-          .drawer { display: none !important; }
-          .drawer-backdrop { display: none !important; }
-        }
-        
-        /* Mobile: hide desktop header, show mobile bar */
-        @media (max-width: 768px) {
-          .desktop-header { display: none !important; }
-          .mobile-app-bar { display: flex !important; }
-          
-          /* Hide desktop sidebar on mobile */
-          #sidebar-home-anchor > .sidebar {
-            display: none !important;
-          }
-        }
-        
-        @media (prefers-reduced-motion: reduce) {
-          * { animation: none !important; transition: none !important; }
-        }
-        
-        /* CRITICAL FIX: Don't hide sidebar on mobile, let JS move it */
-          @media (max-width: 768px) {
-            /* Remove the display: none from your Home.css */
-            #sidebar-home-anchor > .sidebar {
-              display: block !important;
-            }
+      # ✅ MINIMAL JAVASCRIPT - ONLY FOR DRAWER OPEN/CLOSE
+      tags$script(HTML("
+        (function() {
+          document.addEventListener('DOMContentLoaded', function() {
+            var btnNav = document.getElementById('open-nav');
+            var btnFilters = document.getElementById('open-filters');
+            var backdrop = document.querySelector('.drawer-backdrop');
+            var navDrawer = document.querySelector('.nav-drawer');
+            var filtersDrawer = document.querySelector('.filters-drawer');
             
-            /* When sidebar is in filters drawer, ensure it's visible */
-            #filters-container .sidebar {
-              display: block !important;
-              position: static !important;
-              width: 100% !important;
-              background: transparent !important;
-            }
-          }
-      ")),
-      
-      # ✅ FIXED JAVASCRIPT - Aggressive sidebar reparenting
-    tags$script(HTML("
-          (function(){
-            const html = document.documentElement;
-          
-            // --- Drawer open/close helpers ---
-            function openNav() { html.classList.add('nav-open'); html.classList.remove('filters-open'); }
-            function openFilters() { html.classList.add('filters-open'); html.classList.remove('nav-open'); }
-            function closeAll() { html.classList.remove('nav-open','filters-open'); }
-          
-            // --- Wire up buttons and language switch ---
-            function wireButtons(){
-              const btnNav = document.getElementById('open-nav');
-              const btnFilters = document.getElementById('open-filters');
-              if(btnNav){ btnNav.onclick = openNav; }
-              if(btnFilters){ btnFilters.onclick = openFilters; }
-          
-              document.querySelectorAll('.drawer-close,.drawer a,.lang-btn,.drawer-backdrop')
-                .forEach(el => el.addEventListener('click', closeAll));
-          
-              const langSwitch = document.getElementById('lang-switch');
-              if(langSwitch){
-                langSwitch.onchange = function(){
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('lang', this.value);
-                  window.location.assign(url);
-                };
-              }
-            }
-          
-            let attempts = 0;
-            const maxAttempts = 20;
-          
-            // --- Sidebar reparent logic ---
-              function reparentSidebar(){
-                attempts++;
-                const anchor = document.getElementById('sidebar-home-anchor');
-                const filtersContainer = document.getElementById('filters-container');
-                if(!anchor || !filtersContainer){
-                  if(attempts < maxAttempts) setTimeout(reparentSidebar,200);
-                  return;
-                }
+            function closeAll() {
+              if (navDrawer) navDrawer.classList.remove('open');
+              if (filtersDrawer) filtersDrawer.classList.remove('open');
+              if (backdrop) backdrop.classList.remove('active');
               
-                let sidebar = anchor.querySelector('.sidebar');
-                if(!sidebar) sidebar = document.querySelector('.bslib-sidebar-layout .sidebar');
-                if(!sidebar){
-                  if(attempts < maxAttempts) setTimeout(reparentSidebar,200);
-                  return;
-                }
-              
-                // Mobile view → move sidebar into drawer
-                if(window.innerWidth <= 768){
-                  if(!filtersContainer.contains(sidebar)){
-                    filtersContainer.appendChild(sidebar);
-                  }
-                } 
-                // Desktop view → move sidebar back to anchor
-                else {
-                  if(anchor && !anchor.contains(sidebar)){
-                    anchor.appendChild(sidebar);
-                  }
-                  closeAll();
-                }
-              
-                // ✅ Force Shiny/Plotly re-render after reparenting
-                if (window.Shiny && typeof Shiny.onInputChange === 'function') {
-                  setTimeout(() => {
-                    // Step 1: Dispatch resize for bslib & Plotly
-                    window.dispatchEvent(new Event('resize'));
-              
-                    // Step 2: Trigger reactive relayout input
-                    Shiny.onInputChange('trigger_relayout', Date.now());
-              
-                    // Step 3: (NEW) Call Plotly relayout if plots exist
-                    if (window.Plotly && document.querySelectorAll('.js-plotly-plot').length > 0) {
-                      document.querySelectorAll('.js-plotly-plot').forEach(p => {
-                        try { Plotly.Plots.resize(p); } catch(e) {}
-                      });
-                    }
-              
-                  }, 500);
-                }
-              }
-
-          
-            // --- Init on load ---
-            document.addEventListener('DOMContentLoaded', ()=>{
-              wireButtons();
-              reparentSidebar();
-              setTimeout(reparentSidebar, 300);
-              setTimeout(reparentSidebar, 600);
-              setTimeout(reparentSidebar, 1000);
-              window.addEventListener('resize', reparentSidebar);
-          
-              // ✅ Reveal the layout after all DOM movements are done
-              setTimeout(() => document.body.classList.add('ready'), 1200);
-            });
-            // ✅ Reveal the layout after all DOM movements are done
-              setTimeout(() => document.body.classList.add('ready'), 1200);
-              
-              // ✅ (NEW) Double-check plots render after mobile transition
-              setTimeout(() => {
+              // Resize plots
+              setTimeout(function() {
                 window.dispatchEvent(new Event('resize'));
                 if (window.Plotly) {
-                  document.querySelectorAll('.js-plotly-plot').forEach(p => {
+                  document.querySelectorAll('.js-plotly-plot').forEach(function(p) {
                     try { Plotly.Plots.resize(p); } catch(e) {}
                   });
                 }
-              }, 2000);
-
-          
-            // --- Re-run when Shiny updates ---
-            if(window.Shiny){
-              Shiny.addCustomMessageHandler('sidebar-ready', reparentSidebar);
+              }, 350);
             }
-            document.addEventListener('shiny:connected', reparentSidebar);
-            document.addEventListener('shiny:value', reparentSidebar);
-          
-            // --- Mutation observer to catch dynamic UI loads ---
-            const observer = new MutationObserver(()=>{
-              if(attempts < maxAttempts) reparentSidebar();
+            
+            if (btnNav) {
+              btnNav.onclick = function() {
+                if (navDrawer) navDrawer.classList.add('open');
+                if (filtersDrawer) filtersDrawer.classList.remove('open');
+                if (backdrop) backdrop.classList.add('active');
+              };
+            }
+            
+            if (btnFilters) {
+              btnFilters.onclick = function() {
+                if (filtersDrawer) filtersDrawer.classList.add('open');
+                if (navDrawer) navDrawer.classList.remove('open');
+                if (backdrop) backdrop.classList.add('active');
+              };
+            }
+            
+            if (backdrop) backdrop.onclick = closeAll;
+            
+            document.querySelectorAll('.drawer-close, .drawer-content a, .lang-btn').forEach(function(el) {
+              el.addEventListener('click', closeAll);
             });
-            observer.observe(document.body,{childList:true,subtree:true});
-            setTimeout(()=>observer.disconnect(),6000);
-          })();
-          "))
-    ,
-    
+            
+            // Language switcher
+            var langSwitch = document.getElementById('lang-switch');
+            if (langSwitch) {
+              langSwitch.onchange = function() {
+                var url = new URL(window.location.href);
+                url.searchParams.set('lang', this.value);
+                window.location.assign(url);
+              };
+            }
+          });
+          
+          // Resize plots on window resize
+          var resizeTimer;
+          window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+              if (window.Plotly) {
+                document.querySelectorAll('.js-plotly-plot').forEach(function(p) {
+                  try { Plotly.Plots.resize(p); } catch(e) {}
+                });
+              }
+            }, 250);
+          });
+        })();
+      "))
+    ),
     
     # Backdrop
     div(class = "drawer-backdrop"),
@@ -683,8 +273,8 @@ ui <- function(request) {
         )
     ),
     
-    # ==================== NAV DRAWER (Mobile) ====================
-    div(id = "nav-drawer", class = "drawer drawer-left",
+    # ==================== NAV DRAWER (Mobile Only) ====================
+    div(class = "nav-drawer",
         div(class = "drawer-content",
             tags$button(class="drawer-close", "✕"),
             h3(if (LANG=="de") "Navigation" else "Navigation"),
@@ -706,37 +296,38 @@ ui <- function(request) {
         )
     ),
     
-    # ==================== FILTERS DRAWER (Mobile) ====================
-    div(id = "filters-drawer", class = "drawer drawer-right",
+    # ==================== FILTERS DRAWER (Mobile Only) ====================
+    div(class = "filters-drawer",
         div(class = "drawer-content",
             tags$button(class="drawer-close", "✕"),
-            h3(if (LANG=="de") "Filter" else "Filters"),
-            div(id = "filters-container")
+            h3(if (LANG=="de") "Analyseeinstellungen" else "Analysis Settings"),
+            # ✅ Same input module will render here on mobile via CSS
+            div(id = "mobile-filters-wrapper")
         )
     ),
     
     # ==================== MAIN CONTENT ====================
     div(class = "main-content",
         div(id = "analyzer", role = "region",
+            # ✅ Single layout_sidebar - CSS handles responsive behavior
             layout_sidebar(
               sidebar = sidebar(
-                id = "sidebar-home-anchor",     # <- id on the actual sidebar
+                id = "main-sidebar",
                 class = "control-panel",
                 position = "left",
-                open = "desktop",
-                max_height_mobile = NULL,
+                open = "always",  # Always render, CSS will position it
                 h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
                 lotteryInputUI("inputs1", lang = LANG)
               ),
-              div(style = "padding: 0; min-height: 100vh;",
+              # Main dashboard content
+              div(style = "padding: 0;",
                   dashboardUI("dashboard1")
               ),
               fillable = FALSE,
               border = FALSE,
               border_radius = FALSE
             )
-        )
-        ,
+        ),
         
         # Educational Notice
         div(class = "educational-notice", role = "note",
@@ -816,17 +407,16 @@ ui <- function(request) {
         )
     )
   )
-)}
-
+}
 
 # ============================================================================
-# Server
+# Server - SIMPLE, NO SPECIAL MOBILE LOGIC
 # ============================================================================
 server <- function(input, output, session) {
-  # Call input module
+  # Single input module - works everywhere
   input_controls <- lotteryInputServer("inputs1")
   
-  # Call modules
+  # Dashboard uses same inputs
   dashboardServer("dashboard1", input_controls = input_controls)
   
   # Health check endpoint
@@ -838,13 +428,9 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$trigger_relayout, {
-    # No action required — this just keeps Shiny quiet.
+    # No action required
   })
-  
 }
 
-
-# -------------------------
 # Run app
-# -------------------------
 shinyApp(ui = ui, server = server, enableBookmarking = "url")

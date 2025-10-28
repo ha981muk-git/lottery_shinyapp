@@ -1,20 +1,44 @@
 # --- Production-ready Shiny options for DigitalOcean ---
+
 options(
-  shiny.maxRequestSize = 10*1024^2,
+  # Max upload size (adjust as needed)
+  shiny.maxRequestSize = 10*1024^2,  # 10 MB
+  
+  # Sanitize errors for end users (security)
   shiny.sanitize.errors = TRUE,
+  
+  # Disable reactive log (slightly improves performance)
   shiny.reactlog = FALSE,
+  
+  # Disable automatic app reload (good for production)
   shiny.autoreload = FALSE,
+  
+  # Disable bookmarking if not needed
   shiny.enableBookmarking = "disable",
-  shiny.session.timeout = 3600,
+  
+  # Session timeout (in seconds)
+  shiny.session.timeout = 3600,  # 1 hour
+  
+  # CRAN repository for package installs
   repos = c(CRAN = "https://cloud.r-project.org/"),
+  
+  # Override default error handler
   shiny.error = function(e) {
+    # Log the error internally (server console or log file)
     message("[Shiny Error] ", Sys.time(), " - ", e$message)
+    
+    # Friendly error message to user
     stop("An unexpected error occurred. Please contact support.")
   },
+  
+  # Reduce stack trace verbosity
   shiny.fullstacktrace = FALSE,
+  
   mc.cores = max(1, parallel::detectCores() - 2)
+  
 )
 
+# Limit CPU threads to 1 to avoid overloading 1 vCPU container
 Sys.setenv(R_THREADS = 1)
 
 library(shiny)
@@ -29,18 +53,19 @@ library(tidyr)
 library(purrr)
 library(DT)
 
+
 # ---------- UI helper theme ----------
 app_theme <- bs_theme(
   version = 5,
-  preset  = "shiny",
-  bg      = "#0a0e27",
-  fg      = "#e8eaed",
+  preset = "shiny",
+  bg = "#0a0e27",
+  fg = "#e8eaed",
   primary = "#8b5cf6",
   secondary = "#ec4899",
   success = "#10b981",
   warning = "#f59e0b",
-  danger  = "#ef4444",
-  base_font    = font_google("Inter"),
+  danger = "#ef4444",
+  base_font = font_google("Inter"),
   heading_font = font_google("Poppins")
 )
 
@@ -80,7 +105,7 @@ tryCatch({
   stop(e)
 })
 
-# Load metric files from dashboard folder
+# Load metric files from dashboard folder (optional but warn if empty)
 dashboard_path <- "dashboard"
 if (!dir.exists(dashboard_path)) {
   cat("⚠ Warning: dashboard folder not found\n")
@@ -106,222 +131,231 @@ if (!dir.exists(dashboard_path)) {
   }
 }
 
+
 # ============================================================================
-# UI - LET CSS HANDLE RESPONSIVE, NOT JAVASCRIPT
-# ============================================================================
+# UI - SEPARATE, with language parameter
 ui <- function(request) {
+  # ✅ Get language from URL or default to German
   query <- parseQueryString(request$QUERY_STRING)
   LANG <- query$lang %||% "de"
   
   fluidPage(
+    # conditionalPanel(
+    #   condition = "$('html').hasClass('shiny-busy')",
+    #   div(style = "position: fixed; top: 50%; left: 50%; 
+    #            transform: translate(-50%, -50%); z-index: 9999;",
+    #       h3("Loading... (first load may take 30–60 seconds)"),
+    #       tags$img(src = "spinner.gif")
+    #   )
+    # ),
     theme = app_theme,
     
     tags$head(
-      # SEO META TAGS
-      tags$meta(name = "viewport", content = "width=device-width, initial-scale=1, maximum-scale=5"),
-      tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
-      tags$meta(name = "description", content = "6/49 Lotto-Analyse Tool - Kostenlos, interaktiv, bildungsbasiert."),
-      tags$meta(name = "keywords", content = "Lotto Analyse, 6/49, Lotto 6 aus 49, Zahlenanalyse, Statistik"),
+      # ==================== SEO META TAGS (GERMAN OPTIMIZED) ====================
+      tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
+      tags$meta(name = "description", content = "6/49 Lotto-Analyse Tool - Kostenlos, interaktiv, bildungsbasiert. Analysieren Sie Lottozahlen-Muster, Häufigkeiten und Trends mit unserem statistischen Dashboard."),
+      tags$meta(name = "keywords", content = "Lotto Analyse, 6/49, Lotto 6 aus 49, Zahlenanalyse, Statistik, Zahlenmuster, Häufigkeitsanalyse, Lottovorhersage, Bildungstool"),
       tags$meta(name = "author", content = "Lottery Insights"),
       tags$meta(name = "robots", content = "index, follow"),
       tags$meta(name = "language", content = if(LANG == "de") "de" else "en"),
+      tags$meta(name = "geo.placename", content = "Deutschland"),
+      tags$meta(name = "geo.region", content = "DE"),
       tags$meta(name = "google-site-verification", content="93NjvZejo4MrJUkJ3RHuJo-_W6a3tdTAfvswURS3bbU"),
-      
+
+      # Open Graph Tags (Social Media - German)
       tags$meta(property = "og:title", content = "6/49 Lotto-Analyse Tool"),
-      tags$meta(property = "og:description", content = "Kostenloses, interaktives Bildungs-Dashboard"),
+      tags$meta(property = "og:description", content = "Kostenloses, interaktives Bildungs-Dashboard zur Analyse von Lottomustern und Zahlenstatistiken"),
       tags$meta(property = "og:type", content = "website"),
       tags$meta(property = "og:url", content = "https://lotteryinsights.dpdns.org/"),
+      tags$meta(property = "og:locale", content = "de_DE"),
       
+      # Canonical Tag
       tags$link(rel = "canonical", href = "https://lotteryinsights.dpdns.org/"),
+      
+      # Alternate Links for language versions
       tags$link(rel = "alternate", hreflang = "de", href = "https://lotteryinsights.dpdns.org/?lang=de"),
       tags$link(rel = "alternate", hreflang = "en", href = "https://lotteryinsights.dpdns.org/?lang=en"),
+      tags$link(rel = "alternate", hreflang = "x-default", href = "https://lotteryinsights.dpdns.org/"),
       
+      # Schema Markup (JSON-LD - German)
       tags$script(type = "application/ld+json", HTML('
-        {
-          "@context": "https://schema.org",
-          "@type": "WebApplication",
-          "name": "6/49 Lotto-Analyse Tool",
-          "url": "https://lotteryinsights.dpdns.org/",
-          "applicationCategory": "EducationalApplication",
-          "inLanguage": "de"
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "6/49 Lotto-Analyse Tool",
+        "alternateName": "6 aus 49 Lottozahlen Analysator",
+        "description": "Kostenloses Bildungs-Tool zur statistischen Analyse von Lottodaten und Zahlenmuster",
+        "url": "https://lotteryinsights.dpdns.org/",
+        "applicationCategory": "EducationalApplication",
+        "inLanguage": "de",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "creator": {
+          "@type": "Organization",
+          "name": "Lottery Insights"
         }
+      }
       ')),
       
+      # Favicon
       tags$link(rel = "icon", type = "image/svg+xml", href = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>"),
       
+      # Existing stylesheets and scripts
+      tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
       useShinyjs(),
       use_waiter(),
       
-      # ✅ MINIMAL JAVASCRIPT - ONLY FOR DRAWER OPEN/CLOSE
+      # ✅ OPTIMIZED INLINE STYLES WITH GPU ACCELERATION
+      tags$style(HTML("
+            @keyframes shimmer {
+              0% { background-position: -200% 0; }
+              100% { background-position: 200% 0; }
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(5px) translateZ(0); }
+              to { opacity: 1; transform: translateY(0) translateZ(0); }
+            }
+            .skeleton-card {
+              height: 200px;
+              background: linear-gradient(90deg, 
+                rgba(139,92,246,0.08) 25%, 
+                rgba(139,92,246,0.15) 50%, 
+                rgba(139,92,246,0.08) 75%);
+              background-size: 200% 100%;
+              animation: shimmer 1.2s linear infinite;
+              will-change: background-position;
+              border-radius: 12px;
+              margin-bottom: 20px;
+            }
+            .metric-container {
+              animation: fadeIn 0.3s ease-out;
+              will-change: opacity, transform;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              * { animation: none !important; transition: none !important; }
+            }
+      ")),
+      
+      # ✅ FIX: STOP MUTATIONOBSERVER AFTER 3 SECONDS + DEBOUNCE
       tags$script(HTML("
-        (function() {
-          document.addEventListener('DOMContentLoaded', function() {
-            var btnNav = document.getElementById('open-nav');
-            var btnFilters = document.getElementById('open-filters');
-            var backdrop = document.querySelector('.drawer-backdrop');
-            var navDrawer = document.querySelector('.nav-drawer');
-            var filtersDrawer = document.querySelector('.filters-drawer');
-            
-            function closeAll() {
-              if (navDrawer) navDrawer.classList.remove('open');
-              if (filtersDrawer) filtersDrawer.classList.remove('open');
-              if (backdrop) backdrop.classList.remove('active');
-              
-              // Resize plots
-              setTimeout(function() {
-                window.dispatchEvent(new Event('resize'));
-                if (window.Plotly) {
-                  document.querySelectorAll('.js-plotly-plot').forEach(function(p) {
-                    try { Plotly.Plots.resize(p); } catch(e) {}
-                  });
-                }
-              }, 350);
-            }
-            
-            if (btnNav) {
-              btnNav.onclick = function() {
-                if (navDrawer) navDrawer.classList.add('open');
-                if (filtersDrawer) filtersDrawer.classList.remove('open');
-                if (backdrop) backdrop.classList.add('active');
-              };
-            }
-            
-            if (btnFilters) {
-              btnFilters.onclick = function() {
-                if (filtersDrawer) filtersDrawer.classList.add('open');
-                if (navDrawer) navDrawer.classList.remove('open');
-                if (backdrop) backdrop.classList.add('active');
-              };
-            }
-            
-            if (backdrop) backdrop.onclick = closeAll;
-            
-            document.querySelectorAll('.drawer-close, .drawer-content a, .lang-btn').forEach(function(el) {
-              el.addEventListener('click', closeAll);
+        $(document).ready(function() {
+          let debounceTimer;
+          function fixSidebarOverlay() {
+            $('.bslib-sidebar-layout > .main').css({
+              'opacity': '1',
+              'filter': 'none',
+              'pointer-events': 'auto',
+              'transition': 'none'
             });
-            
-            // Language switcher
-            var langSwitch = document.getElementById('lang-switch');
-            if (langSwitch) {
-              langSwitch.onchange = function() {
-                var url = new URL(window.location.href);
-                url.searchParams.set('lang', this.value);
-                window.location.assign(url);
-              };
-            }
-          });
+            $('.sidebar-backdrop, .bslib-sidebar-backdrop').remove();
+            $('.bslib-sidebar-layout').css({
+              'display': 'grid',
+              'grid-template-columns': 'auto 1fr',
+              'gap': '20px'
+            });
+          }
+          fixSidebarOverlay();
+          setTimeout(fixSidebarOverlay, 100);
+          setTimeout(fixSidebarOverlay, 500);
           
-          // Resize plots on window resize
-          var resizeTimer;
-          window.addEventListener('resize', function() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(function() {
-              if (window.Plotly) {
-                document.querySelectorAll('.js-plotly-plot').forEach(function(p) {
-                  try { Plotly.Plots.resize(p); } catch(e) {}
-                });
-              }
-            }, 250);
+          // Debounced observer - only runs every 100ms
+          const observer = new MutationObserver(() => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fixSidebarOverlay, 100);
           });
-        })();
+          observer.observe(document.body, { childList: true, subtree: true });
+          
+          // CRITICAL: Stop observing after 3 seconds - sidebar is stable
+          setTimeout(() => observer.disconnect(), 3000);
+        });
+      ")),
+      
+      # Responsive sidebar toggle
+      tags$script(HTML("
+        $(document).ready(function() {
+          const toggleButton = $('<button class=\"sidebar-toggle-btn\">☰ Menü</button>')
+            .css({
+              position: 'fixed',
+              top: '15px',
+              left: '15px',
+              background: '#8b5cf6',
+              color: '#fff',
+              border: 'none',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '18px',
+              cursor: 'pointer',
+              zIndex: 2000,
+              display: 'none'
+            })
+            .appendTo('body')
+            .on('click', function() {
+              const layout = document.querySelector('.bslib-sidebar-layout');
+              if (layout) {
+                const open = layout.dataset.sidebarOpen === 'true';
+                layout.dataset.sidebarOpen = !open;
+              }
+            });
+
+          function checkScreen() {
+            if (window.innerWidth < 768) {
+              toggleButton.show();
+            } else {
+              toggleButton.hide();
+            }
+          }
+          checkScreen();
+          $(window).on('resize', checkScreen);
+        });
       "))
     ),
     
-    # Backdrop
-    div(class = "drawer-backdrop"),
-    
-    # ==================== DESKTOP HEADER ====================
-    div(class = "desktop-header",
-        div(class = "desktop-logo",
-            span("🎲", class = "desktop-logo-icon"),
-            div(class = "desktop-logo-text",
-                h1(t("title", LANG),
-                   span(class = "testing-badge", t("testing_badge", LANG))),
-                p(t("subtitle", LANG))
-            )
-        ),
-        div(class = "desktop-nav",
-            a(href = "#", t("nav_home", LANG)),
-            a(href = "#analyzer", t("nav_analyzer", LANG)),
-            a(href = "#educational", t("nav_educational", LANG)),
-            a(href = "#disclaimer", t("nav_disclaimer", LANG)),
-            div(class = "desktop-lang",
-                tags$a(href = "?lang=de", 
-                       class = paste0("lang-pill", if(LANG=="de") " active" else ""),
-                       "🇩🇪 DE"),
-                tags$a(href = "?lang=en",
-                       class = paste0("lang-pill", if(LANG=="en") " active" else ""),
-                       "🇬🇧 EN")
-            )
-        )
+    # ✅ Language switcher
+    div(class = "lang-switcher",
+        tags$a(href = "?lang=de", class = paste0("lang-btn", if(LANG == "de") " active" else ""), "🇩🇪 DE"),
+        tags$a(href = "?lang=en", class = paste0("lang-btn", if(LANG == "en") " active" else ""), "🇬🇧 EN")
     ),
     
-    # ==================== MOBILE APP BAR ====================
-    div(class = "mobile-app-bar",
-        tags$button(id = "open-nav", class = "icon-btn", "☰"),
-        div(class = "mobile-title",
-            div(t("title", LANG))
-        ),
-        div(class = "mobile-actions",
-            tags$select(
-              id = "lang-switch",
-              class = "lang-select",
-              tags$option(value = "de", selected = if(LANG == "de") NA else NULL, "DE"),
-              tags$option(value = "en", selected = if(LANG == "en") NA else NULL, "EN")
+    # Professional Header
+    div(class = "professional-header", role = "banner",
+        div(class = "header-content",
+            div(class = "logo-section",
+                span("🎲", class = "logo-icon"),
+                div(class = "logo-text",
+                    h1(t("title", LANG), 
+                       span(class = "testing-badge", t("testing_badge", LANG))),
+                    p(t("subtitle", LANG))
+                )
             ),
-            tags$button(id = "open-filters", class = "icon-btn", "⚙")
-        )
-    ),
-    
-    # ==================== NAV DRAWER (Mobile Only) ====================
-    div(class = "nav-drawer",
-        div(class = "drawer-content",
-            tags$button(class="drawer-close", "✕"),
-            h3(if (LANG=="de") "Navigation" else "Navigation"),
-            tags$ul(
-              tags$li(a(href="#", paste0("🏠 ", t("nav_home", LANG)))),
-              tags$li(a(href="#analyzer", paste0("📊 ", t("nav_analyzer", LANG)))),
-              tags$li(a(href="#educational", paste0("📚 ", t("nav_educational", LANG)))),
-              tags$li(a(href="#disclaimer", paste0("⚠️ ", t("nav_disclaimer", LANG))))
-            ),
-            h3(if (LANG=="de") "Sprache" else "Language"),
-            div(class = "drawer-lang",
-                tags$a(href = "?lang=de", 
-                       class = paste0("lang-btn", if(LANG=="de") " active" else ""),
-                       "🇩🇪 DE"),
-                tags$a(href = "?lang=en",
-                       class = paste0("lang-btn", if(LANG=="en") " active" else ""),
-                       "🇬🇧 EN")
+            div(class = "header-nav", role = "navigation",
+                a(href = "#", t("nav_home", LANG)),
+                a(href = "#analyzer", t("nav_analyzer", LANG)),
+                a(href = "#educational", t("nav_educational", LANG)),
+                a(href = "#disclaimer", t("nav_disclaimer", LANG))
             )
         )
     ),
     
-    # ==================== FILTERS DRAWER (Mobile Only) ====================
-    div(class = "filters-drawer",
-        div(class = "drawer-content",
-            tags$button(class="drawer-close", "✕"),
-            h3(if (LANG=="de") "Analyseeinstellungen" else "Analysis Settings"),
-            # ✅ Same input module will render here on mobile via CSS
-            div(id = "mobile-filters-wrapper")
-        )
-    ),
-    
-    # ==================== MAIN CONTENT ====================
+    # Main Content
     div(class = "main-content",
-        div(id = "analyzer", role = "region",
-            # ✅ Single layout_sidebar - CSS handles responsive behavior
+        # Main Analyzer Section
+        div(id = "analyzer", role = "region", `aria-label` = if(LANG == "de") "Analyse-Dashboard" else "Analysis Dashboard",
             layout_sidebar(
               sidebar = sidebar(
-                id = "main-sidebar",
                 class = "control-panel",
+                open = "desktop",
                 position = "left",
-                open = "always",  # Always render, CSS will position it
+                max_height_mobile = NULL,
                 h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
                 lotteryInputUI("inputs1", lang = LANG)
               ),
-              # Main dashboard content
-              div(style = "padding: 0;",
-                  dashboardUI("dashboard1")
+              # Main content
+              div(
+                style = "padding: 0; min-height: 100vh;",
+                dashboardUI("dashboard1"),
               ),
               fillable = FALSE,
               border = FALSE,
@@ -344,12 +378,13 @@ ui <- function(request) {
               t("notice_purpose", LANG))
         ),
         
-        # Educational Section
-        div(id = "educational", role = "region",
+        # Additional Educational Section
+        div(id = "educational", role = "region", `aria-label` = if(LANG == "de") "Bildungsinformationen" else "Educational Information",
             style = "margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px;",
             h2(t("edu_title", LANG), style = "color: #e8eaed;"),
             p(style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
-              t("edu_intro", LANG)),
+              t("edu_intro", LANG)
+            ),
             h3(t("edu_objectives", LANG), style = "color: #e8eaed; margin-top: 20px;"),
             tags$ul(
               style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
@@ -361,17 +396,19 @@ ui <- function(request) {
         )
     ),
     
-    # ==================== FOOTER ====================
+    # Professional Footer
     div(class = "professional-footer", role = "contentinfo",
         div(class = "footer-content",
             div(class = "footer-sections",
+                # About Section
                 div(class = "footer-section",
                     h3(t("footer_about", LANG)),
                     p(strong(t("footer_edu_only", LANG))),
                     p(t("footer_desc", LANG)),
-                    p(style = "color: #ffc107; font-weight: 600;",
+                    p(style = "color: #ffc107; font-weight: 600;", 
                       t("footer_construction", LANG))
                 ),
+                # Quick Links
                 div(class = "footer-section",
                     h3(t("footer_quick", LANG)),
                     tags$ul(
@@ -381,6 +418,7 @@ ui <- function(request) {
                       tags$li(a(href = "#disclaimer", t("nav_disclaimer", LANG)))
                     )
                 ),
+                # Legal & Disclaimer
                 div(class = "footer-section",
                     h3(t("footer_legal", LANG)),
                     tags$ul(
@@ -392,6 +430,7 @@ ui <- function(request) {
                     p(style = "color: #e74c3c; font-size: 0.85em; margin-top: 10px;",
                       t("footer_no_gambling", LANG))
                 ),
+                # Important Information
                 div(class = "footer-section",
                     h3(t("footer_info", LANG)),
                     p(t("footer_project_type", LANG)),
@@ -399,10 +438,12 @@ ui <- function(request) {
                 )
             ),
             div(class = "footer-bottom",
-                p(paste0("© ", format(Sys.Date(), "%Y"),
+                p(paste0("© ", format(Sys.Date(), "%Y"), 
                          " 6/49 ", t("footer_copyright", LANG), " | ",
-                         t("footer_for_edu", LANG), " | ",
-                         t("footer_play_resp", LANG)))
+                         strong(t("footer_for_edu", LANG)), " | ",
+                         t("footer_play_resp", LANG), " | ", 
+                         t("footer_no_services", LANG), " | ",
+                         t("footer_under_const", LANG)))
             )
         )
     )
@@ -410,16 +451,17 @@ ui <- function(request) {
 }
 
 # ============================================================================
-# Server - SIMPLE, NO SPECIAL MOBILE LOGIC
+# Server
 # ============================================================================
 server <- function(input, output, session) {
-  # Single input module - works everywhere
+  
+
+  # Call input module
   input_controls <- lotteryInputServer("inputs1")
   
-  # Dashboard uses same inputs
+  # Call modules
   dashboardServer("dashboard1", input_controls = input_controls)
   
-  # Health check endpoint
   observe({
     query <- parseQueryString(session$clientData$url_search)
     if (!is.null(query$health)) {
@@ -427,10 +469,9 @@ server <- function(input, output, session) {
     }
   })
   
-  observeEvent(input$trigger_relayout, {
-    # No action required
-  })
 }
 
+# -------------------------
 # Run app
+# -------------------------
 shinyApp(ui = ui, server = server, enableBookmarking = "url")

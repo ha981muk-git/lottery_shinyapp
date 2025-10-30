@@ -41,9 +41,6 @@ library(DBI)
 library(RSQLite)
 library(sodium)
 library(httr)
-library(DBI)
-library(mailR) # For email verification
-
 
 # ---------- Load Custom Modules ----------
 source_safe <- function(file) {
@@ -59,8 +56,8 @@ source_safe <- function(file) {
 source_safe("translations.R")
 source_safe("PrepareData.R")
 source_safe("DashboardModule.R")
-source_safe("EnhancedAuthenticationSystem.R")  # ✅ NEW
-source_safe("AuthenticationUI.R")              # ✅ NEW
+source_safe("EnhancedAuthenticationSystem.R")
+source_safe("AuthenticationUI.R")
 
 # Initialize database
 if (!file.exists("lottery_users.db")) init_database()
@@ -90,7 +87,7 @@ app_theme <- bs_theme(
 )
 
 # ============================================================================
-# UI - SEPARATE, with language parameter
+# UI - Clean Version (NO inline CSS)
 # ============================================================================
 ui <- function(request) {
   query <- parseQueryString(request$QUERY_STRING)
@@ -105,7 +102,7 @@ ui <- function(request) {
       tags$meta(name = "description", content = "6/49 Lotto-Analyse Tool - Kostenlos, interaktiv, bildungsbasiert."),
       tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
       
-      # ✅ Redirect script for Stripe payments
+      # Only redirect script - NO CSS
       tags$script(HTML("
         Shiny.addCustomMessageHandler('redirect', function(url) {
           window.location.href = url;
@@ -113,101 +110,150 @@ ui <- function(request) {
       "))
     ),
     
-    # ==================== CONDITIONAL PANELS ====================
-    
-    # ✅ 1. LOGIN/REGISTER SCREEN (when not logged in)
+    # ==================== FLOATING AUTH BUTTON ====================
     conditionalPanel(
       condition = "output.logged_in == false",
-      auth_ui("auth_module")
+      actionButton("show_auth_modal", "🔓 Login / Sign Up", class = "floating-auth-btn")
     ),
     
-    # ✅ 2. MAIN APP (when logged in)
     conditionalPanel(
       condition = "output.logged_in == true",
-      
-      # Language switcher
-      div(class = "lang-switcher",
-          tags$a(href = "?lang=de", class = paste0("lang-btn", if(LANG == "de") " active" else ""), "🇩🇪 DE"),
-          tags$a(href = "?lang=en", class = paste0("lang-btn", if(LANG == "en") " active" else ""), "🇬🇧 EN")
-      ),
-      
-      # Header
-      div(class = "professional-header", role = "banner",
-          div(class = "header-content",
-              div(class = "logo-section",
-                  span("🎲", class = "logo-icon"),
-                  div(class = "logo-text",
-                      h1(t("title", LANG), span(class = "testing-badge", t("testing_badge", LANG))),
-                      p(t("subtitle", LANG))
-                  )
-              ),
-              div(class = "header-nav", role = "navigation",
-                  a(href = "#", t("nav_home", LANG)),
-                  a(href = "#analyzer", t("nav_analyzer", LANG)),
-                  a(href = "#subscription", "💳 Subscription"),  # ✅ NEW
-                  a(href = "#educational", t("nav_educational", LANG)),
-                  a(href = "#disclaimer", t("nav_disclaimer", LANG)),
-                  # ✅ User menu
-                  div(class = "user-menu",
-                      textOutput("user_display"),
-                      actionButton("logout_btn", "Logout", class = "btn-sm")
-                  )
-              )
-          )
-      ),
-      
-      # Main Content
-      div(class = "main-content",
-          
-          # ✅ Subscription Section (NEW)
-          div(id = "subscription", role = "region",
-              subscription_ui("subscription_module")
-          ),
-          
-          # Main Analyzer Section
-          div(id = "analyzer", role = "region",
-              layout_sidebar(
-                sidebar = sidebar(
-                  class = "control-panel",
-                  open = "desktop",
-                  position = "left",
-                  h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
-                  lotteryInputUI("inputs1", lang = LANG)
-                ),
-                div(style = "padding: 0; min-height: 100vh;",
-                    dashboardUI("dashboard1")
-                ),
-                fillable = FALSE
-              )
-          ),
-          
-          # Educational Notice
-          div(class = "educational-notice", role = "note",
-              h3(t("notice_title", LANG)),
-              tags$ul(
-                tags$li(strong(t("notice_1", LANG)), t("notice_1b", LANG)),
-                tags$li(t("notice_2", LANG), strong(t("notice_2b", LANG)), t("notice_2c", LANG)),
-                tags$li(t("notice_3", LANG)),
-                tags$li(t("notice_4", LANG), strong(t("notice_4b", LANG)), t("notice_4c", LANG)),
-                tags$li(t("notice_5", LANG)),
-                tags$li(strong(t("notice_6", LANG)), t("notice_6b", LANG))
-              )
-          ),
-          
-          # Educational Section
-          div(id = "educational", role = "region",
-              style = "margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px;",
-              h2(t("edu_title", LANG), style = "color: #e8eaed;"),
-              p(style = "color: rgba(255,255,255,0.7); line-height: 1.8;", t("edu_intro", LANG))
-          )
-      ),
-      
-      # Footer
-      div(class = "professional-footer", role = "contentinfo",
-          div(class = "footer-content",
-              p(paste0("© ", format(Sys.Date(), "%Y"), " 6/49 ", t("footer_copyright", LANG)))
+      div(class = "floating-auth-btn user-menu",
+          textOutput("user_display_top"),
+          actionButton("logout_btn_top", "Logout", class = "btn-sm")
+      )
+    ),
+    
+    # ==================== AUTH MODAL ====================
+    shinyjs::hidden(
+      div(id = "auth_modal_overlay",
+          div(class = "auth-modal-container",
+              actionButton("close_auth_modal", "×", class = "auth-modal-close"),
+              auth_ui("auth_module")
           )
       )
+    ),
+    
+    # ==================== LANGUAGE SWITCHER ====================
+    div(class = "lang-switcher",
+        tags$a(href = "?lang=de", class = paste0("lang-btn", if(LANG == "de") " active" else ""), "🇩🇪 DE"),
+        tags$a(href = "?lang=en", class = paste0("lang-btn", if(LANG == "en") " active" else ""), "🇬🇧 EN")
+    ),
+    
+    # ==================== HEADER ====================
+    div(class = "professional-header", role = "banner",
+        div(class = "header-content",
+            div(class = "logo-section",
+                span("🎲", class = "logo-icon"),
+                div(class = "logo-text",
+                    h1(t("title", LANG), span(class = "testing-badge", t("testing_badge", LANG))),
+                    p(t("subtitle", LANG))
+                )
+            ),
+            div(class = "header-nav", role = "navigation",
+                a(href = "#", t("nav_home", LANG)),
+                a(href = "#analyzer", t("nav_analyzer", LANG)),
+                conditionalPanel(
+                  condition = "output.logged_in == true",
+                  a(href = "#subscription", "💳 Subscription")
+                ),
+                a(href = "#educational", t("nav_educational", LANG)),
+                a(href = "#disclaimer", t("nav_disclaimer", LANG))
+            )
+        )
+    ),
+    
+    # ==================== MAIN CONTENT ====================
+    div(class = "main-content",
+        
+        # PUBLIC DASHBOARD
+        div(id = "analyzer", role = "region",
+            layout_sidebar(
+              sidebar = sidebar(
+                class = "control-panel",
+                open = "desktop",
+                position = "left",
+                h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
+                lotteryInputUI("inputs1", lang = LANG)
+              ),
+              div(style = "padding: 0; min-height: 100vh;",
+                  dashboardUI("dashboard1")
+              ),
+              fillable = FALSE
+            )
+        ),
+        
+        # SUBSCRIPTION SECTION (logged in only)
+        conditionalPanel(
+          condition = "output.logged_in == true",
+          div(id = "subscription", role = "region", class = "subscription-section",
+              subscription_ui("subscription_module")
+          )
+        ),
+        
+        # PREMIUM TEASER (logged out only)
+        conditionalPanel(
+          condition = "output.logged_in == false",
+          div(id = "premium-teaser", class = "premium-teaser-container",
+              h2(class = "premium-teaser-title", "🔓 Unlock Premium Features"),
+              
+              div(class = "pricing-grid",
+                  div(class = "premium-overlay",
+                      span(class = "premium-badge", "🔒 PREMIUM"),
+                      h3(style = "color: #e8eaed;", "Advanced Pattern Detection"),
+                      p(style = "color: rgba(255,255,255,0.7);",
+                        "AI-powered insights to identify complex patterns..."),
+                      
+                      div(class = "premium-unlock-card",
+                          h4("Unlock This Feature"),
+                          p("Sign up for free or upgrade to premium"),
+                          actionButton("show_auth_from_teaser1", "Get Started", 
+                                       class = "auth-trigger-btn")
+                      )
+                  ),
+                  
+                  div(class = "premium-overlay",
+                      span(class = "premium-badge", "🔒 PREMIUM"),
+                      h3(style = "color: #e8eaed;", "Statistical Forecasting"),
+                      p(style = "color: rgba(255,255,255,0.7);",
+                        "Advanced probability models and trend analysis..."),
+                      
+                      div(class = "premium-unlock-card",
+                          h4("Unlock This Feature"),
+                          p("Upgrade to premium for advanced analytics"),
+                          actionButton("show_auth_from_teaser2", "Upgrade Now", 
+                                       class = "auth-trigger-btn")
+                      )
+                  )
+              )
+          )
+        ),
+        
+        # Educational Notice
+        div(class = "educational-notice", role = "note",
+            h3(t("notice_title", LANG)),
+            tags$ul(
+              tags$li(strong(t("notice_1", LANG)), t("notice_1b", LANG)),
+              tags$li(t("notice_2", LANG), strong(t("notice_2b", LANG)), t("notice_2c", LANG)),
+              tags$li(t("notice_3", LANG)),
+              tags$li(t("notice_4", LANG), strong(t("notice_4b", LANG)), t("notice_4c", LANG)),
+              tags$li(t("notice_5", LANG)),
+              tags$li(strong(t("notice_6", LANG)), t("notice_6b", LANG))
+            )
+        ),
+        
+        # Educational Section
+        div(id = "educational", role = "region", class = "educational-section",
+            h2(t("edu_title", LANG), style = "color: #e8eaed;"),
+            p(style = "color: rgba(255,255,255,0.7); line-height: 1.8;", t("edu_intro", LANG))
+        )
+    ),
+    
+    # Footer
+    div(class = "professional-footer", role = "contentinfo",
+        div(class = "footer-content",
+            p(paste0("© ", format(Sys.Date(), "%Y"), " 6/49 ", t("footer_copyright", LANG)))
+        )
     )
   )
 }
@@ -217,89 +263,312 @@ ui <- function(request) {
 # ============================================================================
 server <- function(input, output, session) {
   
-  # ==================== AUTHENTICATION ====================
+  # Authentication
   user_info <- auth_server("auth_module")
   
-  # Control visibility of login vs main app
   output$logged_in <- reactive({
     !is.null(user_info())
   })
   outputOptions(output, "logged_in", suspendWhenHidden = FALSE)
   
-  # Display username in header
-  output$user_display <- renderText({
+  output$user_display_top <- renderText({
     req(user_info())
-    paste0("👤 ", user_info()$username, " (", user_info()$subscription$plan_type, ")")
+    paste0("👤 ", user_info()$username)
   })
   
-  # Logout
-  observeEvent(input$logout_btn, {
+  # Modal controls
+  observeEvent(input$show_auth_modal, {
+    shinyjs::show("auth_modal_overlay")
+  })
+  
+  observeEvent(input$show_auth_from_teaser1, {
+    shinyjs::show("auth_modal_overlay")
+  })
+  
+  observeEvent(input$show_auth_from_teaser2, {
+    shinyjs::show("auth_modal_overlay")
+  })
+  
+  observeEvent(input$close_auth_modal, {
+    shinyjs::hide("auth_modal_overlay")
+  })
+  
+  observe({
+    req(user_info())
+    shinyjs::hide("auth_modal_overlay")
+  })
+  
+  observeEvent(input$logout_btn_top, {
     user_info(NULL)
     session$reload()
   })
   
-  # ==================== SUBSCRIPTION MODULE ====================
+  # Subscription module
   observe({
     req(user_info())
     subscription_server("subscription_module", user_info)
   })
   
-  # ==================== MAIN DASHBOARD ====================
-  observe({
-    req(user_info())
-    
-    # Check rate limits before allowing dashboard access
-    rate_check <- check_rate_limit(user_info()$id, "dashboard_view")
-    
-    if (!rate_check$allowed) {
-      showNotification(
-        paste0("Rate limit reached! Upgrade your plan. (", 
-               rate_check$current, "/", rate_check$limit, " today)"),
-        type = "warning",
-        duration = 10
-      )
-      return()
-    }
-    
-    # Log dashboard access
-    log_user_action(user_info()$id, "dashboard_view", "User accessed dashboard")
-    
-    # Load modules
-    input_controls <- lotteryInputServer("inputs1")
-    dashboardServer("dashboard1", input_controls = input_controls)
-  })
+  # Dashboard (public)
+  input_controls <- lotteryInputServer("inputs1")
+  dashboardServer("dashboard1", input_controls = input_controls)
   
-  # ==================== PAYMENT SUCCESS HANDLER ====================
+  # ============================================================================
+  # UNIFIED PAYMENT HANDLER (handles both old ?payment= and new ?session_id=)
+  # ============================================================================
   observe({
     query <- parseQueryString(session$clientData$url_search)
     
-    if (!is.null(query$payment)) {
-      if (query$payment == "success") {
-        showNotification("✅ Payment successful! Your subscription has been upgraded.", 
-                         type = "message", duration = 10)
+    # Handle NEW Stripe Checkout flow (with session_id verification)
+    if (!is.null(query$session_id)) {
+      result <- verify_stripe_payment(query$session_id)
+      
+      if (result$success) {
+        showNotification(
+          paste("✅ Payment successful! Welcome to", result$plan_type, "plan!"),
+          type = "message",
+          duration = 10
+        )
+        
         # Refresh user data
+        if (!is.null(user_info())) {
+          updated_user <- user_info()
+          updated_user$subscription <- get_user_subscription(result$user_id)
+          user_info(updated_user)
+        }
+        
+        # Send confirmation email
+        user <- get_user_info(result$user_id)
+        send_subscription_confirmation(
+          email = user$email,
+          username = user$username,
+          plan_type = result$plan_type,
+          plan_details = subscription_plans[[result$plan_type]]
+        )
+        
+      } else {
+        showNotification(
+          paste("❌ Payment verification failed:", result$error),
+          type = "error",
+          duration = 10
+        )
+      }
+    }
+    
+    # Handle OLD payment flow (for backwards compatibility or fallback)
+    # This handles URLs like ?payment=success or ?payment=cancel
+    else if (!is.null(query$payment)) {
+      if (query$payment == "success") {
+        showNotification(
+          "✅ Payment successful!", 
+          type = "message", 
+          duration = 10
+        )
+        
         if (!is.null(user_info())) {
           user_data <- user_info()
           user_data$subscription <- get_user_subscription(user_data$id)
           user_info(user_data)
         }
+        
       } else if (query$payment == "cancel") {
-        showNotification("Payment cancelled. You can try again anytime.", 
-                         type = "warning", duration = 5)
+        showNotification(
+          "⚠️ Payment cancelled.", 
+          type = "warning", 
+          duration = 5
+        )
       }
     }
   })
   
-  # Health check
+  
+  # ============================================================================
+  # FIXED: Stripe Checkout with Language Preservation
+  # ============================================================================
+  
+  # Replace the upgrade button handlers in your app.R server with this:
+  
+  # Handle upgrades - FIXED with language preservation
+  observeEvent(input$upgrade_basic, {
+    req(user_data())
+    
+    base_url <- session$clientData$url_protocol
+    host <- session$clientData$url_hostname
+    port <- session$clientData$url_port
+    
+    # Build URLs correctly
+    if (port == "") {
+      app_url <- paste0(base_url, "//", host)
+    } else {
+      app_url <- paste0(base_url, "//", host, ":", port)
+    }
+    
+    # Get current language from query string
+    query <- parseQueryString(session$clientData$url_search)
+    lang_param <- if (!is.null(query$lang)) paste0("&lang=", query$lang) else ""
+    
+    checkout <- tryCatch({
+      create_stripe_checkout(
+        user_id = user_data()$id,
+        plan_type = "basic",
+        success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}", lang_param),
+        cancel_url = paste0(app_url, "?payment=cancel", lang_param)
+      )
+    }, error = function(err) {
+      message("Checkout error: ", err$message)
+      list(success = FALSE, error = err$message)
+    })
+    
+    if (!is.null(checkout$success) && checkout$success) {
+      session$sendCustomMessage("redirect", checkout$url)
+    } else {
+      error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
+      showNotification(paste("Error:", error_msg), type = "error", duration = 10)
+    }
+  })
+  
+  observeEvent(input$upgrade_premium, {
+    req(user_data())
+    
+    base_url <- session$clientData$url_protocol
+    host <- session$clientData$url_hostname
+    port <- session$clientData$url_port
+    
+    if (port == "") {
+      app_url <- paste0(base_url, "//", host)
+    } else {
+      app_url <- paste0(base_url, "//", host, ":", port)
+    }
+    
+    # Get current language from query string
+    query <- parseQueryString(session$clientData$url_search)
+    lang_param <- if (!is.null(query$lang)) paste0("&lang=", query$lang) else ""
+    
+    checkout <- tryCatch({
+      create_stripe_checkout(
+        user_id = user_data()$id,
+        plan_type = "premium",
+        success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}", lang_param),
+        cancel_url = paste0(app_url, "?payment=cancel", lang_param)
+      )
+    }, error = function(err) {
+      message("Checkout error: ", err$message)
+      list(success = FALSE, error = err$message)
+    })
+    
+    if (!is.null(checkout$success) && checkout$success) {
+      session$sendCustomMessage("redirect", checkout$url)
+    } else {
+      error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
+      showNotification(paste("Error:", error_msg), type = "error", duration = 10)
+    }
+  })
+  
+  
+  # ============================================================================
+  # ALSO FIX: Payment Handler to Check Language
+  # ============================================================================
+  
+  # Replace the payment handler in your app.R server:
+  
   observe({
     query <- parseQueryString(session$clientData$url_search)
-    if (!is.null(query$health)) {
-      session$sendCustomMessage("health", "ok")
+    
+    # Handle NEW Stripe Checkout flow (with session_id verification)
+    if (!is.null(query$session_id)) {
+      result <- verify_stripe_payment(query$session_id)
+      
+      if (result$success) {
+        # Determine language for notification
+        lang <- query$lang %||% "de"
+        success_msg <- if (lang == "de") {
+          paste("✅ Zahlung erfolgreich! Willkommen im", result$plan_type, "Plan!")
+        } else {
+          paste("✅ Payment successful! Welcome to", result$plan_type, "plan!")
+        }
+        
+        showNotification(
+          success_msg,
+          type = "message",
+          duration = 10
+        )
+        
+        # Refresh user data
+        if (!is.null(user_info())) {
+          updated_user <- user_info()
+          updated_user$subscription <- get_user_subscription(result$user_id)
+          user_info(updated_user)
+        }
+        
+        # Send confirmation email
+        user <- get_user_info(result$user_id)
+        send_subscription_confirmation(
+          email = user$email,
+          username = user$username,
+          plan_type = result$plan_type,
+          plan_details = subscription_plans[[result$plan_type]]
+        )
+        
+        # Redirect to clean URL with language preserved
+        clean_url <- paste0("?lang=", lang)
+        shinyjs::delay(2000, {
+          session$sendCustomMessage("redirect", clean_url)
+        })
+        
+      } else {
+        lang <- query$lang %||% "de"
+        error_msg <- if (lang == "de") {
+          paste("❌ Zahlungsüberprüfung fehlgeschlagen:", result$error)
+        } else {
+          paste("❌ Payment verification failed:", result$error)
+        }
+        
+        showNotification(
+          error_msg,
+          type = "error",
+          duration = 10
+        )
+      }
+    }
+    
+    # Handle OLD payment flow (for backwards compatibility or fallback)
+    else if (!is.null(query$payment)) {
+      lang <- query$lang %||% "de"
+      
+      if (query$payment == "success") {
+        success_msg <- if (lang == "de") {
+          "✅ Zahlung erfolgreich!"
+        } else {
+          "✅ Payment successful!"
+        }
+        
+        showNotification(
+          success_msg, 
+          type = "message", 
+          duration = 10
+        )
+        
+        if (!is.null(user_info())) {
+          user_data <- user_info()
+          user_data$subscription <- get_user_subscription(user_data$id)
+          user_info(user_data)
+        }
+        
+      } else if (query$payment == "cancel") {
+        cancel_msg <- if (lang == "de") {
+          "⚠️ Zahlung abgebrochen."
+        } else {
+          "⚠️ Payment cancelled."
+        }
+        
+        showNotification(
+          cancel_msg, 
+          type = "warning", 
+          duration = 5
+        )
+      }
     }
   })
 }
 
-# -------------------------
-# Run app
-# -------------------------
 shinyApp(ui = ui, server = server, enableBookmarking = "url")

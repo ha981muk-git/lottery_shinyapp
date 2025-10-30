@@ -311,8 +311,8 @@ subscription_plans <- list(
 STRIPE_SECRET_KEY <- Sys.getenv("STRIPE_SECRET_KEY")
 
 create_stripe_checkout <- function(user_id, plan_type, success_url, cancel_url, db_path = "lottery_users.db") {
-  if (STRIPE_SECRET_KEY == "") {
-    return(list(error = "Stripe not configured"))
+  if (STRIPE_SECRET_KEY == "" || is.null(STRIPE_SECRET_KEY)) {
+    return(list(success = FALSE, error = "Stripe not configured"))
   }
   
   plan <- subscription_plans[[plan_type]]
@@ -321,60 +321,147 @@ create_stripe_checkout <- function(user_id, plan_type, success_url, cancel_url, 
   con <- dbConnect(SQLite(), db_path)
   on.exit(dbDisconnect(con))
   
-  user <- dbGetQuery(con, "SELECT email, stripe_customer_id FROM users 
-                            JOIN subscriptions USING(user_id)
-                            WHERE user_id = ?", params = list(user_id))
+  user <- tryCatch({
+    dbGetQuery(con, "
+      SELECT u.email, s.stripe_customer_id 
+      FROM users u
+      LEFT JOIN subscriptions s ON u.user_id = s.user_id
+      WHERE u.user_id = ?
+      LIMIT 1
+    ", params = list(user_id))
+  }, error = function(err) {
+    message("Database error: ", err$message)
+    return(NULL)
+  })
+  
+  if (is.null(user) || nrow(user) == 0) {
+    return(list(success = FALSE, error = "User not found"))
+  }
   
   customer_id <- user$stripe_customer_id
   
   if (is.na(customer_id) || customer_id == "") {
     # Create Stripe customer
-    customer_res <- POST(
-      url = "https://api.stripe.com/v1/customers",
-      add_headers(Authorization = paste("Bearer", STRIPE_SECRET_KEY)),
-      body = list(email = user$email),
-      encode = "form"
-    )
+    customer_res <- tryCatch({
+      POST(
+        url = "https://api.stripe.com/v1/customers",
+        add_headers(Authorization = paste("Bearer", STRIPE_SECRET_KEY)),
+        body = list(email = user$email),
+        encode = "form"
+      )
+    }, error = function(err) {
+      message("Stripe customer creation error: ", err$message)
+      return(NULL)
+    })
     
-    if (status_code(customer_res) == 200) {
+    if (!is.null(customer_res) && status_code(customer_res) == 200) {
       customer_id <- content(customer_res)$id
-      dbExecute(con, "UPDATE subscriptions SET stripe_customer_id = ? WHERE user_id = ?",
-                params = list(customer_id, user_id))
+      tryCatch({
+        dbExecute(con, "
+          UPDATE subscriptions 
+          SET stripe_customer_id = ? 
+          WHERE user_id = ?
+        ", params = list(customer_id, user_id))
+      }, error = function(err) {
+        message("Failed to save customer ID: ", err$message)
+      })
+    } else {
+      return(list(success = FALSE, error = "Failed to create Stripe customer"))
     }
   }
   
   # Create checkout session
-  res <- POST(
-    url = "https://api.stripe.com/v1/checkout/sessions",
-    add_headers(Authorization = paste("Bearer", STRIPE_SECRET_KEY)),
-    body = list(
-      customer = customer_id,
-      payment_method_types = list("card"),
-      line_items = list(
-        list(
-          price_data = list(
-            currency = tolower(plan$currency),
-            unit_amount = as.integer(plan$price * 100),
-            product_data = list(name = plan$name),
-            recurring = list(interval = plan$interval)
-          ),
-          quantity = 1
-        )
+  # Create checkout session
+  session_res <- tryCatch({
+    POST(
+      url = "https://api.stripe.com/v1/checkout/sessions",
+      add_headers(Authorization = paste("Bearer", STRIPE_SECRET_KEY)),
+      body = list(
+        customer = customer_id,
+        "payment_method_types[]" = "card",
+        "line_items[0][price_data][currency]" = tolower(plan$currency),
+        "line_items[0][price_data][unit_amount]" = as.integer(plan$price * 100),
+        "line_items[0][price_data][product_data][name]" = plan$name,
+        "line_items[0][price_data][recurring][interval]" = plan$interval,
+        "line_items[0][quantity]" = 1,
+        mode = "subscription",
+        success_url = success_url,
+        cancel_url = cancel_url,
+        "metadata[user_id]" = as.character(user_id),
+        "metadata[plan_type]" = plan_type
       ),
-      mode = "subscription",
-      success_url = success_url,
-      cancel_url = cancel_url,
-      metadata = list(user_id = user_id, plan_type = plan_type)
-    ),
-    encode = "form"
-  )
+      encode = "form"
+    )
+  }, error = function(err) {
+    message("Stripe checkout error: ", err$message)
+    return(NULL)
+  })
   
-  if (status_code(res) == 200) {
-    session_data <- content(res)
+  if (!is.null(session_res) && status_code(session_res) == 200) {
+    session_data <- content(session_res)
     log_user_action(user_id, "checkout_initiated", paste("Plan:", plan_type), db_path)
     return(list(success = TRUE, url = session_data$url, session_id = session_data$id))
   } else {
-    return(list(error = content(res)$error$message))
+    error_msg <- if (!is.null(session_res)) {
+      tryCatch(content(session_res)$error$message, error = function(err) "Unknown error")
+    } else {
+      "Failed to connect to Stripe"
+    }
+    return(list(success = FALSE, error = error_msg))
+  }
+}
+
+
+# Add after create_stripe_checkout function
+verify_stripe_payment <- function(session_id, db_path = "lottery_users.db") {
+  if (STRIPE_SECRET_KEY == "" || is.null(STRIPE_SECRET_KEY)) {
+    return(list(success = FALSE, error = "Stripe not configured"))
+  }
+  
+  # Retrieve checkout session from Stripe
+  session_res <- tryCatch({
+    GET(
+      url = paste0("https://api.stripe.com/v1/checkout/sessions/", session_id),
+      add_headers(Authorization = paste("Bearer", STRIPE_SECRET_KEY))
+    )
+  }, error = function(err) {
+    message("Stripe session retrieval error: ", err$message)
+    return(NULL)
+  })
+  
+  if (is.null(session_res) || status_code(session_res) != 200) {
+    return(list(success = FALSE, error = "Could not verify payment"))
+  }
+  
+  session_data <- content(session_res)
+  
+  # Check payment status
+  if (session_data$payment_status != "paid") {
+    return(list(success = FALSE, error = "Payment not completed"))
+  }
+  
+  # Extract metadata
+  user_id <- as.numeric(session_data$metadata$user_id)
+  plan_type <- session_data$metadata$plan_type
+  stripe_subscription_id <- session_data$subscription
+  
+  # Upgrade subscription in database
+  result <- upgrade_subscription(
+    user_id = user_id,
+    plan_type = plan_type,
+    stripe_subscription_id = stripe_subscription_id,
+    db_path = db_path
+  )
+  
+  if (result$success) {
+    return(list(
+      success = TRUE,
+      user_id = user_id,
+      plan_type = plan_type,
+      message = "Payment verified and subscription upgraded"
+    ))
+  } else {
+    return(list(success = FALSE, error = result$message))
   }
 }
 
@@ -554,37 +641,71 @@ subscription_server <- function(id, user_data) {
     })
     
     # Handle upgrades
+    # Handle upgrades - FIXED
     observeEvent(input$upgrade_basic, {
       req(user_data())
       
-      checkout <- create_stripe_checkout(
-        user_id = user_data()$id,
-        plan_type = "basic",
-        success_url = paste0(session$clientData$url_hostname, "?payment=success"),
-        cancel_url = paste0(session$clientData$url_hostname, "?payment=cancel")
-      )
+      base_url <- session$clientData$url_protocol
+      host <- session$clientData$url_hostname
+      port <- session$clientData$url_port
       
-      if (!is.null(checkout$url)) {
+      # Build URLs correctly
+      if (port == "") {
+        app_url <- paste0(base_url, "//", host)
+      } else {
+        app_url <- paste0(base_url, "//", host, ":", port)
+      }
+      
+      checkout <- tryCatch({
+        create_stripe_checkout(
+          user_id = user_data()$id,
+          plan_type = "basic",
+          success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}"),
+          cancel_url = paste0(app_url, "?payment=cancel")
+        )
+      }, error = function(err) {
+        message("Checkout error: ", err$message)
+        list(success = FALSE, error = err$message)
+      })
+      
+      if (!is.null(checkout$success) && checkout$success) {
         session$sendCustomMessage("redirect", checkout$url)
       } else {
-        showNotification(paste("Error:", checkout$error), type = "error")
+        error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
+        showNotification(paste("Error:", error_msg), type = "error", duration = 10)
       }
     })
     
     observeEvent(input$upgrade_premium, {
       req(user_data())
       
-      checkout <- create_stripe_checkout(
-        user_id = user_data()$id,
-        plan_type = "premium",
-        success_url = paste0(session$clientData$url_hostname, "?payment=success"),
-        cancel_url = paste0(session$clientData$url_hostname, "?payment=cancel")
-      )
+      base_url <- session$clientData$url_protocol
+      host <- session$clientData$url_hostname
+      port <- session$clientData$url_port
       
-      if (!is.null(checkout$url)) {
+      if (port == "") {
+        app_url <- paste0(base_url, "//", host)
+      } else {
+        app_url <- paste0(base_url, "//", host, ":", port)
+      }
+      
+      checkout <- tryCatch({
+        create_stripe_checkout(
+          user_id = user_data()$id,
+          plan_type = "premium",
+          success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}"),
+          cancel_url = paste0(app_url, "?payment=cancel")
+        )
+      }, error = function(err) {
+        message("Checkout error: ", err$message)
+        list(success = FALSE, error = err$message)
+      })
+      
+      if (!is.null(checkout$success) && checkout$success) {
         session$sendCustomMessage("redirect", checkout$url)
       } else {
-        showNotification(paste("Error:", checkout$error), type = "error")
+        error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
+        showNotification(paste("Error:", error_msg), type = "error", duration = 10)
       }
     })
   })

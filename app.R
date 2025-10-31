@@ -58,6 +58,7 @@ source_safe("PrepareData.R")
 source_safe("DashboardModule.R")
 source_safe("EnhancedAuthenticationSystem.R")
 source_safe("AuthenticationUI.R")
+source_safe("EmailVerificationSystem.R")  # Add this!
 
 # Initialize database
 if (!file.exists("lottery_users.db")) init_database()
@@ -263,20 +264,60 @@ ui <- function(request) {
 # ============================================================================
 server <- function(input, output, session) {
   
-  # Authentication
+  # ============================================================================
+  # SECTION 1: AUTHENTICATION SETUP
+  # ============================================================================
+  
+  # Initialize authentication
   user_info <- auth_server("auth_module")
   
+  # ✅ NEW: Rate limiting for authentication attempts
+  auth_attempts <- reactiveVal(list())
+  
+  # Helper function to check rate limit
+  check_auth_rate_limit <- function(identifier, max_attempts = 5, window_minutes = 15) {
+    attempts <- auth_attempts()
+    cutoff_time <- Sys.time() - (window_minutes * 60)
+    
+    # Clean old attempts
+    attempts <- Filter(function(x) {
+      x$identifier == identifier && x$time > cutoff_time
+    }, attempts)
+    
+    if (length(attempts) >= max_attempts) {
+      return(list(
+        allowed = FALSE,
+        message = paste("Too many attempts. Try again in", window_minutes, "minutes.")
+      ))
+    }
+    
+    # Add current attempt
+    attempts[[length(attempts) + 1]] <- list(
+      identifier = identifier,
+      time = Sys.time()
+    )
+    auth_attempts(attempts)
+    
+    list(allowed = TRUE, message = "")
+  }
+  
+  # Expose login status for UI
   output$logged_in <- reactive({
     !is.null(user_info())
   })
   outputOptions(output, "logged_in", suspendWhenHidden = FALSE)
   
+  # Display username in header
   output$user_display_top <- renderText({
     req(user_info())
     paste0("👤 ", user_info()$username)
   })
   
-  # Modal controls
+  # ============================================================================
+  # SECTION 2: MODAL CONTROLS
+  # ============================================================================
+  
+  # Show auth modal
   observeEvent(input$show_auth_modal, {
     shinyjs::show("auth_modal_overlay")
   })
@@ -289,196 +330,60 @@ server <- function(input, output, session) {
     shinyjs::show("auth_modal_overlay")
   })
   
+  # Close auth modal
   observeEvent(input$close_auth_modal, {
     shinyjs::hide("auth_modal_overlay")
   })
   
+  # Auto-hide modal on successful login
   observe({
     req(user_info())
     shinyjs::hide("auth_modal_overlay")
   })
   
+  # Logout handler
   observeEvent(input$logout_btn_top, {
     user_info(NULL)
     session$reload()
   })
   
-  # Subscription module
+  # ============================================================================
+  # SECTION 3: SUBSCRIPTION MANAGEMENT
+  # ============================================================================
+  
+  # Initialize subscription module
   observe({
     req(user_info())
     subscription_server("subscription_module", user_info)
   })
   
-  # Dashboard (public)
+  # ============================================================================
+  # SECTION 4: DASHBOARD (PUBLIC ACCESS)
+  # ============================================================================
+  
   input_controls <- lotteryInputServer("inputs1")
   dashboardServer("dashboard1", input_controls = input_controls)
   
   # ============================================================================
-  # UNIFIED PAYMENT HANDLER (handles both old ?payment= and new ?session_id=)
+  # SECTION 5: PAYMENT VERIFICATION (Stripe)
   # ============================================================================
+  
+  # ✅ FIXED: Unified payment handler with proper error handling
   observe({
     query <- parseQueryString(session$clientData$url_search)
     
     # Handle NEW Stripe Checkout flow (with session_id verification)
     if (!is.null(query$session_id)) {
-      result <- verify_stripe_payment(query$session_id)
       
-      if (result$success) {
-        showNotification(
-          paste("✅ Payment successful! Welcome to", result$plan_type, "plan!"),
-          type = "message",
-          duration = 10
-        )
-        
-        # Refresh user data
-        if (!is.null(user_info())) {
-          updated_user <- user_info()
-          updated_user$subscription <- get_user_subscription(result$user_id)
-          user_info(updated_user)
-        }
-        
-        # Send confirmation email
-        user <- get_user_info(result$user_id)
-        send_subscription_confirmation(
-          email = user$email,
-          username = user$username,
-          plan_type = result$plan_type,
-          plan_details = subscription_plans[[result$plan_type]]
-        )
-        
-      } else {
-        showNotification(
-          paste("❌ Payment verification failed:", result$error),
-          type = "error",
-          duration = 10
-        )
-      }
-    }
-    
-    # Handle OLD payment flow (for backwards compatibility or fallback)
-    # This handles URLs like ?payment=success or ?payment=cancel
-    else if (!is.null(query$payment)) {
-      if (query$payment == "success") {
-        showNotification(
-          "✅ Payment successful!", 
-          type = "message", 
-          duration = 10
-        )
-        
-        if (!is.null(user_info())) {
-          user_data <- user_info()
-          user_data$subscription <- get_user_subscription(user_data$id)
-          user_info(user_data)
-        }
-        
-      } else if (query$payment == "cancel") {
-        showNotification(
-          "⚠️ Payment cancelled.", 
-          type = "warning", 
-          duration = 5
-        )
-      }
-    }
-  })
-  
-  
-  # ============================================================================
-  # FIXED: Stripe Checkout with Language Preservation
-  # ============================================================================
-  
-  # Replace the upgrade button handlers in your app.R server with this:
-  
-  # Handle upgrades - FIXED with language preservation
-  observeEvent(input$upgrade_basic, {
-    req(user_data())
-    
-    base_url <- session$clientData$url_protocol
-    host <- session$clientData$url_hostname
-    port <- session$clientData$url_port
-    
-    # Build URLs correctly
-    if (port == "") {
-      app_url <- paste0(base_url, "//", host)
-    } else {
-      app_url <- paste0(base_url, "//", host, ":", port)
-    }
-    
-    # Get current language from query string
-    query <- parseQueryString(session$clientData$url_search)
-    lang_param <- if (!is.null(query$lang)) paste0("&lang=", query$lang) else ""
-    
-    checkout <- tryCatch({
-      create_stripe_checkout(
-        user_id = user_data()$id,
-        plan_type = "basic",
-        success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}", lang_param),
-        cancel_url = paste0(app_url, "?payment=cancel", lang_param)
-      )
-    }, error = function(err) {
-      message("Checkout error: ", err$message)
-      list(success = FALSE, error = err$message)
-    })
-    
-    if (!is.null(checkout$success) && checkout$success) {
-      session$sendCustomMessage("redirect", checkout$url)
-    } else {
-      error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
-      showNotification(paste("Error:", error_msg), type = "error", duration = 10)
-    }
-  })
-  
-  observeEvent(input$upgrade_premium, {
-    req(user_data())
-    
-    base_url <- session$clientData$url_protocol
-    host <- session$clientData$url_hostname
-    port <- session$clientData$url_port
-    
-    if (port == "") {
-      app_url <- paste0(base_url, "//", host)
-    } else {
-      app_url <- paste0(base_url, "//", host, ":", port)
-    }
-    
-    # Get current language from query string
-    query <- parseQueryString(session$clientData$url_search)
-    lang_param <- if (!is.null(query$lang)) paste0("&lang=", query$lang) else ""
-    
-    checkout <- tryCatch({
-      create_stripe_checkout(
-        user_id = user_data()$id,
-        plan_type = "premium",
-        success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}", lang_param),
-        cancel_url = paste0(app_url, "?payment=cancel", lang_param)
-      )
-    }, error = function(err) {
-      message("Checkout error: ", err$message)
-      list(success = FALSE, error = err$message)
-    })
-    
-    if (!is.null(checkout$success) && checkout$success) {
-      session$sendCustomMessage("redirect", checkout$url)
-    } else {
-      error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
-      showNotification(paste("Error:", error_msg), type = "error", duration = 10)
-    }
-  })
-  
-  
-  # ============================================================================
-  # ALSO FIX: Payment Handler to Check Language
-  # ============================================================================
-  
-  # Replace the payment handler in your app.R server:
-  
-  observe({
-    query <- parseQueryString(session$clientData$url_search)
-    
-    # Handle NEW Stripe Checkout flow (with session_id verification)
-    if (!is.null(query$session_id)) {
-      result <- verify_stripe_payment(query$session_id)
+      # ✅ NEW: Add error handling wrapper
+      result <- tryCatch({
+        verify_stripe_payment(query$session_id)
+      }, error = function(e) {
+        message("Payment verification error: ", e$message)
+        list(success = FALSE, error = paste("Verification failed:", e$message))
+      })
       
-      if (result$success) {
+      if (!is.null(result) && result$success) {
         # Determine language for notification
         lang <- query$lang %||% "de"
         success_msg <- if (lang == "de") {
@@ -500,14 +405,19 @@ server <- function(input, output, session) {
           user_info(updated_user)
         }
         
-        # Send confirmation email
-        user <- get_user_info(result$user_id)
-        send_subscription_confirmation(
-          email = user$email,
-          username = user$username,
-          plan_type = result$plan_type,
-          plan_details = subscription_plans[[result$plan_type]]
-        )
+        # ✅ NEW: Wrap email sending in tryCatch
+        tryCatch({
+          user <- get_user_info(result$user_id)
+          send_subscription_confirmation(
+            email = user$email,
+            username = user$username,
+            plan_type = result$plan_type,
+            plan_details = subscription_plans[[result$plan_type]]
+          )
+        }, error = function(e) {
+          message("Email sending failed: ", e$message)
+          # Don't fail the whole transaction if email fails
+        })
         
         # Redirect to clean URL with language preserved
         clean_url <- paste0("?lang=", lang)
@@ -568,6 +478,191 @@ server <- function(input, output, session) {
         )
       }
     }
+  })
+  
+  # ============================================================================
+  # SECTION 6: STRIPE CHECKOUT HANDLERS
+  # ============================================================================
+  
+  # ✅ FIXED: Changed user_data() to user_info() throughout
+  # Handle BASIC plan upgrade
+  observeEvent(input$upgrade_basic, {
+    req(user_info())  # ✅ FIXED: was user_data()
+    
+    # ✅ NEW: Check rate limit
+    rate_check <- check_auth_rate_limit(
+      identifier = paste0("upgrade_", user_info()$id),
+      max_attempts = 3,
+      window_minutes = 60
+    )
+    
+    if (!rate_check$allowed) {
+      showNotification(
+        rate_check$message,
+        type = "warning",
+        duration = 10
+      )
+      return()
+    }
+    
+    base_url <- session$clientData$url_protocol
+    host <- session$clientData$url_hostname
+    port <- session$clientData$url_port
+    
+    # Build URLs correctly
+    if (port == "") {
+      app_url <- paste0(base_url, "//", host)
+    } else {
+      app_url <- paste0(base_url, "//", host, ":", port)
+    }
+    
+    # Get current language from query string
+    query <- parseQueryString(session$clientData$url_search)
+    lang_param <- if (!is.null(query$lang)) paste0("&lang=", query$lang) else ""
+    
+    checkout <- tryCatch({
+      create_stripe_checkout(
+        user_id = user_info()$id,  # ✅ FIXED: was user_data()
+        plan_type = "basic",
+        success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}", lang_param),
+        cancel_url = paste0(app_url, "?payment=cancel", lang_param)
+      )
+    }, error = function(err) {
+      message("Checkout error: ", err$message)
+      list(success = FALSE, error = err$message)
+    })
+    
+    if (!is.null(checkout$success) && checkout$success) {
+      session$sendCustomMessage("redirect", checkout$url)
+    } else {
+      error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
+      showNotification(paste("Error:", error_msg), type = "error", duration = 10)
+    }
+  })
+  
+  # Handle PREMIUM plan upgrade
+  observeEvent(input$upgrade_premium, {
+    req(user_info())  # ✅ FIXED: was user_data()
+    
+    # ✅ NEW: Check rate limit
+    rate_check <- check_auth_rate_limit(
+      identifier = paste0("upgrade_", user_info()$id),
+      max_attempts = 3,
+      window_minutes = 60
+    )
+    
+    if (!rate_check$allowed) {
+      showNotification(
+        rate_check$message,
+        type = "warning",
+        duration = 10
+      )
+      return()
+    }
+    
+    base_url <- session$clientData$url_protocol
+    host <- session$clientData$url_hostname
+    port <- session$clientData$url_port
+    
+    if (port == "") {
+      app_url <- paste0(base_url, "//", host)
+    } else {
+      app_url <- paste0(base_url, "//", host, ":", port)
+    }
+    
+    # Get current language from query string
+    query <- parseQueryString(session$clientData$url_search)
+    lang_param <- if (!is.null(query$lang)) paste0("&lang=", query$lang) else ""
+    
+    checkout <- tryCatch({
+      create_stripe_checkout(
+        user_id = user_info()$id,  # ✅ FIXED: was user_data()
+        plan_type = "premium",
+        success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}", lang_param),
+        cancel_url = paste0(app_url, "?payment=cancel", lang_param)
+      )
+    }, error = function(err) {
+      message("Checkout error: ", err$message)
+      list(success = FALSE, error = err$message)
+    })
+    
+    if (!is.null(checkout$success) && checkout$success) {
+      session$sendCustomMessage("redirect", checkout$url)
+    } else {
+      error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
+      showNotification(paste("Error:", error_msg), type = "error", duration = 10)
+    }
+  })
+  
+  # ============================================================================
+  # SECTION 5B: EMAIL VERIFICATION HANDLER
+  # ============================================================================
+  
+  # Handle email verification links (?verify=TOKEN)
+  observe({
+    query <- parseQueryString(session$clientData$url_search)
+    
+    if (!is.null(query$verify)) {
+      result <- tryCatch({
+        handle_email_verification(query$verify)
+      }, error = function(e) {
+        list(success = FALSE, error = paste("Verification error:", e$message))
+      })
+      
+      lang <- query$lang %||% "de"
+      
+      if (result$success) {
+        success_msg <- if (lang == "de") {
+          "✅ Email erfolgreich verifiziert! Sie können sich jetzt anmelden."
+        } else {
+          "✅ Email verified successfully! You can now log in."
+        }
+        
+        showNotification(
+          success_msg,
+          type = "message",
+          duration = 10
+        )
+        
+        # Redirect to clean URL
+        shinyjs::delay(2000, {
+          session$sendCustomMessage("redirect", paste0("?lang=", lang))
+        })
+        
+      } else {
+        error_msg <- if (lang == "de") {
+          paste("❌ Verifizierung fehlgeschlagen:", result$error)
+        } else {
+          paste("❌ Verification failed:", result$error)
+        }
+        
+        showNotification(
+          error_msg,
+          type = "error",
+          duration = 10
+        )
+      }
+    }
+  })
+  
+  # ============================================================================
+  # SECTION 7: SESSION CLEANUP
+  # ============================================================================
+  
+  # ✅ NEW: Proper session cleanup to prevent memory leaks
+  session$onSessionEnded(function() {
+    message("🧹 Cleaning up session for user: ", 
+            ifelse(is.null(user_info()), "anonymous", user_info()$username))
+    
+    # Clear authentication data
+    user_info(NULL)
+    auth_attempts(list())
+    
+    # Force garbage collection
+    gc()
+    gc()
+    
+    message("✅ Session cleanup completed")
   })
 }
 

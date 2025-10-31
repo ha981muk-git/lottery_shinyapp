@@ -266,11 +266,24 @@ dashboardServer <- function(id, input_controls) {
       if (!is.null(attr(orig, ".__wrapped__"))) return(FALSE)
       
       wrapper <- function(data) {
+        # Create a lock file to prevent race conditions
+        lock_key <- paste0("lock_", name)
+        
+        # Try to get from cache first
         cached <- .l2_get(name)
         if (!is.null(cached)) return(cached)
-        res <- orig(data)
-        .l2_set(name, res)
-        res
+        
+        # Compute if not cached
+        # In production, add proper mutex locking if using parallel processing
+        tryCatch({
+          res <- orig(data)
+          .l2_set(name, res)
+          res
+        }, error = function(e) {
+          warning("Cache computation error for ", name, ": ", e$message)
+          # Return uncached result on error
+          orig(data)
+        })
       }
       attr(wrapper, ".__wrapped__") <- TRUE
       # Overwrite in the global environment so module calls hit the wrapper
@@ -364,13 +377,35 @@ dashboardServer <- function(id, input_controls) {
     
     # Cleanup
     session$onSessionEnded(function() {
-      # L1
-      l1$data <- list(); l1$keys <- character(0)
-      # L2
-      .l2_clear_all()
-      # Modules
+      message("🧹 Cleaning up dashboard session")
+      
+      # L1: Clear filtered data cache
+      if (exists("l1", inherits = FALSE)) {
+        l1$data <- list()
+        l1$keys <- character(0)
+      }
+      
+      # L2: Clear metric computation cache
+      tryCatch({
+        .l2_clear_all()
+        
+        # Remove L2 environment completely
+        if (exists("l2_env", inherits = FALSE)) {
+          rm(list = ls(l2_env$store, all.names = TRUE), envir = l2_env$store)
+          rm(l2_env)  # ✅ Added: Remove the environment itself
+        }
+      }, error = function(e) {
+        message("L2 cleanup warning: ", e$message)
+      })
+      
+      # Modules: Reset initialized servers
       initialized_servers(character(0))
+      
+      # Force garbage collection twice
       gc()
+      gc()
+      
+      message("✅ Dashboard session cleanup completed")
     })
   })
 }

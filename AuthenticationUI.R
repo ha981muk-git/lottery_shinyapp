@@ -153,6 +153,10 @@ auth_ui <- function(id) {
             
             # Login Form
             div(id = "login-form", class = "auth-form active",
+                tags$input(type = "hidden", 
+                           id = ns("csrf_token"),
+                           value = paste0(sample(c(0:9, letters, LETTERS), 32, replace = TRUE), 
+                                          collapse = "")),
                 div(class = "form-group",
                     tags$label("Username or Email"),
                     textInput(ns("login_user"), NULL, placeholder = "Enter username or email")

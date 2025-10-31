@@ -20,11 +20,21 @@ EMAIL_CONFIG <- list(
 # Validate configuration
 validate_email_config <- function() {
   missing <- c()
-  if (EMAIL_CONFIG$sender_email == "") missing <- c(missing, "SENDER_EMAIL")
-  if (EMAIL_CONFIG$sender_password == "") missing <- c(missing, "SENDER_PASSWORD")
+  if (is.null(EMAIL_CONFIG$sender_email) || EMAIL_CONFIG$sender_email == "") {
+    missing <- c(missing, "SENDER_EMAIL")
+  }
+  if (is.null(EMAIL_CONFIG$sender_password) || EMAIL_CONFIG$sender_password == "") {
+    missing <- c(missing, "SENDER_PASSWORD")
+  }
   
   if (length(missing) > 0) {
-    warning(paste("Missing email config:", paste(missing, collapse = ", ")))
+    warning(paste("⚠️ Email not configured. Missing:", paste(missing, collapse = ", ")))
+    # Log to file in production
+    if (file.exists("logs")) {
+      cat(paste0("[", Sys.time(), "] Email config error: ", 
+                 paste(missing, collapse = ", "), "\n"),
+          file = "logs/email_errors.log", append = TRUE)
+    }
     return(FALSE)
   }
   TRUE

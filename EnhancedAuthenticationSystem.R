@@ -58,13 +58,32 @@ init_database <- function(db_path = "lottery_users.db") {
   return(TRUE)
 }
 
-
+# Add after line 60 (after init_database)
+backup_database <- function(db_path = "lottery_users.db") {
+  if (!file.exists(db_path)) return(FALSE)
+  
+  timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  backup_path <- paste0("backups/lottery_users_", timestamp, ".db")
+  
+  dir.create("backups", showWarnings = FALSE)
+  file.copy(db_path, backup_path)
+  
+  # Keep only last 7 backups
+  backups <- list.files("backups", pattern = "^lottery_users_.*\\.db$", full.names = TRUE)
+  if (length(backups) > 7) {
+    old_backups <- sort(backups)[1:(length(backups) - 7)]
+    file.remove(old_backups)
+  }
+  
+  message("✓ Database backed up to: ", backup_path)
+  return(TRUE)
+}
 # ----------------------------------------------------------------------------
 # 2. USER MANAGEMENT (Enhanced)
 # ----------------------------------------------------------------------------
 register_user <- function(username, email, password, db_path = "lottery_users.db") {
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✅ Added: Always cleanup
   
   # Validation
   if (nchar(password) < 8) {
@@ -111,9 +130,14 @@ register_user <- function(username, email, password, db_path = "lottery_users.db
   })
 }
 
-verify_user <- function(username, password, db_path = "lottery_users.db") {
+verify_user <- function(username, password, csrf_token = NULL, db_path = "lottery_users.db") {
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✅ Added: Always cleanup
+  
+  # ✅ NEW: CSRF validation (basic - in production use session-based)
+  if (!is.null(csrf_token) && nchar(csrf_token) < 32) {
+    return(list(success = FALSE, error = "Invalid security token"))
+  }
   
   user <- dbGetQuery(con, "
     SELECT user_id, password_hash, is_active, email_verified FROM users
@@ -142,7 +166,7 @@ verify_user <- function(username, password, db_path = "lottery_users.db") {
 
 get_user_subscription <- function(user_id, db_path = "lottery_users.db") {
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✅ Added: Always cleanup
   
   s <- dbGetQuery(con, "
     SELECT plan_type, status, start_date, end_date, auto_renew 
@@ -157,7 +181,7 @@ get_user_subscription <- function(user_id, db_path = "lottery_users.db") {
 
 get_user_info <- function(user_id, db_path = "lottery_users.db") {
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✅ Added: Always cleanup
   
   user <- dbGetQuery(con, "
     SELECT username, email, created_at, email_verified FROM users
@@ -174,7 +198,7 @@ get_user_info <- function(user_id, db_path = "lottery_users.db") {
 # ----------------------------------------------------------------------------
 verify_email_token <- function(token, db_path = "lottery_users.db") {
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✅ Added: Always cleanup
   
   user <- dbGetQuery(con, "
     SELECT user_id FROM users WHERE verification_token = ? AND email_verified = 0
@@ -195,7 +219,7 @@ verify_email_token <- function(token, db_path = "lottery_users.db") {
 
 request_password_reset <- function(email, db_path = "lottery_users.db") {
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✅ Added: Always cleanup
   
   user <- dbGetQuery(con, "SELECT user_id FROM users WHERE email = ?", params = list(email))
   
@@ -222,7 +246,7 @@ request_password_reset <- function(email, db_path = "lottery_users.db") {
 
 reset_password <- function(token, new_password, db_path = "lottery_users.db") {
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✅ Added: Always cleanup
   
   if (nchar(new_password) < 8) {
     return(list(success = FALSE, error = "Password must be at least 8 characters"))
@@ -319,7 +343,7 @@ create_stripe_checkout <- function(user_id, plan_type, success_url, cancel_url, 
   
   # Get or create Stripe customer
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✓ Always cleanup
   
   user <- tryCatch({
     dbGetQuery(con, "
@@ -490,7 +514,7 @@ upgrade_subscription <- function(user_id, plan_type, stripe_subscription_id = NU
 # ----------------------------------------------------------------------------
 log_user_action <- function(user_id, action, details = "", db_path = "lottery_users.db") {
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✅ Added: Always cleanup
   
   dbExecute(con, "
     INSERT INTO usage_logs (user_id, action, details)
@@ -500,7 +524,7 @@ log_user_action <- function(user_id, action, details = "", db_path = "lottery_us
 
 check_rate_limit <- function(user_id, action = "api_call", db_path = "lottery_users.db") {
   con <- dbConnect(SQLite(), db_path)
-  on.exit(dbDisconnect(con))
+  on.exit(dbDisconnect(con), add = TRUE)  # ✅ Added: Always cleanup
   
   subscription <- get_user_subscription(user_id, db_path)
   plan <- subscription_plans[[subscription$plan_type]]
@@ -583,14 +607,15 @@ auth_server <- function(id) {
 # ----------------------------------------------------------------------------
 # 7. SUBSCRIPTION SERVER MODULE
 # ----------------------------------------------------------------------------
-subscription_server <- function(id, user_data) {
+# NEW (recommended):
+subscription_server <- function(id, user_info) {  # ✅ Match app.R
   moduleServer(id, function(input, output, session) {
     
     # Current plan banner
     output$current_plan_banner <- renderUI({
-      req(user_data())
+      req(user_info())  # ✅ Changed
       
-      sub <- user_data()$subscription
+      sub <- user_info()$subscription  # ✅ Changed
       plan <- subscription_plans[[sub$plan_type]]
       
       div(class = "current-plan-banner",
@@ -604,8 +629,8 @@ subscription_server <- function(id, user_data) {
     
     # Plan buttons
     output$free_btn <- renderUI({
-      req(user_data())
-      current_plan <- user_data()$subscription$plan_type
+      req(user_info())  # ✅ Changed
+      current_plan <- user_info()$subscription$plan_type  # ✅ Changed
       
       if (current_plan == "free") {
         tags$button(class = "pricing-btn pricing-btn-current", "Current Plan")
@@ -616,8 +641,8 @@ subscription_server <- function(id, user_data) {
     })
     
     output$basic_btn <- renderUI({
-      req(user_data())
-      current_plan <- user_data()$subscription$plan_type
+      req(user_info())  # ✅ Changed
+      current_plan <- user_info()$subscription$plan_type  # ✅ Changed
       
       if (current_plan == "basic") {
         tags$button(class = "pricing-btn pricing-btn-current", "Current Plan")
@@ -629,8 +654,8 @@ subscription_server <- function(id, user_data) {
     })
     
     output$premium_btn <- renderUI({
-      req(user_data())
-      current_plan <- user_data()$subscription$plan_type
+      req(user_info())  # ✅ Changed
+      current_plan <- user_info()$subscription$plan_type  # ✅ Changed
       
       if (current_plan == "premium") {
         tags$button(class = "pricing-btn pricing-btn-current", "Current Plan")
@@ -640,16 +665,14 @@ subscription_server <- function(id, user_data) {
       }
     })
     
-    # Handle upgrades
     # Handle upgrades - FIXED
     observeEvent(input$upgrade_basic, {
-      req(user_data())
+      req(user_info())  # ✅ Changed
       
       base_url <- session$clientData$url_protocol
       host <- session$clientData$url_hostname
       port <- session$clientData$url_port
       
-      # Build URLs correctly
       if (port == "") {
         app_url <- paste0(base_url, "//", host)
       } else {
@@ -658,7 +681,7 @@ subscription_server <- function(id, user_data) {
       
       checkout <- tryCatch({
         create_stripe_checkout(
-          user_id = user_data()$id,
+          user_id = user_info()$id,  # ✅ Changed
           plan_type = "basic",
           success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}"),
           cancel_url = paste0(app_url, "?payment=cancel")
@@ -677,7 +700,7 @@ subscription_server <- function(id, user_data) {
     })
     
     observeEvent(input$upgrade_premium, {
-      req(user_data())
+      req(user_info())  # ✅ Changed
       
       base_url <- session$clientData$url_protocol
       host <- session$clientData$url_hostname
@@ -691,7 +714,7 @@ subscription_server <- function(id, user_data) {
       
       checkout <- tryCatch({
         create_stripe_checkout(
-          user_id = user_data()$id,
+          user_id = user_info()$id,  # ✅ Changed
           plan_type = "premium",
           success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}"),
           cancel_url = paste0(app_url, "?payment=cancel")

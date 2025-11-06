@@ -53,12 +53,29 @@ source_safe <- function(file) {
   })
 }
 
+# --- Core app modules and utilities ---
 source_safe("translations.R")
 source_safe("PrepareData.R")
 source_safe("DashboardModule.R")
+
+# --- Authentication system ---
 source_safe("EnhancedAuthenticationSystem.R")
 source_safe("AuthenticationUI.R")
-source_safe("EmailVerificationSystem.R")  # Add this!
+source_safe("EmailVerificationSystem.R")
+source_safe("AuthManager.R")
+source_safe("ShinyAuthManager.R")
+
+# --- Subscription & payment management ---
+source_safe("SubscriptionManager.R")
+source_safe("ShinySubscriptionModules.R")
+source_safe("StripeManager.R")
+
+# --- Database & configuration ---
+source_safe("DatabaseManager.R")
+
+# (Optional) Only if you use helper scripts for setup or data loading
+# source_safe("requirements.R")
+
 
 # Initialize database
 if (!file.exists("lottery_users.db")) init_database()
@@ -401,13 +418,16 @@ server <- function(input, output, session) {
         # Refresh user data
         if (!is.null(user_info())) {
           updated_user <- user_info()
-          updated_user$subscription <- get_user_subscription(result$user_id)
+          updated_user$subscription <- get_user_subscription(user_info()$id)
           user_info(updated_user)
         }
         
+        
         # ✅ NEW: Wrap email sending in tryCatch
         tryCatch({
-          user <- get_user_info(result$user_id)
+          uid <- result$user_id %||% user_info()$id  # fallback if Stripe result doesn’t include ID
+          user <- get_user_info(uid)
+          
           send_subscription_confirmation(
             email = user$email,
             username = user$username,
@@ -418,6 +438,7 @@ server <- function(input, output, session) {
           message("Email sending failed: ", e$message)
           # Don't fail the whole transaction if email fails
         })
+        
         
         # Redirect to clean URL with language preserved
         clean_url <- paste0("?lang=", lang)

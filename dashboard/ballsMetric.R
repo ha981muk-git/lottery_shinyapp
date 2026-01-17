@@ -371,28 +371,21 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       x_positions <- 1:6
       ball_labels <- sapply(1:6, function(i) t(paste0("ball_", i), lang))
       
-      # Loop through each row in filtered_data and add a line trace
-      for(row in 1:nrow(data)) {
-        y_values <- c(
-          data[[row, "ball_1"]],
-          data[[row, "ball_2"]],
-          data[[row, "ball_3"]],
-          data[[row, "ball_4"]],
-          data[[row, "ball_5"]],
-          data[[row, "ball_6"]]
-        )
-        
-        p <- add_trace(p,
-                       x = x_positions,
-                       y = y_values,
-                       type = 'scatter',
-                       mode = 'lines+markers',
-                       line = list(color = 'rgba(255,255,255,0.3)', width = 1),
-                       marker = list(size = 4, color = 'rgba(255,255,255,0.4)'),
-                       hoverinfo = 'y+x',
-                       showlegend = FALSE,
-                       name = paste("Row", row))
-      }
+      # Optimize: Pivot data to long format for single-trace plotting
+      # This replaces the slow for-loop that added a trace per row
+      plot_data <- data %>%
+        dplyr::mutate(draw_id = row_number()) %>%
+        tidyr::pivot_longer(cols = starts_with("ball_"), names_to = "ball", values_to = "value") %>%
+        dplyr::mutate(ball_num = as.numeric(gsub("ball_", "", ball)))
+
+      p <- plot_ly(plot_data, x = ~ball_num, y = ~value, split = ~draw_id,
+                   type = 'scatter',
+                   mode = 'lines+markers',
+                   line = list(color = 'rgba(255,255,255,0.3)', width = 1),
+                   marker = list(size = 4, color = 'rgba(255,255,255,0.4)'),
+                   hoverinfo = 'y+x',
+                   showlegend = FALSE,
+                   name = ~paste("Row", draw_id))
       
       p %>%
         layout(

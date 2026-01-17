@@ -1,3 +1,14 @@
+# Helper for consistent chart cards to reduce code duplication
+create_chart_card <- function(ns, title_id, desc_id, plot_id, height = "400px", style = "") {
+  div(
+    class = "content-card",
+    style = style,
+    uiOutput(ns(title_id)),
+    p(class = "info-text", uiOutput(ns(desc_id))),
+    plotlyOutput(ns(plot_id), height = height)
+  )
+}
+
 # UI Module
 lotteryInputUI <- function(id, lang = "de") {
   ns <- NS(id)

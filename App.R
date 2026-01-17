@@ -122,112 +122,11 @@ ui <- function(request) {
       
       # Existing stylesheets and scripts
       tags$link(rel = "stylesheet", type = "text/css", href = "Home.css"),
+      tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
+      tags$script(src = "custom.js"),
+      
       useShinyjs(),
-      use_waiter(),
-      
-      # ✅ OPTIMIZED INLINE STYLES WITH GPU ACCELERATION
-      tags$style(HTML("
-            @keyframes shimmer {
-              0% { background-position: -200% 0; }
-              100% { background-position: 200% 0; }
-            }
-            @keyframes fadeIn {
-              from { opacity: 0; transform: translateY(5px) translateZ(0); }
-              to { opacity: 1; transform: translateY(0) translateZ(0); }
-            }
-            .skeleton-card {
-              height: 200px;
-              background: linear-gradient(90deg, 
-                rgba(139,92,246,0.08) 25%, 
-                rgba(139,92,246,0.15) 50%, 
-                rgba(139,92,246,0.08) 75%);
-              background-size: 200% 100%;
-              animation: shimmer 1.2s linear infinite;
-              will-change: background-position;
-              border-radius: 12px;
-              margin-bottom: 20px;
-            }
-            .metric-container {
-              animation: fadeIn 0.3s ease-out;
-              will-change: opacity, transform;
-            }
-            @media (prefers-reduced-motion: reduce) {
-              * { animation: none !important; transition: none !important; }
-            }
-      ")),
-      
-      # ✅ FIX: STOP MUTATIONOBSERVER AFTER 3 SECONDS + DEBOUNCE
-      tags$script(HTML("
-        $(document).ready(function() {
-          let debounceTimer;
-          function fixSidebarOverlay() {
-            $('.bslib-sidebar-layout > .main').css({
-              'opacity': '1',
-              'filter': 'none',
-              'pointer-events': 'auto',
-              'transition': 'none'
-            });
-            $('.sidebar-backdrop, .bslib-sidebar-backdrop').remove();
-            $('.bslib-sidebar-layout').css({
-              'display': 'grid',
-              'grid-template-columns': 'auto 1fr',
-              'gap': '20px'
-            });
-          }
-          fixSidebarOverlay();
-          setTimeout(fixSidebarOverlay, 100);
-          setTimeout(fixSidebarOverlay, 500);
-          
-          // Debounced observer - only runs every 100ms
-          const observer = new MutationObserver(() => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(fixSidebarOverlay, 100);
-          });
-          observer.observe(document.body, { childList: true, subtree: true });
-          
-          // CRITICAL: Stop observing after 3 seconds - sidebar is stable
-          setTimeout(() => observer.disconnect(), 3000);
-        });
-      ")),
-      
-      # Responsive sidebar toggle
-      tags$script(HTML("
-        $(document).ready(function() {
-          const toggleButton = $('<button class=\"sidebar-toggle-btn\">☰ Menü</button>')
-            .css({
-              position: 'fixed',
-              top: '15px',
-              left: '15px',
-              background: '#8b5cf6',
-              color: '#fff',
-              border: 'none',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '18px',
-              cursor: 'pointer',
-              zIndex: 2000,
-              display: 'none'
-            })
-            .appendTo('body')
-            .on('click', function() {
-              const layout = document.querySelector('.bslib-sidebar-layout');
-              if (layout) {
-                const open = layout.dataset.sidebarOpen === 'true';
-                layout.dataset.sidebarOpen = !open;
-              }
-            });
-
-          function checkScreen() {
-            if (window.innerWidth < 768) {
-              toggleButton.show();
-            } else {
-              toggleButton.hide();
-            }
-          }
-          checkScreen();
-          $(window).on('resize', checkScreen);
-        });
-      "))
+      use_waiter()
     ),
     
     # ✅ Language switcher

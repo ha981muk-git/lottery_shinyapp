@@ -27,18 +27,8 @@ sumsMetricUI <- function(id) {
         width = 1/2,
         heights_equal = "row",
         gap = "20px",
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle1")),
-          p(class = "info-text", uiOutput(ns("chartDesc1"))),
-          plotlyOutput(ns("hist"), height = "400px")
-        ),
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle2")),
-          p(class = "info-text", uiOutput(ns("chartDesc2"))),
-          plotlyOutput(ns("trend"), height = "400px")
-        )
+        create_chart_card(ns, "chartTitle1", "chartDesc1", "hist"),
+        create_chart_card(ns, "chartTitle2", "chartDesc2", "trend")
       ),
       
       # Range Analysis and Box Plot Row
@@ -46,28 +36,12 @@ sumsMetricUI <- function(id) {
         width = 1/2,
         gap = "20px",
         heights_equal = "row",
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle3")),
-          p(class = "info-text", uiOutput(ns("chartDesc3"))),
-          plotlyOutput(ns("rangeChart"), height = "400px")
-        ),
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle4")),
-          p(class = "info-text", uiOutput(ns("chartDesc4"))),
-          plotlyOutput(ns("boxPlot"), height = "400px")
-        )
+        create_chart_card(ns, "chartTitle3", "chartDesc3", "rangeChart"),
+        create_chart_card(ns, "chartTitle4", "chartDesc4", "boxPlot")
       ),
       
       # Moving Average and Volatility
-      div(
-        class = "content-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("chartTitle5")),
-        p(class = "info-text", uiOutput(ns("chartDesc5"))),
-        plotlyOutput(ns("movingAvg"), height = "400px")
-      )
+      create_chart_card(ns, "chartTitle5", "chartDesc5", "movingAvg", style = "margin-top: 20px;")
     )
   )
 }

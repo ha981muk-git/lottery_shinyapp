@@ -8,6 +8,22 @@ create_chart_card <- function(ns, title_id, desc_id = NULL, plot_id, height = "4
     plotlyOutput(ns(plot_id), height = height)
   )
 }
+# --- Helpers for Reducing Boilerplate & Speed ---
+
+render_title <- function(key, get_lang_fn, icon = NULL) {
+  renderUI({
+    lang <- get_lang_fn()
+    txt <- t(key, lang)
+    if (!is.null(icon)) div(class = "chart-title", span(icon), span(txt))
+    else div(class = "chart-title", txt)
+  })
+}
+
+render_desc <- function(key, get_lang_fn) {
+  renderUI({
+    t(key, get_lang_fn())
+  })
+}
 
 # UI Module
 lotteryInputUI <- function(id, lang = "de") {

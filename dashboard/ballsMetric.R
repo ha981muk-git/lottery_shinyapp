@@ -14,14 +14,9 @@ ballsMetricUI <- function(id) {
         # Header will be rendered dynamically in server
         uiOutput(ns("header"))
       ),
-      layout_column_wrap(
-        width = 1/4,
-        heights_equal = "row",
-        uiOutput(ns("metricCard1")),
-        uiOutput(ns("metricCard2")),
-        uiOutput(ns("metricCard3")),
-        uiOutput(ns("metricCard4"))
-      ),
+      # Consolidated Metric Row (Faster Rendering)
+      uiOutput(ns("metricRow")),
+      
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
@@ -87,30 +82,11 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     })
     
     # Chart titles
-    output$trendChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_trend_title", lang))
-    })
-    
-    output$distributionChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_distribution_title", lang))
-    })
-    
-    output$densityChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_chart_density", lang))
-    })
-    
-    output$overviewChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_overview_title", lang))
-    })
-    
-    output$lineChartTitle <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", t("balls_line_chart_title", lang))
-    })
+    output$trendChartTitle <- render_title("balls_trend_title", get_lang)
+    output$distributionChartTitle <- render_title("balls_distribution_title", get_lang)
+    output$densityChartTitle <- render_title("balls_chart_density", get_lang)
+    output$overviewChartTitle <- render_title("balls_overview_title", get_lang)
+    output$lineChartTitle <- render_title("balls_line_chart_title", get_lang)
     
     create_metric_card <- function(title, value, value_symbol) {
       div(
@@ -120,52 +96,35 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       )
     }
     
-    output$metricCard1 <- renderUI({
+    # Consolidated Metric Row Renderer
+    output$metricRow <- renderUI({
       lang <- get_lang()
       data <- filtered_data()
+      
+      # Calc 1
       selected <- nrow(data)
       total_counts <- nrow(generate_metrics())
       change <- (selected/total_counts) * 100
-      create_metric_card(
-        t("balls_metric_coverage", lang),
-        paste0("", format(round(change), big.mark = ",")),
-        "%"
-      )
-    })
-    
-    output$metricCard2 <- renderUI({
-      lang <- get_lang()
-      data <- filtered_data()
-      n_tickets <- nrow(data)
-      create_metric_card(
-        t("balls_metric_occurrence", lang),
-        format(round(n_tickets)),
-        ""
-      )
-    })
-    
-    output$metricCard3 <- renderUI({
-      lang <- get_lang()
-      data <- filtered_data()
+      
+      # Calc 2
+      n_tickets <- selected
+      
+      # Calc 3
       N_Tickets <- 13983816
-      n_tickets <- nrow(data)
       chance <- n_tickets / N_Tickets * 100
-      create_metric_card(
-        t("balls_metric_chance", lang),
-        paste0(format(chance, digits = 2)),
-        "%"
-      )
-    })
-    
-    output$metricCard4 <- renderUI({
-      lang <- get_lang()
+      
+      # Calc 4
       num_from <- as.numeric(input_controls()$range[1])
       num_to <- as.numeric(input_controls()$range[2])
       difference <- num_to - num_from + 1
-      create_metric_card(
-        t("balls_metric_range", lang),
-        difference,
-        ""
+      
+      layout_column_wrap(
+        width = 1/4,
+        heights_equal = "row",
+        create_metric_card(t("balls_metric_coverage", lang), paste0("", format(round(change), big.mark = ",")), "%"),
+        create_metric_card(t("balls_metric_occurrence", lang), format(round(n_tickets)), ""),
+        create_metric_card(t("balls_metric_chance", lang), paste0(format(chance, digits = 2)), "%"),
+        create_metric_card(t("balls_metric_range", lang), difference, "")
       )
     })
     
@@ -385,7 +344,8 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
                    marker = list(size = 4, color = 'rgba(255,255,255,0.4)'),
                    hoverinfo = 'y+x',
                    showlegend = FALSE,
-                   name = ~paste("Row", draw_id))
+                   name = ~paste("Row", draw_id)) %>%
+        toWebGL() # GPU Acceleration for many lines
       
       p %>%
         layout(

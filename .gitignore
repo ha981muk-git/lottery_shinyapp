@@ -8,3 +8,4 @@ lottery_users.db
 .RData
 .DS_Store
 rsconnect/
+.Rproj.user

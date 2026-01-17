@@ -252,9 +252,16 @@ dashboardServer <- function(id, input_controls) {
     }
     
     .l2_clear_metric_for_current_filter <- function(metric_name) {
-      current_suffix <- paste0("|", getOption("li_filter_key", "nokey"))
-      to_remove <- grep(paste0("^", metric_name, "\", current_suffix, "$"), l2_env$keys, value = TRUE)
-      if (length(to_remove)) {
+      # Correctly construct the regex pattern to clear the specific metric from the L2 cache.
+      # The key is in the format 'metricNameMetricCompute|filter_key'.
+      # The pipe '|' must be escaped for the regex to work correctly.
+      metric_compute_name <- paste0(metric_name, "MetricCompute")
+      current_suffix <- getOption("li_filter_key", "nokey")
+      pattern <- paste0("^", metric_compute_name, "\\|", current_suffix, "$")
+      
+      to_remove <- grep(pattern, l2_env$keys, value = TRUE)
+      
+      if (length(to_remove) > 0) {
         rm(list = to_remove, envir = l2_env$store)
         l2_env$keys <- setdiff(l2_env$keys, to_remove)
       }

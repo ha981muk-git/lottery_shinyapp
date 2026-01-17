@@ -18,10 +18,14 @@ options(
   repos = c(CRAN = "https://cloud.r-project.org/"),
   shiny.error = function(e) {
     message("[Shiny Error] ", Sys.time(), " - ", e$message)
-    showNotification("Ein unerwarteter Fehler ist aufgetreten. Bitte laden Sie die Seite neu.", type = "error")
+    # Only show notification if there is an active Shiny session
+    session <- shiny::getDefaultReactiveDomain()
+    if (!is.null(session)) {
+      shiny::showNotification("Ein unerwarteter Fehler ist aufgetreten. Bitte laden Sie die Seite neu.", type = "error", session = session)
+    }
   },
   shiny.fullstacktrace = FALSE,
-  mc.cores = min(2, parallel::detectCores() - 1)
+  mc.cores = max(1, min(2, parallel::detectCores() - 1))
 )
 
 Sys.setenv(R_THREADS = 1)

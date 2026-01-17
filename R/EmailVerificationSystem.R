@@ -135,7 +135,7 @@ email_template <- function(title, content, cta_text = NULL, cta_url = NULL) {
             <td style="background: #f8f9fa; padding: 25px 30px; text-align: center; border-top: 1px solid #e0e0e0;">
               <p style="margin: 0 0 10px 0; color: #999; font-size: 13px;">
                 This email was sent from Lottery Insights.<br>
-                If you didn\&#39;t request this, please ignore this email.
+                If you didn&#39;t request this, please ignore this email.
               </p>
               <p style="margin: 0; color: #999; font-size: 12px;">
                 © %s Lottery Insights | Educational Platform Only
@@ -191,7 +191,7 @@ send_password_reset_email <- function(email, username, token) {
   
   content <- sprintf(' 
     <p>Hi <strong>%s</strong>,</p>
-    <p>We received a request to reset your password. If you didn\&#39;t make this request, you can safely ignore this email.</p>
+    <p>We received a request to reset your password. If you didn&#39;t make this request, you can safely ignore this email.</p>
     <p style="background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;">
       <strong>⏱ This link expires in 1 hour</strong> for security reasons.
     </p>
@@ -342,7 +342,7 @@ password_reset_server <- function(id, reset_token) {
       
       if (input$new_password != input$confirm_password) {
         output$reset_status <- renderUI({
-          div(class = "auth-status error", "❌ Passwords don\&#39;t match")
+          div(class = "auth-status error", "❌ Passwords don't match")
         })
         return()
       }

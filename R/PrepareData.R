@@ -144,7 +144,7 @@ create_data_loader <- function(file_path = NULL) {
     # Remove empty rows and junk columns (x2 / ...2)
     data <- data %>% 
       dplyr::filter(!dplyr::if_all(dplyr::everything(), ~ is.na(.) | . == "")) %>% 
-      dplyr::select(-dplyr::matches("^x\d+$"), -dplyr::matches("^\.\.\d+$")) 
+      dplyr::select(-dplyr::matches("^x\\d+$"), -dplyr::matches("^\\.\\.\\d+$")) 
     
     # ======================================================================== 
     # STEP 5: VALIDATE AND CONVERT DATES
@@ -155,7 +155,7 @@ create_data_loader <- function(file_path = NULL) {
       dplyr::mutate(datum = trimws(datum)) 
     
     # Validate date format (DD.MM.YYYY)
-    valid_date_pattern <- "^\d{2}\.\d{2}\.\d{4}$" 
+    valid_date_pattern <- "^\\d{2}\\.\\d{2}\\.\\d{4}$" 
     invalid_dates <- data %>% 
       dplyr::filter(!grepl(valid_date_pattern, datum)) 
     

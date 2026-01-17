@@ -52,13 +52,7 @@ lagMetricUI <- function(id) {
       ),
       
       # Distribution Chart
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle1")),
-        p(class = "info-text", uiOutput(ns("chartDesc1"))),
-        plotlyOutput(ns("lagDistribution"), height = "500px")
-      ),
+      create_chart_card(ns, "chartTitle1", "chartDesc1", "lagDistribution", height = "500px", style = "margin-top: 25px;"),
       
       # Jump Preference Charts
       layout_column_wrap(
@@ -66,28 +60,12 @@ lagMetricUI <- function(id) {
         heights_equal = "row",
         gap = "20px",
         fill = FALSE,
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle2")),
-          p(class = "info-text", uiOutput(ns("chartDesc2"))),
-          plotlyOutput(ns("positiveJumps"), height = "400px")
-        ),
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle3")),
-          p(class = "info-text", uiOutput(ns("chartDesc3"))),
-          plotlyOutput(ns("negativeJumps"), height = "400px")
-        )
+        create_chart_card(ns, "chartTitle2", "chartDesc2", "positiveJumps"),
+        create_chart_card(ns, "chartTitle3", "chartDesc3", "negativeJumps")
       ),
       
       # Jump Categories
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle4")),
-        p(class = "info-text", uiOutput(ns("chartDesc4"))),
-        plotlyOutput(ns("jumpCategories"), height = "450px")
-      ),
+      create_chart_card(ns, "chartTitle4", "chartDesc4", "jumpCategories", height = "450px", style = "margin-top: 25px;"),
       
       # Heatmap and Q-Q Plot
       layout_column_wrap(
@@ -95,28 +73,12 @@ lagMetricUI <- function(id) {
         heights_equal = "row",
         gap = "20px",
         fill = FALSE,
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle5")),
-          p(class = "info-text", uiOutput(ns("chartDesc5"))),
-          plotlyOutput(ns("lagHeatmap"), height = "450px")
-        ),
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle6")),
-          p(class = "info-text", uiOutput(ns("chartDesc6"))),
-          plotlyOutput(ns("qqPlot"), height = "450px")
-        )
+        create_chart_card(ns, "chartTitle5", "chartDesc5", "lagHeatmap", height = "450px"),
+        create_chart_card(ns, "chartTitle6", "chartDesc6", "qqPlot", height = "450px")
       ),
       
       # Preferred Zones
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle7")),
-        p(class = "info-text", uiOutput(ns("chartDesc7"))),
-        plotlyOutput(ns("preferredZones"), height = "450px")
-      ),
+      create_chart_card(ns, "chartTitle7", "chartDesc7", "preferredZones", height = "450px", style = "margin-top: 25px;"),
       
       # Statistical Summary
       div(

@@ -27,22 +27,10 @@ differenceMetricUI <- function(id) {
       # Add this section after the "Range Categories" div and before "Trend and Box Plot"
       
       # Density Distribution Analysis
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle_density")),
-        p(class = "info-text", uiOutput(ns("chartDesc_density"))),
-        plotlyOutput(ns("densityDistribution"), height = "450px")
-      ),
+      create_chart_card(ns, "chartTitle_density", "chartDesc_density", "densityDistribution", height = "450px", style = "margin-top: 25px;"),
       
       # Main Frequency Distribution
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle1")),
-        p(class = "info-text", uiOutput(ns("chartDesc1"))),
-        plotlyOutput(ns("rangeFreq"), height = "450px")
-      ),
+      create_chart_card(ns, "chartTitle1", "chartDesc1", "rangeFreq", height = "450px", style = "margin-top: 25px;"),
       
       # Hot and Cold Ranges
       layout_column_wrap(
@@ -50,28 +38,12 @@ differenceMetricUI <- function(id) {
         heights_equal = "row",
         gap = "20px",
         fill = FALSE,
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle2")),
-          p(class = "info-text", uiOutput(ns("chartDesc2"))),
-          plotlyOutput(ns("hotRanges"), height = "400px")
-        ),
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle3")),
-          p(class = "info-text", uiOutput(ns("chartDesc3"))),
-          plotlyOutput(ns("coldRanges"), height = "400px")
-        )
+        create_chart_card(ns, "chartTitle2", "chartDesc2", "hotRanges"),
+        create_chart_card(ns, "chartTitle3", "chartDesc3", "coldRanges")
       ),
       
       # Range Categories
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle4")),
-        p(class = "info-text", uiOutput(ns("chartDesc4"))),
-        plotlyOutput(ns("rangeCategories"), height = "450px")
-      ),
+      create_chart_card(ns, "chartTitle4", "chartDesc4", "rangeCategories", height = "450px", style = "margin-top: 25px;"),
       
       # Trend and Box Plot
       layout_column_wrap(
@@ -79,28 +51,12 @@ differenceMetricUI <- function(id) {
         heights_equal = "row",
         gap = "20px",
         fill = FALSE,
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle5")),
-          p(class = "info-text", uiOutput(ns("chartDesc5"))),
-          plotlyOutput(ns("rangeTrend"), height = "400px")
-        ),
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle6")),
-          p(class = "info-text", uiOutput(ns("chartDesc6"))),
-          plotlyOutput(ns("rangeBox"), height = "400px")
-        )
+        create_chart_card(ns, "chartTitle5", "chartDesc5", "rangeTrend"),
+        create_chart_card(ns, "chartTitle6", "chartDesc6", "rangeBox")
       ),
       
       # Heatmap
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle7")),
-        p(class = "info-text", uiOutput(ns("chartDesc7"))),
-        plotlyOutput(ns("rangeHeatmap"), height = "400px")
-      ),
+      create_chart_card(ns, "chartTitle7", "chartDesc7", "rangeHeatmap", style = "margin-top: 25px;"),
       
       # Range Guide
       div(

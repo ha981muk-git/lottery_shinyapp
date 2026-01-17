@@ -20,36 +20,18 @@ oddsEvensMetricUI <- function(id) {
       ),
       
       # Pascal Triangle Distribution Card
-      div(
-        class = "content-card",
-        uiOutput(ns("chartTitle1")),
-        p(class = "info-text", uiOutput(ns("chartDesc1"))),
-        plotlyOutput(ns("pascalChart"), height = "450px")
-      ),
+      create_chart_card(ns, "chartTitle1", "chartDesc1", "pascalChart", height = "450px"),
       
       # Charts Row
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle2")),
-          plotlyOutput(ns("pie"), height = "350px")
-        ),
-        div(
-          class = "content-card",
-          uiOutput(ns("chartTitle3")),
-          plotlyOutput(ns("trendLine"), height = "350px")
-        )
+        create_chart_card(ns, "chartTitle2", NULL, "pie", height = "350px"),
+        create_chart_card(ns, "chartTitle3", NULL, "trendLine", height = "350px")
       ),
       
       # Stacked Bar Chart
-      div(
-        class = "content-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("chartTitle4")),
-        plotlyOutput(ns("stacked"), height = "400px")
-      )
+      create_chart_card(ns, "chartTitle4", NULL, "stacked", style = "margin-top: 20px;")
     )
   )
 }

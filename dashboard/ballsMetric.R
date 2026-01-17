@@ -96,35 +96,48 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       )
     }
     
-    # Consolidated Metric Row Renderer
-    output$metricRow <- renderUI({
-      lang <- get_lang()
+    # Calculate metrics separately (Best Practice: Separation of Concerns)
+    metrics_stats <- reactive({
       data <- filtered_data()
+      controls <- input_controls()
       
       # Calc 1
       selected <- nrow(data)
       total_counts <- nrow(generate_metrics())
-      change <- (selected/total_counts) * 100
+      coverage <- (selected/total_counts) * 100
       
       # Calc 2
-      n_tickets <- selected
+      occurrence <- selected
       
       # Calc 3
       N_Tickets <- 13983816
-      chance <- n_tickets / N_Tickets * 100
+      chance <- occurrence / N_Tickets * 100
       
       # Calc 4
-      num_from <- as.numeric(input_controls()$range[1])
-      num_to <- as.numeric(input_controls()$range[2])
+      num_from <- as.numeric(controls$range[1])
+      num_to <- as.numeric(controls$range[2])
       difference <- num_to - num_from + 1
+      
+      list(
+        coverage = coverage,
+        occurrence = occurrence,
+        chance = chance,
+        difference = difference
+      )
+    })
+    
+    # Consolidated Metric Row Renderer
+    output$metricRow <- renderUI({
+      lang <- get_lang()
+      stats <- metrics_stats()
       
       layout_column_wrap(
         width = 1/4,
         heights_equal = "row",
-        create_metric_card(t("balls_metric_coverage", lang), paste0("", format(round(change), big.mark = ",")), "%"),
-        create_metric_card(t("balls_metric_occurrence", lang), format(round(n_tickets)), ""),
-        create_metric_card(t("balls_metric_chance", lang), paste0(format(chance, digits = 2)), "%"),
-        create_metric_card(t("balls_metric_range", lang), difference, "")
+        create_metric_card(t("balls_metric_coverage", lang), paste0("", format(round(stats$coverage), big.mark = ",")), "%"),
+        create_metric_card(t("balls_metric_occurrence", lang), format(round(stats$occurrence)), ""),
+        create_metric_card(t("balls_metric_chance", lang), paste0(format(stats$chance, digits = 2)), "%"),
+        create_metric_card(t("balls_metric_range", lang), stats$difference, "")
       )
     })
     

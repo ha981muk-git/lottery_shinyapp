@@ -55,7 +55,8 @@ lotteryInputUI <- function(id, lang = "de") {
     actionButton(ns("refresh"), 
                  t("input_refresh", lang), 
                  class = "btn-primary w-100",
-                 style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;")
+                 style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;"
+    )
   )
 }
 
@@ -67,7 +68,7 @@ lotteryInputServer <- function(id) {
     minDistance <- 6
     
     # Validate range slider - prevent invalid ranges
-    observeEvent(input$range, {
+    observeEvent(input$range, { 
       minVal <- input$range[1]
       maxVal <- input$range[2]
       if ((maxVal - minVal) < minDistance) {
@@ -103,9 +104,11 @@ dashboardUI <- function(id) {
     div(id = ns("skeleton-loader"),
         style = "padding: 20px;",
         div(class = "skeleton-card",
-            style = "height: 200px; background: linear-gradient(90deg, rgba(139,92,246,0.1) 25%, rgba(139,92,246,0.2) 50%, rgba(139,92,246,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 12px; margin-bottom: 20px;"),
+            style = "height: 200px; background: linear-gradient(90deg, rgba(139,92,246,0.1) 25%, rgba(139,92,246,0.2) 50%, rgba(139,92,246,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 12px; margin-bottom: 20px;",
+            ), # Removed closing div
         div(class = "skeleton-card",
-            style = "height: 300px; background: linear-gradient(90deg, rgba(139,92,246,0.1) 25%, rgba(139,92,246,0.2) 50%, rgba(139,92,246,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 12px;")
+            style = "height: 300px; background: linear-gradient(90deg, rgba(139,92,246,0.1) 25%, rgba(139,92,246,0.2) 50%, rgba(139,92,246,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 12px;"
+            ) # Removed closing div
     ),
     
     # Container for all metrics (all pre-rendered, hidden via CSS)
@@ -148,7 +151,7 @@ dashboardServer <- function(id, input_controls) {
     # ----------------------------
     draws_per_week <- 2  # DE Lotto Wed + Sat
     
-    l1 <- reactiveValues(
+    l1 <- reactiveValues( 
       data = list(),
       keys = character(0)
     )
@@ -192,7 +195,7 @@ dashboardServer <- function(id, input_controls) {
     }
     
     # This is what modules call: unchanged signature & behavior.
-    filtered_data <- reactive({
+    filtered_data <- reactive({ 
       input_controls()$refresh   # just to be consistent with your old trigger
       weeks      <- isolate(as.numeric(input_controls()$timeRange))
       range_vals <- isolate(input_controls()$range)
@@ -250,7 +253,7 @@ dashboardServer <- function(id, input_controls) {
     
     .l2_clear_metric_for_current_filter <- function(metric_name) {
       current_suffix <- paste0("|", getOption("li_filter_key", "nokey"))
-      to_remove <- grep(paste0("^", metric_name, "\\", current_suffix, "$"), l2_env$keys, value = TRUE)
+      to_remove <- grep(paste0("^", metric_name, "\", current_suffix, "$"), l2_env$keys, value = TRUE)
       if (length(to_remove)) {
         rm(list = to_remove, envir = l2_env$store)
         l2_env$keys <- setdiff(l2_env$keys, to_remove)
@@ -302,7 +305,7 @@ dashboardServer <- function(id, input_controls) {
     }, once = TRUE)
     
     # Clear L2 cache whenever filters change (Option A)
-    observeEvent(list(input_controls()$timeRange, input_controls()$range), {
+    observeEvent(list(input_controls()$timeRange, input_controls()$range), { 
       .l2_clear_all()
     }, ignoreInit = TRUE)
     
@@ -320,7 +323,7 @@ dashboardServer <- function(id, input_controls) {
     initialize_server <- function(metric) {
       if (metric %in% initialized_servers()) return()
       tryCatch({
-        switch(metric,
+        switch(metric, 
                "balls"       = ballsMetricServer("balls",       filtered_data, input_controls),
                "sums"        = sumsMetricServer("sums",         filtered_data),
                "odds_evens"  = oddsEvensMetricServer("odds_evens", filtered_data),
@@ -354,7 +357,7 @@ dashboardServer <- function(id, input_controls) {
         for (i in seq_along(other_metrics)) {
           local({
             m <- other_metrics[i]
-            shinyjs::delay(i * 150, initialize_server(m))
+            shinyjs::delay(i * 150, initialize_server(m)) 
           })
         }
       })

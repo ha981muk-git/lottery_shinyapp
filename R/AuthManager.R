@@ -2,7 +2,7 @@
 # auth_manager.R - Authentication & User Management
 # ============================================================================
 
-source("DatabaseManager.R")
+
 
 # ----------------------------------------------------------------------------
 # USER REGISTRATION
@@ -162,7 +162,7 @@ check_rate_limit <- function(user_id, action = "api_call", db_path = "lottery_us
   subscription <- db_get_subscription(user_id, db_path)
   
   # Get plan limits
-  source("stripe_manager.R")
+  
   plan <- subscription_plans[[subscription$plan_type]]
   
   # Count today's usage

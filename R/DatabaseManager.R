@@ -71,7 +71,7 @@ backup_database <- function(db_path = "lottery_users.db") {
   file.copy(db_path, backup_path)
   
   # Keep only last 7 backups
-  backups <- list.files("backups", pattern = "^lottery_users_.*\\.db$", full.names = TRUE)
+  backups <- list.files("backups", pattern = "^lottery_users_.*\.db$", full.names = TRUE)
   if (length(backups) > 7) {
     old_backups <- sort(backups)[1:(length(backups) - 7)]
     file.remove(old_backups)

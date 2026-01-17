@@ -2,8 +2,7 @@
 # subscription_manager.R - Subscription Business Logic
 # ============================================================================
 
-source("DatabaseManager.R")
-source("StripeManager.R")
+
 
 # ----------------------------------------------------------------------------
 # CREATE CHECKOUT SESSION

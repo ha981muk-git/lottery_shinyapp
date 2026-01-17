@@ -56,24 +56,24 @@ source_safe <- function(file) {
 }
 
 # --- Core app modules and utilities ---
-source_safe("translations.R")
-source_safe("PrepareData.R")
-source_safe("DashboardModule.R")
+source_safe("R/translations.R")
+source_safe("R/PrepareData.R")
+source_safe("R/DashboardModule.R")
 
 # --- Authentication system ---
-source_safe("EnhancedAuthenticationSystem.R")
-source_safe("AuthenticationUI.R")
-source_safe("EmailVerificationSystem.R")
-source_safe("AuthManager.R")
-source_safe("ShinyAuthManager.R")
+source_safe("R/EnhancedAuthenticationSystem.R")
+source_safe("R/AuthenticationUI.R")
+source_safe("R/EmailVerificationSystem.R")
+source_safe("R/AuthManager.R")
+source_safe("R/ShinyAuthManager.R")
 
 # --- Subscription & payment management ---
-source_safe("SubscriptionManager.R")
-source_safe("ShinySubscriptionModules.R")
-source_safe("StripeManager.R")
+source_safe("R/SubscriptionManager.R")
+source_safe("R/ShinySubscriptionModules.R")
+source_safe("R/StripeManager.R")
 
 # --- Database & configuration ---
-source_safe("DatabaseManager.R")
+source_safe("R/DatabaseManager.R")
 
 # (Optional) Only if you use helper scripts for setup or data loading
 # source_safe("requirements.R")

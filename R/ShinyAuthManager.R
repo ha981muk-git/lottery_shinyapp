@@ -2,7 +2,7 @@
 # shiny_auth_modules.R - Shiny Authentication UI & Server Modules
 # ============================================================================
 
-source("AuthManager.R")
+
 
 # ----------------------------------------------------------------------------
 # AUTH UI MODULE

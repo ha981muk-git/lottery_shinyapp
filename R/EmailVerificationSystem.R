@@ -1,6 +1,6 @@
 # ============================================================================
 # EmailVerificationSystem.R - Email Verification & Password Reset
-# ============================================================================
+# ============================================================================ 
 
 library(mailR)
 library(httr)
@@ -82,7 +82,7 @@ send_email <- function(to, subject, body_html, body_text = NULL) {
 # ----------------------------------------------------------------------------
 email_template <- function(title, content, cta_text = NULL, cta_url = NULL) {
   cta_html <- if (!is.null(cta_text) && !is.null(cta_url)) {
-    sprintf('
+    sprintf(' 
       <div style="text-align: center; margin: 30px 0;">
         <a href="%s" style="
           display: inline-block;
@@ -98,7 +98,7 @@ email_template <- function(title, content, cta_text = NULL, cta_url = NULL) {
     ', cta_url, cta_text)
   } else ""
   
-  sprintf('
+  sprintf(' 
 <!DOCTYPE html>
 <html>
 <head>
@@ -135,7 +135,7 @@ email_template <- function(title, content, cta_text = NULL, cta_url = NULL) {
             <td style="background: #f8f9fa; padding: 25px 30px; text-align: center; border-top: 1px solid #e0e0e0;">
               <p style="margin: 0 0 10px 0; color: #999; font-size: 13px;">
                 This email was sent from Lottery Insights.<br>
-                If you didn\'t request this, please ignore this email.
+                If you didn\&#39;t request this, please ignore this email.
               </p>
               <p style="margin: 0; color: #999; font-size: 12px;">
                 © %s Lottery Insights | Educational Platform Only
@@ -159,7 +159,7 @@ email_template <- function(title, content, cta_text = NULL, cta_url = NULL) {
 send_verification_email <- function(email, username, token) {
   verification_url <- paste0(EMAIL_CONFIG$app_url, "?verify=", token)
   
-  content <- sprintf('
+  content <- sprintf(' 
     <p>Welcome to Lottery Insights, <strong>%s</strong>!</p>
     <p>Thank you for registering. To complete your account setup and start exploring lottery analytics, please verify your email address.</p>
     <p style="background: #f8f9fa; padding: 15px; border-left: 4px solid #667eea; margin: 20px 0;">
@@ -189,9 +189,9 @@ send_verification_email <- function(email, username, token) {
 send_password_reset_email <- function(email, username, token) {
   reset_url <- paste0(EMAIL_CONFIG$app_url, "?reset=", token)
   
-  content <- sprintf('
+  content <- sprintf(' 
     <p>Hi <strong>%s</strong>,</p>
-    <p>We received a request to reset your password. If you didn\'t make this request, you can safely ignore this email.</p>
+    <p>We received a request to reset your password. If you didn\&#39;t make this request, you can safely ignore this email.</p>
     <p style="background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;">
       <strong>⏱ This link expires in 1 hour</strong> for security reasons.
     </p>
@@ -217,7 +217,7 @@ send_password_reset_email <- function(email, username, token) {
 # 6. WELCOME EMAIL (After Email Verification)
 # ----------------------------------------------------------------------------
 send_welcome_email <- function(email, username) {
-  content <- sprintf('
+  content <- sprintf(' 
     <p>Hi <strong>%s</strong>,</p>
     <p>🎉 Your email has been verified! Welcome to Lottery Insights.</p>
     <p><strong>What you can do now:</strong></p>
@@ -253,7 +253,7 @@ send_welcome_email <- function(email, username) {
 send_subscription_confirmation <- function(email, username, plan_type, plan_details) {
   features <- paste0("<li>", plan_details$features, "</li>", collapse = "\n")
   
-  content <- sprintf('
+  content <- sprintf(' 
     <p>Hi <strong>%s</strong>,</p>
     <p>🎉 Thank you for subscribing to the <strong>%s</strong> plan!</p>
     <p><strong>Your plan includes:</strong></p>
@@ -298,7 +298,7 @@ password_reset_ui <- function(id) {
   
   tagList(
     tags$head(
-      tags$style(HTML("
+      tags$style(HTML(" 
         .reset-container {
           max-width: 500px;
           margin: 60px auto;
@@ -342,7 +342,7 @@ password_reset_server <- function(id, reset_token) {
       
       if (input$new_password != input$confirm_password) {
         output$reset_status <- renderUI({
-          div(class = "auth-status error", "❌ Passwords don't match")
+          div(class = "auth-status error", "❌ Passwords don\&#39;t match")
         })
         return()
       }

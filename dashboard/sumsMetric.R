@@ -10,17 +10,8 @@ sumsMetricUI <- function(id) {
         uiOutput(ns("header"))
       ),
       
-      # Statistics Row
-      layout_column_wrap(
-        width = 1/5,
-        gap = "12px",
-        heights_equal = "row",
-        uiOutput(ns("metricCard1")),
-        uiOutput(ns("metricCard2")),
-        uiOutput(ns("metricCard3")),
-        uiOutput(ns("metricCard4")),
-        uiOutput(ns("metricCard5"))
-      ),
+      # Statistics Row (Consolidated)
+      uiOutput(ns("metricRow")),
       
       # Distribution and Trend Row
       layout_column_wrap(
@@ -65,55 +56,16 @@ sumsMetricServer <- function(id, filtered_data) {
     })
     
     # Chart titles and descriptions
-    output$chartTitle1 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📊"), span(t("sums_chart_distribution", lang)))
-    })
-    
-    output$chartDesc1 <- renderUI({
-      lang <- get_lang()
-      t("sums_chart_distribution_desc", lang)
-    })
-    
-    output$chartTitle2 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📈"), span(t("sums_chart_trend", lang)))
-    })
-    
-    output$chartDesc2 <- renderUI({
-      lang <- get_lang()
-      t("sums_chart_trend_desc", lang)
-    })
-    
-    output$chartTitle3 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🎯"), span(t("sums_chart_range", lang)))
-    })
-    
-    output$chartDesc3 <- renderUI({
-      lang <- get_lang()
-      t("sums_chart_range_desc", lang)
-    })
-    
-    output$chartTitle4 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📦"), span(t("sums_chart_boxplot", lang)))
-    })
-    
-    output$chartDesc4 <- renderUI({
-      lang <- get_lang()
-      t("sums_chart_boxplot_desc", lang)
-    })
-    
-    output$chartTitle5 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📉"), span(t("sums_chart_moving", lang)))
-    })
-    
-    output$chartDesc5 <- renderUI({
-      lang <- get_lang()
-      t("sums_chart_moving_desc", lang)
-    })
+    output$chartTitle1 <- render_title("sums_chart_distribution", get_lang, "📊")
+    output$chartDesc1 <- render_desc("sums_chart_distribution_desc", get_lang)
+    output$chartTitle2 <- render_title("sums_chart_trend", get_lang, "📈")
+    output$chartDesc2 <- render_desc("sums_chart_trend_desc", get_lang)
+    output$chartTitle3 <- render_title("sums_chart_range", get_lang, "🎯")
+    output$chartDesc3 <- render_desc("sums_chart_range_desc", get_lang)
+    output$chartTitle4 <- render_title("sums_chart_boxplot", get_lang, "📦")
+    output$chartDesc4 <- render_desc("sums_chart_boxplot_desc", get_lang)
+    output$chartTitle5 <- render_title("sums_chart_moving", get_lang, "📉")
+    output$chartDesc5 <- render_desc("sums_chart_moving_desc", get_lang)
     
     # Calculate sum statistics
     sum_stats <- reactive({
@@ -131,54 +83,27 @@ sumsMetricServer <- function(id, filtered_data) {
       )
     })
     
-    # Metric Cards
-    output$metricCard1 <- renderUI({
+    # Consolidated Metric Row
+    output$metricRow <- renderUI({
+      lang <- get_lang()
       stats <- sum_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "📊"),
-        div(class = "value-box-value", round(stats$mean, 1)),
-        div(class = "value-box-label", t("sums_metric_average", get_lang()))
-      )
-    })
-    
-    output$metricCard2 <- renderUI({
-      stats <- sum_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "🎯"),
-        div(class = "value-box-value", stats$median),
-        div(class = "value-box-label", t("sums_metric_median", get_lang()))
-      )
-    })
-    
-    output$metricCard3 <- renderUI({
-      stats <- sum_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "⭐"),
-        div(class = "value-box-value", stats$most_common),
-        div(class = "value-box-label", t("sums_metric_most_common", get_lang()))
-      )
-    })
-    
-    output$metricCard4 <- renderUI({
-      stats <- sum_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "📉"),
-        div(class = "value-box-value", stats$min),
-        div(class = "value-box-label", t("sums_metric_minimum", get_lang()))
-      )
-    })
-    
-    output$metricCard5 <- renderUI({
-      stats <- sum_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "📈"),
-        div(class = "value-box-value", stats$max),
-        div(class = "value-box-label", t("sums_metric_maximum", get_lang()))
+      
+      create_card <- function(icon, value, label) {
+        div(class = "value-box-custom",
+            div(class = "value-box-icon", icon),
+            div(class = "value-box-value", value),
+            div(class = "value-box-label", label))
+      }
+      
+      layout_column_wrap(
+        width = 1/5,
+        gap = "12px",
+        heights_equal = "row",
+        create_card("📊", round(stats$mean, 1), t("sums_metric_average", lang)),
+        create_card("🎯", stats$median, t("sums_metric_median", lang)),
+        create_card("⭐", stats$most_common, t("sums_metric_most_common", lang)),
+        create_card("📉", stats$min, t("sums_metric_minimum", lang)),
+        create_card("📈", stats$max, t("sums_metric_maximum", lang))
       )
     })
     
@@ -309,6 +234,7 @@ sumsMetricServer <- function(id, filtered_data) {
                 t("sums_label_sum_value", lang), ": %{y}<br>",
                 "<extra></extra>"
               )) %>%
+        toWebGL() %>%
         add_trace(x = range(df$draw), y = rep(stats$mean, 2),
                   type = "scatter", mode = "lines",
                   line = list(color = "#10b981", width = 2, dash = "dash"),
@@ -460,7 +386,8 @@ sumsMetricServer <- function(id, filtered_data) {
         {if("ma" %in% names(df))
           add_trace(., y = ~ma, name = t("sums_metric_average", lang), type = "scatter", mode = "lines",
                     line = list(color = "#10b981", width = 3),
-                    hovertemplate = paste0("MA: %{y:.1f}<extra></extra>"))
+                    hovertemplate = paste0("MA: %{y:.1f}<extra></extra>")) %>%
+          toWebGL()
           else .
         } %>%
         layout(

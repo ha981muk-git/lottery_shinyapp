@@ -44,22 +44,13 @@ lotto_clean <- data %>%
 
 
 lotto_clean_sorted <- lotto_clean %>%
-  # sort balls row-wise
-  rowwise() %>%
-  mutate(
-    sorted_balls = list(sort(c(ball_1, ball_2, ball_3, ball_4, ball_5, ball_6)))
-  ) %>%
-  mutate(
-    ball_1 = sorted_balls[1],
-    ball_2 = sorted_balls[2],
-    ball_3 = sorted_balls[3],
-    ball_4 = sorted_balls[4],
-    ball_5 = sorted_balls[5],
-    ball_6 = sorted_balls[6]
-  ) %>%
-  ungroup() %>%
   select(datum, ball_1, ball_2, ball_3, ball_4, ball_5, ball_6, superzahl) #%>% # keep date
   # mutate(draw_number = row_number()) # sequential numbering
+
+# Optimized sorting using matrix operations instead of rowwise()
+ball_cols <- c("ball_1", "ball_2", "ball_3", "ball_4", "ball_5", "ball_6")
+sorted_matrix <- t(apply(lotto_clean_sorted[, ball_cols], 1, sort))
+lotto_clean_sorted[, ball_cols] <- sorted_matrix
 
 
 # Here this file is imported by other App by sourcing
@@ -69,5 +60,3 @@ lotto_clean_sorted <- lotto_clean %>%
 generate_metrics <- function() {
   return(lotto_clean_sorted)
 }
-
-

@@ -10,14 +10,8 @@ oddsEvensMetricUI <- function(id) {
         uiOutput(ns("header"))
       ),
       
-      # Statistics Row
-      layout_column_wrap(
-        width = 1/3,
-        heights_equal = "row",
-        uiOutput(ns("metricCard1")),
-        uiOutput(ns("metricCard2")),
-        uiOutput(ns("metricCard3"))
-      ),
+      # Statistics Row (Consolidated)
+      uiOutput(ns("metricRow")),
       
       # Pascal Triangle Distribution Card
       create_chart_card(ns, "chartTitle1", "chartDesc1", "pascalChart", height = "450px"),
@@ -55,30 +49,11 @@ oddsEvensMetricServer <- function(id, filtered_data) {
     })
     
     # Chart titles
-    output$chartTitle1 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📊"), span(t("odds_evens_chart_pascal", lang)))
-    })
-    
-    output$chartDesc1 <- renderUI({
-      lang <- get_lang()
-      t("odds_evens_chart_pascal_desc", lang)
-    })
-    
-    output$chartTitle2 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🥧"), span(t("odds_evens_chart_pie", lang)))
-    })
-    
-    output$chartTitle3 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📈"), span(t("odds_evens_chart_trend", lang)))
-    })
-    
-    output$chartTitle4 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📊"), span(t("odds_evens_chart_stacked", lang)))
-    })
+    output$chartTitle1 <- render_title("odds_evens_chart_pascal", get_lang, "📊")
+    output$chartDesc1 <- render_desc("odds_evens_chart_pascal_desc", get_lang)
+    output$chartTitle2 <- render_title("odds_evens_chart_pie", get_lang, "🥧")
+    output$chartTitle3 <- render_title("odds_evens_chart_trend", get_lang, "📈")
+    output$chartTitle4 <- render_title("odds_evens_chart_stacked", get_lang, "📊")
     
     # Calculate odd/even statistics
     odds_evens_stats <- reactive({
@@ -100,37 +75,24 @@ oddsEvensMetricServer <- function(id, filtered_data) {
       )
     })
     
-    # Metric Cards
-    output$metricCard1 <- renderUI({
+    # Consolidated Metric Row
+    output$metricRow <- renderUI({
       lang <- get_lang()
       stats <- odds_evens_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "🎲"),
-        div(class = "value-box-value", round(stats$avg_odds, 2)),
-        div(class = "value-box-label", t("odds_evens_metric_avg_odds", lang))
-      )
-    })
-    
-    output$metricCard2 <- renderUI({
-      lang <- get_lang()
-      stats <- odds_evens_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "⚖️"),
-        div(class = "value-box-value", round(6 - stats$avg_odds, 2)),
-        div(class = "value-box-label", t("odds_evens_metric_avg_evens", lang))
-      )
-    })
-    
-    output$metricCard3 <- renderUI({
-      lang <- get_lang()
-      stats <- odds_evens_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "⭐"),
-        div(class = "value-box-value", style = "font-size: 20px;", stats$most_common),
-        div(class = "value-box-label", t("odds_evens_metric_most_common", lang))
+      
+      create_card <- function(icon, value, label, style = "") {
+        div(class = "value-box-custom",
+            div(class = "value-box-icon", icon),
+            div(class = "value-box-value", style = style, value),
+            div(class = "value-box-label", label))
+      }
+      
+      layout_column_wrap(
+        width = 1/3,
+        heights_equal = "row",
+        create_card("🎲", round(stats$avg_odds, 2), t("odds_evens_metric_avg_odds", lang)),
+        create_card("⚖️", round(6 - stats$avg_odds, 2), t("odds_evens_metric_avg_evens", lang)),
+        create_card("⭐", stats$most_common, t("odds_evens_metric_most_common", lang), "font-size: 20px;")
       )
     })
     
@@ -256,7 +218,8 @@ oddsEvensMetricServer <- function(id, filtered_data) {
         {if("ma_odds" %in% names(df)) 
           add_trace(., y = ~ma_odds, name = paste("MA (", t("odds_evens_label_odds", lang), ")"), type = "scatter", mode = "lines",
                     line = list(color = "#8b5cf6", width = 3, dash = "dash"),
-                    hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>MA: %{y:.2f}<extra></extra>"))
+                    hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>MA: %{y:.2f}<extra></extra>")) %>%
+          toWebGL()
           else .
         } %>%
         layout(

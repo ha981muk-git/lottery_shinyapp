@@ -10,16 +10,8 @@ lagMetricUI <- function(id) {
         uiOutput(ns("header"))
       ),
       
-      # Statistics Row
-      layout_column_wrap(
-        width = 1/4,
-        heights_equal = "row",
-        gap = "15px",
-        uiOutput(ns("metricCard1")),
-        uiOutput(ns("metricCard2")),
-        uiOutput(ns("metricCard3")),
-        uiOutput(ns("metricCard4"))
-      ),
+      # Statistics Row (Consolidated)
+      uiOutput(ns("metricRow")),
       
       # Ball Position Selector
       div(
@@ -125,82 +117,23 @@ lagMetricServer <- function(id, filtered_data) {
     })
     
     # Chart titles
-    output$chartTitle1 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📊"), span(t("lag_chart_distribution", lang)))
-    })
-    output$chartDesc1 <- renderUI({
-      lang <- get_lang()
-      t("lag_chart_distribution_desc", lang)
-    })
-    
-    output$chartTitle2 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("⬆️"), span(t("lag_chart_positive", lang)))
-    })
-    output$chartDesc2 <- renderUI({
-      lang <- get_lang()
-      t("lag_chart_positive_desc", lang)
-    })
-    
-    output$chartTitle3 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("⬇️"), span(t("lag_chart_negative", lang)))
-    })
-    output$chartDesc3 <- renderUI({
-      lang <- get_lang()
-      t("lag_chart_negative_desc", lang)
-    })
-    
-    output$chartTitle4 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🎯"), span(t("lag_chart_categories", lang)))
-    })
-    output$chartDesc4 <- renderUI({
-      lang <- get_lang()
-      t("lag_chart_categories_desc", lang)
-    })
-    
-    output$chartTitle5 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🔥"), span(t("lag_chart_heatmap", lang)))
-    })
-    output$chartDesc5 <- renderUI({
-      lang <- get_lang()
-      t("lag_chart_heatmap_desc", lang)
-    })
-    
-    output$chartTitle6 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📈"), span(t("lag_chart_qq", lang)))
-    })
-    output$chartDesc6 <- renderUI({
-      lang <- get_lang()
-      t("lag_chart_qq_desc", lang)
-    })
-    
-    output$chartTitle7 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🎲"), span(t("lag_chart_zones", lang)))
-    })
-    output$chartDesc7 <- renderUI({
-      lang <- get_lang()
-      t("lag_chart_zones_desc", lang)
-    })
-    
-    output$chartTitle8 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📊"), span(t("lag_chart_summary", lang)))
-    })
-    
-    output$chartTitle9 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📋"), span(t("lag_chart_table", lang)))
-    })
-    output$chartDesc9 <- renderUI({
-      lang <- get_lang()
-      t("lag_chart_table_desc", lang)
-    })
+    output$chartTitle1 <- render_title("lag_chart_distribution", get_lang, "📊")
+    output$chartDesc1 <- render_desc("lag_chart_distribution_desc", get_lang)
+    output$chartTitle2 <- render_title("lag_chart_positive", get_lang, "⬆️")
+    output$chartDesc2 <- render_desc("lag_chart_positive_desc", get_lang)
+    output$chartTitle3 <- render_title("lag_chart_negative", get_lang, "⬇️")
+    output$chartDesc3 <- render_desc("lag_chart_negative_desc", get_lang)
+    output$chartTitle4 <- render_title("lag_chart_categories", get_lang, "🎯")
+    output$chartDesc4 <- render_desc("lag_chart_categories_desc", get_lang)
+    output$chartTitle5 <- render_title("lag_chart_heatmap", get_lang, "🔥")
+    output$chartDesc5 <- render_desc("lag_chart_heatmap_desc", get_lang)
+    output$chartTitle6 <- render_title("lag_chart_qq", get_lang, "📈")
+    output$chartDesc6 <- render_desc("lag_chart_qq_desc", get_lang)
+    output$chartTitle7 <- render_title("lag_chart_zones", get_lang, "🎲")
+    output$chartDesc7 <- render_desc("lag_chart_zones_desc", get_lang)
+    output$chartTitle8 <- render_title("lag_chart_summary", get_lang, "📊")
+    output$chartTitle9 <- render_title("lag_chart_table", get_lang, "📋")
+    output$chartDesc9 <- render_desc("lag_chart_table_desc", get_lang)
     
     # Track selected ball
     selected_ball <- reactiveVal(0)
@@ -281,57 +214,29 @@ lagMetricServer <- function(id, filtered_data) {
       )
     })
     
-    # Metric Cards
-    output$metricCard1 <- renderUI({
-      lang <- get_lang()
-      stats <- lag_stats()
-      if(length(stats$lags) == 0) return(NULL)
-      
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "📊"),
-        div(class = "value-box-value", round(stats$mean, 2)),
-        div(class = "value-box-label", t("lag_metric_avg", lang))
-      )
-    })
-    
-    output$metricCard2 <- renderUI({
-      lang <- get_lang()
-      stats <- lag_stats()
-      if(length(stats$lags) == 0) return(NULL)
-      
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "📏"),
-        div(class = "value-box-value", round(stats$sd, 2)),
-        div(class = "value-box-label", t("lag_metric_sd", lang))
-      )
-    })
-    
-    output$metricCard3 <- renderUI({
-      lang <- get_lang()
-      stats <- lag_stats()
-      if(length(stats$lags) == 0) return(NULL)
-      
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "⭐"),
-        div(class = "value-box-value", stats$most_common),
-        div(class = "value-box-label", t("lag_metric_most_common", lang))
-      )
-    })
-    
-    output$metricCard4 <- renderUI({
+    # Consolidated Metric Row
+    output$metricRow <- renderUI({
       lang <- get_lang()
       stats <- lag_stats()
       if(length(stats$lags) == 0) return(NULL)
       
       range_val <- stats$max - stats$min
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "📈"),
-        div(class = "value-box-value", range_val),
-        div(class = "value-box-label", t("lag_metric_range", lang))
+      
+      create_card <- function(icon, value, label) {
+        div(class = "value-box-custom",
+            div(class = "value-box-icon", icon),
+            div(class = "value-box-value", value),
+            div(class = "value-box-label", label))
+      }
+      
+      layout_column_wrap(
+        width = 1/4,
+        heights_equal = "row",
+        gap = "15px",
+        create_card("📊", round(stats$mean, 2), t("lag_metric_avg", lang)),
+        create_card("📏", round(stats$sd, 2), t("lag_metric_sd", lang)),
+        create_card("⭐", stats$most_common, t("lag_metric_most_common", lang)),
+        create_card("📈", range_val, t("lag_metric_range", lang))
       )
     })
     
@@ -520,6 +425,7 @@ lagMetricServer <- function(id, filtered_data) {
         add_markers(x = theoretical$x, y = theoretical$y, marker = list(color = "#8b5cf6", size = 6),
                     name = t("lag_chart_data_points", lang),
                     hovertemplate = paste0(t("lag_label_theoretical", lang), ": %{x:.2f}<br>", t("lag_label_sample", lang), ": %{y:.2f}<extra></extra>")) %>%
+        toWebGL() %>%
         add_lines(x = range(theoretical$x), y = range(theoretical$x),
                   line = list(color = "#ec4899", width = 3, dash = "dash"),
                   name = t("lag_chart_perfect_normal", lang),

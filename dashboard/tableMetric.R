@@ -10,15 +10,8 @@ tableMetricUI <- function(id) {
       uiOutput(ns("header"))
     ),
     
-    # Statistics Row - 4 Metric Cards
-    layout_column_wrap(
-      width = 1/4,
-      heights_equal = "row",
-      uiOutput(ns("metricCard1")),
-      uiOutput(ns("metricCard2")),
-      uiOutput(ns("metricCard3")),
-      uiOutput(ns("metricCard4"))
-    ),
+    # Statistics Row (Consolidated)
+    uiOutput(ns("metricRow")),
     
     # Main Frequency Chart
     div(
@@ -118,85 +111,22 @@ tableMetricServer <- function(id, filtered_data) {
     })
     
     # Chart titles and descriptions
-    output$chartTitle1 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📊"), span(t("table_chart_frequencies", lang)))
-    })
-    
-    output$chartDesc1 <- renderUI({
-      lang <- get_lang()
-      t("table_chart_frequencies_desc", lang)
-    })
-    
-    output$chartTitle2 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🔥"), span(t("table_chart_hot", lang)))
-    })
-    
-    output$chartDesc2 <- renderUI({
-      lang <- get_lang()
-      t("table_chart_hot_desc", lang)
-    })
-    
-    output$chartTitle3 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("❄️"), span(t("table_chart_cold", lang)))
-    })
-    
-    output$chartDesc3 <- renderUI({
-      lang <- get_lang()
-      t("table_chart_cold_desc", lang)
-    })
-    
-    output$chartTitle4 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🎯"), span(t("table_chart_grid", lang)))
-    })
-    
-    output$chartDesc4 <- renderUI({
-      lang <- get_lang()
-      t("table_chart_grid_desc", lang)
-    })
-    
-    output$chartTitle5 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📈"), span(t("table_chart_dist", lang)))
-    })
-    
-    output$chartDesc5 <- renderUI({
-      lang <- get_lang()
-      t("table_chart_dist_desc", lang)
-    })
-    
-    output$chartTitle6 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🎲"), span(t("table_chart_position", lang)))
-    })
-    
-    output$chartDesc6 <- renderUI({
-      lang <- get_lang()
-      t("table_chart_position_desc", lang)
-    })
-    
-    output$chartTitle7 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("⚖️"), span(t("table_chart_deviation", lang)))
-    })
-    
-    output$chartDesc7 <- renderUI({
-      lang <- get_lang()
-      t("table_chart_deviation_desc", lang)
-    })
-    
-    output$chartTitle8 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📋"), span(t("table_chart_table", lang)))
-    })
-    
-    output$chartDesc8 <- renderUI({
-      lang <- get_lang()
-      t("table_chart_table_desc", lang)
-    })
+    output$chartTitle1 <- render_title("table_chart_frequencies", get_lang, "📊")
+    output$chartDesc1 <- render_desc("table_chart_frequencies_desc", get_lang)
+    output$chartTitle2 <- render_title("table_chart_hot", get_lang, "🔥")
+    output$chartDesc2 <- render_desc("table_chart_hot_desc", get_lang)
+    output$chartTitle3 <- render_title("table_chart_cold", get_lang, "❄️")
+    output$chartDesc3 <- render_desc("table_chart_cold_desc", get_lang)
+    output$chartTitle4 <- render_title("table_chart_grid", get_lang, "🎯")
+    output$chartDesc4 <- render_desc("table_chart_grid_desc", get_lang)
+    output$chartTitle5 <- render_title("table_chart_dist", get_lang, "📈")
+    output$chartDesc5 <- render_desc("table_chart_dist_desc", get_lang)
+    output$chartTitle6 <- render_title("table_chart_position", get_lang, "🎲")
+    output$chartDesc6 <- render_desc("table_chart_position_desc", get_lang)
+    output$chartTitle7 <- render_title("table_chart_deviation", get_lang, "⚖️")
+    output$chartDesc7 <- render_desc("table_chart_deviation_desc", get_lang)
+    output$chartTitle8 <- render_title("table_chart_table", get_lang, "📋")
+    output$chartDesc8 <- render_desc("table_chart_table_desc", get_lang)
     
     # Calculate frequency statistics
     freq_stats <- reactive({
@@ -236,45 +166,25 @@ tableMetricServer <- function(id, filtered_data) {
       )
     })
     
-    # Metric Cards
-    output$metricCard1 <- renderUI({
-      lang <- get_lang()
-      stats <- freq_stats()
-      div(
-        class = "metric-card",
-        div(class = "metric-label", t("table_metric_hottest", lang)),
-        div(class = "metric-value", stats$most_common)
-      )
-    })
-    
-    output$metricCard2 <- renderUI({
-      lang <- get_lang()
-      stats <- freq_stats()
-      div(
-        class = "metric-card",
-        div(class = "metric-label", t("table_metric_coldest", lang)),
-        div(class = "metric-value", stats$least_common)
-      )
-    })
-    
-    output$metricCard3 <- renderUI({
-      lang <- get_lang()
-      stats <- freq_stats()
-      div(
-        class = "metric-card",
-        div(class = "metric-label", t("table_metric_expected", lang)),
-        div(class = "metric-value", round(stats$expected_freq, 1))
-      )
-    })
-    
-    output$metricCard4 <- renderUI({
+    # Consolidated Metric Row
+    output$metricRow <- renderUI({
       lang <- get_lang()
       stats <- freq_stats()
       range_val <- stats$max_freq - stats$min_freq
-      div(
-        class = "metric-card",
-        div(class = "metric-label", t("table_metric_range", lang)),
-        div(class = "metric-value", range_val)
+      
+      create_card <- function(label, value) {
+        div(class = "metric-card",
+            div(class = "metric-label", label),
+            div(class = "metric-value", value))
+      }
+      
+      layout_column_wrap(
+        width = 1/4,
+        heights_equal = "row",
+        create_card(t("table_metric_hottest", lang), stats$most_common),
+        create_card(t("table_metric_coldest", lang), stats$least_common),
+        create_card(t("table_metric_expected", lang), round(stats$expected_freq, 1)),
+        create_card(t("table_metric_range", lang), range_val)
       )
     })
     

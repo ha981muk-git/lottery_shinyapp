@@ -10,17 +10,8 @@ differenceMetricUI <- function(id) {
         uiOutput(ns("header"))
       ),
       
-      # Statistics Row
-      layout_column_wrap(
-        width = 1/5,
-        heights_equal = "row",
-        gap = "12px",
-        uiOutput(ns("metricCard1")),
-        uiOutput(ns("metricCard2")),
-        uiOutput(ns("metricCard3")),
-        uiOutput(ns("metricCard4")),
-        uiOutput(ns("metricCard5"))
-      ),
+      # Statistics Row (Consolidated)
+      uiOutput(ns("metricRow")),
       
       # ---------- Add to differenceMetricUI ----------
       
@@ -99,95 +90,24 @@ differenceMetricServer <- function(id, filtered_data) {
     })
     
     # Chart titles and descriptions
-    output$chartTitle1 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📊"), span(t("difference_chart_freq", lang)))
-    })
-    
-    output$chartDesc1 <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_freq_desc", lang)
-    })
-    
-    output$chartTitle2 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🔥"), span(t("difference_chart_hot", lang)))
-    })
-    
-    output$chartDesc2 <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_hot_desc", lang)
-    })
-    
-    output$chartTitle3 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("❄️"), span(t("difference_chart_cold", lang)))
-    })
-    
-    output$chartDesc3 <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_cold_desc", lang)
-    })
-    
-    output$chartTitle4 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🎯"), span(t("difference_chart_categories", lang)))
-    })
-    
-    output$chartDesc4 <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_categories_desc", lang)
-    })
-    
-    output$chartTitle5 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📈"), span(t("difference_chart_trend", lang)))
-    })
-    
-    output$chartDesc5 <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_trend_desc", lang)
-    })
-    
-    output$chartTitle6 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📦"), span(t("difference_chart_box", lang)))
-    })
-    
-    output$chartDesc6 <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_box_desc", lang)
-    })
-    
-    output$chartTitle7 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🔥"), span(t("difference_chart_heatmap", lang)))
-    })
-    
-    output$chartDesc7 <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_heatmap_desc", lang)
-    })
-    
-    output$chartTitle8 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("🎲"), span(t("difference_chart_guide", lang)))
-    })
-    
-    output$chartDesc8 <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_guide_desc", lang)
-    })
-    
-    output$chartTitle9 <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📋"), span(t("difference_chart_table", lang)))
-    })
-    
-    output$chartDesc9 <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_table_desc", lang)
-    })
+    output$chartTitle1 <- render_title("difference_chart_freq", get_lang, "📊")
+    output$chartDesc1 <- render_desc("difference_chart_freq_desc", get_lang)
+    output$chartTitle2 <- render_title("difference_chart_hot", get_lang, "🔥")
+    output$chartDesc2 <- render_desc("difference_chart_hot_desc", get_lang)
+    output$chartTitle3 <- render_title("difference_chart_cold", get_lang, "❄️")
+    output$chartDesc3 <- render_desc("difference_chart_cold_desc", get_lang)
+    output$chartTitle4 <- render_title("difference_chart_categories", get_lang, "🎯")
+    output$chartDesc4 <- render_desc("difference_chart_categories_desc", get_lang)
+    output$chartTitle5 <- render_title("difference_chart_trend", get_lang, "📈")
+    output$chartDesc5 <- render_desc("difference_chart_trend_desc", get_lang)
+    output$chartTitle6 <- render_title("difference_chart_box", get_lang, "📦")
+    output$chartDesc6 <- render_desc("difference_chart_box_desc", get_lang)
+    output$chartTitle7 <- render_title("difference_chart_heatmap", get_lang, "🔥")
+    output$chartDesc7 <- render_desc("difference_chart_heatmap_desc", get_lang)
+    output$chartTitle8 <- render_title("difference_chart_guide", get_lang, "🎲")
+    output$chartDesc8 <- render_desc("difference_chart_guide_desc", get_lang)
+    output$chartTitle9 <- render_title("difference_chart_table", get_lang, "📋")
+    output$chartDesc9 <- render_desc("difference_chart_table_desc", get_lang)
     
     # Calculate range statistics
     range_stats <- reactive({
@@ -220,59 +140,27 @@ differenceMetricServer <- function(id, filtered_data) {
       )
     })
     
-    # Metric Cards
-    output$metricCard1 <- renderUI({
+    # Consolidated Metric Row
+    output$metricRow <- renderUI({
       lang <- get_lang()
       stats <- range_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "📊"),
-        div(class = "value-box-value", round(stats$mean, 1)),
-        div(class = "value-box-label", t("difference_metric_avg", lang))
-      )
-    })
-    
-    output$metricCard2 <- renderUI({
-      lang <- get_lang()
-      stats <- range_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "🎯"),
-        div(class = "value-box-value", stats$median),
-        div(class = "value-box-label", t("difference_metric_median", lang))
-      )
-    })
-    
-    output$metricCard3 <- renderUI({
-      lang <- get_lang()
-      stats <- range_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "⭐"),
-        div(class = "value-box-value", stats$most_common),
-        div(class = "value-box-label", t("difference_metric_most_common", lang))
-      )
-    })
-    
-    output$metricCard4 <- renderUI({
-      lang <- get_lang()
-      stats <- range_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "📉"),
-        div(class = "value-box-value", stats$min),
-        div(class = "value-box-label", t("difference_metric_min", lang))
-      )
-    })
-    
-    output$metricCard5 <- renderUI({
-      lang <- get_lang()
-      stats <- range_stats()
-      div(
-        class = "value-box-custom",
-        div(class = "value-box-icon", "📈"),
-        div(class = "value-box-value", stats$max),
-        div(class = "value-box-label", t("difference_metric_max", lang))
+      
+      create_card <- function(icon, value, label) {
+        div(class = "value-box-custom",
+            div(class = "value-box-icon", icon),
+            div(class = "value-box-value", value),
+            div(class = "value-box-label", label))
+      }
+      
+      layout_column_wrap(
+        width = 1/5,
+        heights_equal = "row",
+        gap = "12px",
+        create_card("📊", round(stats$mean, 1), t("difference_metric_avg", lang)),
+        create_card("🎯", stats$median, t("difference_metric_median", lang)),
+        create_card("⭐", stats$most_common, t("difference_metric_most_common", lang)),
+        create_card("📉", stats$min, t("difference_metric_min", lang)),
+        create_card("📈", stats$max, t("difference_metric_max", lang))
       )
     })
     
@@ -280,15 +168,8 @@ differenceMetricServer <- function(id, filtered_data) {
     
     # Add these chart title/description outputs with your other chart titles:
     
-    output$chartTitle_density <- renderUI({
-      lang <- get_lang()
-      div(class = "chart-title", span("📊"), span(t("difference_chart_density", lang)))
-    })
-    
-    output$chartDesc_density <- renderUI({
-      lang <- get_lang()
-      t("difference_chart_density_desc", lang)
-    })
+    output$chartTitle_density <- render_title("difference_chart_density", get_lang, "📊")
+    output$chartDesc_density <- render_desc("difference_chart_density_desc", get_lang)
     
     # Add this renderPlotly section with your other chart outputs:
     
@@ -553,6 +434,7 @@ differenceMetricServer <- function(id, filtered_data) {
         add_trace(y = ~range, name = t("difference_label_range", lang), type = "scatter", mode = "lines",
                   line = list(color = "rgba(139, 92, 246, 0.5)", width = 1.5),
                   hovertemplate = paste0(t("difference_label_range", lang), " #%{x}: %{y}<extra></extra>")) %>%
+        toWebGL() %>%
         {if("ma" %in% names(df))
           add_trace(., y = ~ma, name = "Moving Avg", type = "scatter", mode = "lines",
                     line = list(color = "#10b981", width = 3),

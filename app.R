@@ -41,6 +41,8 @@ library(DBI)
 library(RSQLite)
 library(sodium)
 library(httr)
+library(mailR)
+
 
 # ---------- Load Custom Modules ----------
 source_safe <- function(file) {
@@ -505,114 +507,60 @@ server <- function(input, output, session) {
   # SECTION 6: STRIPE CHECKOUT HANDLERS
   # ============================================================================
   
-  # ✅ FIXED: Changed user_data() to user_info() throughout
+  # ✅ REFACTORED: Unified Upgrade Handler to enforce DRY
+  handle_upgrade_process <- function(plan_type) {
+    req(user_info())
+    
+    # Check rate limit
+    rate_check <- check_auth_rate_limit(
+      identifier = paste0("upgrade_", user_info()$id),
+      max_attempts = 3,
+      window_minutes = 60
+    )
+    
+    if (!rate_check$allowed) {
+      showNotification(rate_check$message, type = "warning", duration = 10)
+      return()
+    }
+    
+    # Construct App URL
+    base_url <- session$clientData$url_protocol
+    host <- session$clientData$url_hostname
+    port <- session$clientData$url_port
+    app_url <- paste0(base_url, "//", host, if (port != "") paste0(":", port) else "")
+    
+    # Get current language from query string
+    query <- parseQueryString(session$clientData$url_search)
+    lang_param <- if (!is.null(query$lang)) paste0("&lang=", query$lang) else ""
+    
+    checkout <- tryCatch({
+      create_stripe_checkout(
+        user_id = user_info()$id,
+        plan_type = plan_type,
+        success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}", lang_param),
+        cancel_url = paste0(app_url, "?payment=cancel", lang_param)
+      )
+    }, error = function(err) {
+      message("Checkout error: ", err$message)
+      list(success = FALSE, error = err$message)
+    })
+    
+    if (!is.null(checkout$success) && checkout$success) {
+      session$sendCustomMessage("redirect", checkout$url)
+    } else {
+      error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
+      showNotification(paste("Error:", error_msg), type = "error", duration = 10)
+    }
+  }
+
   # Handle BASIC plan upgrade
   observeEvent(input$upgrade_basic, {
-    req(user_info())  # ✅ FIXED: was user_data()
-    
-    # ✅ NEW: Check rate limit
-    rate_check <- check_auth_rate_limit(
-      identifier = paste0("upgrade_", user_info()$id),
-      max_attempts = 3,
-      window_minutes = 60
-    )
-    
-    if (!rate_check$allowed) {
-      showNotification(
-        rate_check$message,
-        type = "warning",
-        duration = 10
-      )
-      return()
-    }
-    
-    base_url <- session$clientData$url_protocol
-    host <- session$clientData$url_hostname
-    port <- session$clientData$url_port
-    
-    # Build URLs correctly
-    if (port == "") {
-      app_url <- paste0(base_url, "//", host)
-    } else {
-      app_url <- paste0(base_url, "//", host, ":", port)
-    }
-    
-    # Get current language from query string
-    query <- parseQueryString(session$clientData$url_search)
-    lang_param <- if (!is.null(query$lang)) paste0("&lang=", query$lang) else ""
-    
-    checkout <- tryCatch({
-      create_stripe_checkout(
-        user_id = user_info()$id,  # ✅ FIXED: was user_data()
-        plan_type = "basic",
-        success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}", lang_param),
-        cancel_url = paste0(app_url, "?payment=cancel", lang_param)
-      )
-    }, error = function(err) {
-      message("Checkout error: ", err$message)
-      list(success = FALSE, error = err$message)
-    })
-    
-    if (!is.null(checkout$success) && checkout$success) {
-      session$sendCustomMessage("redirect", checkout$url)
-    } else {
-      error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
-      showNotification(paste("Error:", error_msg), type = "error", duration = 10)
-    }
+    handle_upgrade_process("basic")
   })
-  
+
   # Handle PREMIUM plan upgrade
   observeEvent(input$upgrade_premium, {
-    req(user_info())  # ✅ FIXED: was user_data()
-    
-    # ✅ NEW: Check rate limit
-    rate_check <- check_auth_rate_limit(
-      identifier = paste0("upgrade_", user_info()$id),
-      max_attempts = 3,
-      window_minutes = 60
-    )
-    
-    if (!rate_check$allowed) {
-      showNotification(
-        rate_check$message,
-        type = "warning",
-        duration = 10
-      )
-      return()
-    }
-    
-    base_url <- session$clientData$url_protocol
-    host <- session$clientData$url_hostname
-    port <- session$clientData$url_port
-    
-    if (port == "") {
-      app_url <- paste0(base_url, "//", host)
-    } else {
-      app_url <- paste0(base_url, "//", host, ":", port)
-    }
-    
-    # Get current language from query string
-    query <- parseQueryString(session$clientData$url_search)
-    lang_param <- if (!is.null(query$lang)) paste0("&lang=", query$lang) else ""
-    
-    checkout <- tryCatch({
-      create_stripe_checkout(
-        user_id = user_info()$id,  # ✅ FIXED: was user_data()
-        plan_type = "premium",
-        success_url = paste0(app_url, "?session_id={CHECKOUT_SESSION_ID}", lang_param),
-        cancel_url = paste0(app_url, "?payment=cancel", lang_param)
-      )
-    }, error = function(err) {
-      message("Checkout error: ", err$message)
-      list(success = FALSE, error = err$message)
-    })
-    
-    if (!is.null(checkout$success) && checkout$success) {
-      session$sendCustomMessage("redirect", checkout$url)
-    } else {
-      error_msg <- if (!is.null(checkout$error)) checkout$error else "Unknown error occurred"
-      showNotification(paste("Error:", error_msg), type = "error", duration = 10)
-    }
+    handle_upgrade_process("premium")
   })
   
   # ============================================================================
@@ -679,9 +627,7 @@ server <- function(input, output, session) {
     user_info(NULL)
     auth_attempts(list())
     
-    # Force garbage collection
-    gc()
-    gc()
+    # Session cleanup completed
     
     message("✅ Session cleanup completed")
   })

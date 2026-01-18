@@ -104,7 +104,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       
       # Calc 1
       selected <- nrow(data)
-      total_counts <- nrow(generate_metrics())
+      total_counts <- getOption("li_base_row_count") %||% nrow(generate_metrics())
       coverage <- (selected/total_counts) * 100
       
       # Calc 2

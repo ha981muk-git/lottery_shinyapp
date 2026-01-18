@@ -161,6 +161,10 @@ dashboardUI <- function(id) {
   )
 }
 
+# ✅ GLOBAL CACHE: Shared across all users to save memory and CPU
+# Defined outside the server function so it persists across sessions
+global_filter_cache <- cachem::cache_mem(max_size = 100 * 1024^2)
+
 # Server Module - FULLY OPTIMIZED WITH CACHING
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
@@ -170,10 +174,6 @@ dashboardServer <- function(id, input_controls) {
     metrics_data <- generate_metrics()
     draws_per_week <- 2
     
-    # ✅ FIX 3: Caching environment for filtered data to avoid recomputation
-    # Use cachem for LRU strategy (max 50 MB) to prevent memory leaks
-    cache_env <- cachem::cache_mem(max_size = 50 * 1024^2)
-    
     # Memoized filtering function - returns cached results if same parameters
     get_filtered_data <- function(weeks, range_vals) {
       # Create unique cache key from parameters
@@ -181,7 +181,7 @@ dashboardServer <- function(id, input_controls) {
       
       # Return cached result if it exists
       # IMPORTANT: Use missing = NULL, otherwise cachem returns a special object that crashes graphs
-      cached_data <- cache_env$get(cache_key, missing = NULL)
+      cached_data <- global_filter_cache$get(cache_key, missing = NULL)
       if (!is.null(cached_data)) {
         return(cached_data)
       }
@@ -202,7 +202,7 @@ dashboardServer <- function(id, input_controls) {
       req(nrow(data) > 0)
       
       # Cache the result for future use
-      cache_env$set(cache_key, data)
+      global_filter_cache$set(cache_key, data)
       data
     }
     

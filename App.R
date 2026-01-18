@@ -10,6 +10,7 @@ library(waiter)
 library(tidyr)
 library(purrr)
 library(DT)
+library(cachem)
 
 # ✅ Load translations
 source("translations.R")

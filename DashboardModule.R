@@ -171,7 +171,8 @@ dashboardServer <- function(id, input_controls) {
     draws_per_week <- 2
     
     # ✅ FIX 3: Caching environment for filtered data to avoid recomputation
-    cache_env <- new.env()
+    # Use cachem for LRU strategy (max 50 MB) to prevent memory leaks
+    cache_env <- cachem::cache_mem(max_size = 50 * 1024^2)
     
     # Memoized filtering function - returns cached results if same parameters
     get_filtered_data <- function(weeks, range_vals) {
@@ -179,8 +180,10 @@ dashboardServer <- function(id, input_controls) {
       cache_key <- paste(weeks, range_vals[1], range_vals[2], sep = "_")
       
       # Return cached result if it exists
-      if (exists(cache_key, envir = cache_env)) {
-        return(get(cache_key, envir = cache_env))
+      # IMPORTANT: Use missing = NULL, otherwise cachem returns a special object that crashes graphs
+      cached_data <- cache_env$get(cache_key, missing = NULL)
+      if (!is.null(cached_data)) {
+        return(cached_data)
       }
       
       # Perform filtering
@@ -199,7 +202,7 @@ dashboardServer <- function(id, input_controls) {
       req(nrow(data) > 0)
       
       # Cache the result for future use
-      assign(cache_key, data, envir = cache_env)
+      cache_env$set(cache_key, data)
       data
     }
     

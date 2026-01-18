@@ -81,13 +81,7 @@ lagMetricUI <- function(id) {
       ),
       
       # Table
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle9")),
-        p(class = "info-text", uiOutput(ns("chartDesc9"))),
-        DT::dataTableOutput(ns("lagTable"))
-      )
+      create_table_card(ns, "chartTitle9", "chartDesc9", "lagTable", style = "margin-top: 25px;")
     )
   )
 }
@@ -222,21 +216,14 @@ lagMetricServer <- function(id, filtered_data) {
       
       range_val <- stats$max - stats$min
       
-      create_card <- function(icon, value, label) {
-        div(class = "value-box-custom",
-            div(class = "value-box-icon", icon),
-            div(class = "value-box-value", value),
-            div(class = "value-box-label", label))
-      }
-      
       layout_column_wrap(
         width = 1/4,
         heights_equal = "row",
         gap = "15px",
-        create_card("📊", round(stats$mean, 2), t("lag_metric_avg", lang)),
-        create_card("📏", round(stats$sd, 2), t("lag_metric_sd", lang)),
-        create_card("⭐", stats$most_common, t("lag_metric_most_common", lang)),
-        create_card("📈", range_val, t("lag_metric_range", lang))
+        create_stat_card("📊", round(stats$mean, 2), t("lag_metric_avg", lang)),
+        create_stat_card("📏", round(stats$sd, 2), t("lag_metric_sd", lang)),
+        create_stat_card("⭐", stats$most_common, t("lag_metric_most_common", lang)),
+        create_stat_card("📈", range_val, t("lag_metric_range", lang))
       )
     })
     

@@ -1,13 +1,87 @@
 # Helper for consistent chart cards to reduce code duplication
 create_chart_card <- function(ns, title_id, desc_id = NULL, plot_id, height = "400px", style = "") {
+  # Unique ID for the card to handle fullscreen toggling
+  card_dom_id <- ns(paste0("card_", plot_id))
+  
   div(
+    id = card_dom_id,
     class = "content-card",
-    style = style,
-    uiOutput(ns(title_id)),
+    style = paste("position: relative; transition: all 0.3s ease;", style),
+    
+    # Header with Title and Expand Button
+    div(
+      class = "d-flex justify-content-between align-items-start",
+      div(style = "flex-grow: 1;", uiOutput(ns(title_id))),
+      tags$button(
+        class = "btn btn-sm btn-ghost-light",
+        style = "color: rgba(255,255,255,0.5); min-width: 30px; margin-left: 10px; background: transparent; border: none; font-size: 1.2rem; line-height: 1;",
+        title = "Toggle Fullscreen",
+        onclick = sprintf("
+          var card = document.getElementById('%s');
+          card.classList.toggle('fullscreen-mode');
+          var isFull = card.classList.contains('fullscreen-mode');
+          this.innerText = isFull ? '✕' : '⤢';
+          // Trigger resize for Plotly after transition
+          setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 300);
+        ", card_dom_id),
+        "⤢"
+      )
+    ),
+    
     if (!is.null(desc_id)) p(class = "info-text", uiOutput(ns(desc_id))),
-    plotlyOutput(ns(plot_id), height = height)
+    
+    # Wrapper for plot to handle fullscreen height
+    div(
+      class = "chart-wrapper",
+      plotlyOutput(ns(plot_id), height = height)
+    )
   )
 }
+
+# Helper for consistent table cards with fullscreen support
+create_table_card <- function(ns, title_id, desc_id = NULL, table_id, style = "") {
+  card_dom_id <- ns(paste0("card_", table_id))
+  
+  div(
+    id = card_dom_id,
+    class = "content-card",
+    style = paste("position: relative; transition: all 0.3s ease;", style),
+    
+    div(
+      class = "d-flex justify-content-between align-items-start",
+      div(style = "flex-grow: 1;", uiOutput(ns(title_id))),
+      tags$button(
+        class = "btn btn-sm btn-ghost-light",
+        style = "color: rgba(255,255,255,0.5); min-width: 30px; margin-left: 10px; background: transparent; border: none; font-size: 1.2rem; line-height: 1;",
+        title = "Toggle Fullscreen",
+        onclick = sprintf("
+          var card = document.getElementById('%s');
+          card.classList.toggle('fullscreen-mode');
+          var isFull = card.classList.contains('fullscreen-mode');
+          this.innerText = isFull ? '✕' : '⤢';
+        ", card_dom_id),
+        "⤢"
+      )
+    ),
+    
+    if (!is.null(desc_id)) p(class = "info-text", uiOutput(ns(desc_id))),
+    
+    div(
+      class = "table-wrapper",
+      style = "width: 100%; overflow-x: auto; min-height: 200px;",
+      DT::dataTableOutput(ns(table_id))
+    )
+  )
+}
+
+# Helper for consistent stat cards
+create_stat_card <- function(icon, value, label) {
+  div(class = "value-box-custom",
+      div(class = "value-box-icon", icon),
+      div(class = "value-box-value", value),
+      div(class = "value-box-label", label))
+}
+
 # --- Helpers for Reducing Boilerplate & Speed ---
 
 render_title <- function(key, get_lang_fn, icon = NULL) {
@@ -121,6 +195,43 @@ dashboardUI <- function(id) {
   ns <- NS(id)
   
   tagList(
+    # Add CSS for fullscreen mode and card interactions
+    tags$style(HTML("
+      .fullscreen-mode {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 99999 !important;
+        background-color: #0a0e27 !important; /* Match theme bg */
+        padding: 30px !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .fullscreen-mode .chart-wrapper {
+        flex-grow: 1;
+        height: 100% !important;
+        position: relative;
+      }
+      .fullscreen-mode .plotly {
+        height: 100% !important;
+      }
+      .fullscreen-mode .table-wrapper {
+        flex-grow: 1;
+        height: 100% !important;
+        overflow: auto;
+        padding-bottom: 20px;
+      }
+      .content-card:hover {
+        border-color: rgba(139, 92, 246, 0.4);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      }
+    ")),
+    
     # Skeleton for initial load
     div(id = ns("skeleton-loader"),
         style = "padding: 20px;",

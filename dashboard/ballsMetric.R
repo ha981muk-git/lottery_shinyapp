@@ -31,35 +31,12 @@ ballsMetricUI <- function(id) {
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        div(
-          class = "content-card",
-          uiOutput(ns("trendChartTitle")),
-          plotlyOutput(ns("trendChart"), height = "350px")
-        ),
-        div(
-          class = "content-card",
-          uiOutput(ns("distributionChartTitle")),
-          plotlyOutput(ns("distributionChart"), height = "350px")
-        )
+        create_chart_card(ns, "trendChartTitle", NULL, "trendChart", height = "350px"),
+        create_chart_card(ns, "distributionChartTitle", NULL, "distributionChart", height = "350px")
       ),
-      div(
-        class = "content-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("densityChartTitle")),
-        plotlyOutput(ns("densityChart"), height = "400px")
-      ),
-      div(
-        class = "content-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("overviewChartTitle")),
-        plotlyOutput(ns("overviewChart"), height = "400px")
-      ),
-      div(
-        class = "content-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("lineChartTitle")),
-        plotlyOutput(ns("lineChart"), height = "400px")
-      )
+      create_chart_card(ns, "densityChartTitle", NULL, "densityChart", height = "400px", style = "margin-top: 20px;"),
+      create_chart_card(ns, "overviewChartTitle", NULL, "overviewChart", height = "400px", style = "margin-top: 20px;"),
+      create_chart_card(ns, "lineChartTitle", NULL, "lineChart", height = "400px", style = "margin-top: 20px;")
     )
   )
 }

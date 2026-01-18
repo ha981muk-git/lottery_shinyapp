@@ -4,6 +4,17 @@
 # Module: ballsMetricModule
 # -------------------------
 
+# Define consistent colors for each ball (hex codes)
+# Moved to global scope for performance (defined once, not per session)
+BALL_COLORS <- c(
+  "Ball 1" = "#4169E1",  # royal blue
+  "Ball 2" = "#DC143C",  # crimson red
+  "Ball 3" = "#32CD32",  # lime green
+  "Ball 4" = "#FFD700",  # gold/yellow
+  "Ball 5" = "#9370DB",  # medium purple
+  "Ball 6" = "#00CED1"   # dark cyan
+)
+
 ballsMetricUI <- function(id) {
   ns <- NS(id)
   tagList(
@@ -21,30 +32,30 @@ ballsMetricUI <- function(id) {
         width = 1/2,
         heights_equal = "row",
         div(
-          class = "chart-card",
+          class = "content-card",
           uiOutput(ns("trendChartTitle")),
           plotlyOutput(ns("trendChart"), height = "350px")
         ),
         div(
-          class = "chart-card",
+          class = "content-card",
           uiOutput(ns("distributionChartTitle")),
           plotlyOutput(ns("distributionChart"), height = "350px")
         )
       ),
       div(
-        class = "chart-card",
+        class = "content-card",
         style = "margin-top: 20px;",
         uiOutput(ns("densityChartTitle")),
         plotlyOutput(ns("densityChart"), height = "400px")
       ),
       div(
-        class = "chart-card",
+        class = "content-card",
         style = "margin-top: 20px;",
         uiOutput(ns("overviewChartTitle")),
         plotlyOutput(ns("overviewChart"), height = "400px")
       ),
       div(
-        class = "chart-card",
+        class = "content-card",
         style = "margin-top: 20px;",
         uiOutput(ns("lineChartTitle")),
         plotlyOutput(ns("lineChart"), height = "400px")
@@ -61,16 +72,6 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       query <- parseQueryString(isolate(session$clientData$url_search))
       query$lang %||% "de"
     })
-    
-    # Define consistent colors for each ball (hex codes)
-    ball_colors <- c(
-      "Ball 1" = "#4169E1",  # royal blue
-      "Ball 2" = "#DC143C",  # crimson red
-      "Ball 3" = "#32CD32",  # lime green
-      "Ball 4" = "#FFD700",  # gold/yellow
-      "Ball 5" = "#9370DB",  # medium purple
-      "Ball 6" = "#00CED1"   # dark cyan
-    )
     
     # Render header
     output$header <- renderUI({
@@ -155,9 +156,9 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
                        y = data[[paste0("ball_", i)]], 
                        name = ball_label, 
                        type = "box",
-                       fillcolor = ball_colors[ball_name],
-                       marker = list(color = ball_colors[ball_name]),
-                       line = list(color = ball_colors[ball_name]))
+                       fillcolor = BALL_COLORS[ball_name],
+                       marker = list(color = BALL_COLORS[ball_name]),
+                       line = list(color = BALL_COLORS[ball_name]))
       }
       
       p %>%
@@ -190,12 +191,12 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
                        side = 'both',
                        box = list(
                          visible = TRUE,
-                         fillcolor = toRGB(ball_colors[ball_name], alpha = 0.3),
-                         line = list(color = ball_colors[ball_name], width = 2)
+                         fillcolor = toRGB(BALL_COLORS[ball_name], alpha = 0.3),
+                         line = list(color = BALL_COLORS[ball_name], width = 2)
                        ),
                        meanline = list(visible = TRUE),
-                       fillcolor = toRGB(ball_colors[ball_name], alpha = 0.6),
-                       line = list(color = ball_colors[ball_name]),
+                       fillcolor = toRGB(BALL_COLORS[ball_name], alpha = 0.6),
+                       line = list(color = BALL_COLORS[ball_name]),
                        opacity = 0.6)
       }
       
@@ -238,7 +239,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
           type = "scatter",
           mode = "lines",
           name = paste(ball_name, "(Smooth)"),
-          line = list(color = ball_colors[ball_name], width = 2)
+          line = list(color = BALL_COLORS[ball_name], width = 2)
         )
       }
       
@@ -268,7 +269,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
         ball_name <- paste0("Ball ", i)
         ball_label <- ball_labels[i]
         ball_values <- data[[paste0("ball_", i)]]
-        color <- ball_colors[ball_name]
+        color <- BALL_COLORS[ball_name]
         
         # 1️⃣ Half violin (raincloud)
         p <- add_trace(p,

@@ -1,0 +1,5 @@
+.Rproj.user
+.git
+.DS_Store
+*.RData
+*.bak

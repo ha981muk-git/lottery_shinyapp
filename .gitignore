@@ -6,3 +6,4 @@ tests/testthat/test_performance.R
 .RData
 .DS_Store
 .Rproj.user/
+rsconnect/

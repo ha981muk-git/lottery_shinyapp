@@ -6,87 +6,27 @@ tableMetricUI <- function(id) {
   tagList(
     # Header Section
     div(
-      style = "margin-bottom: 32px;",
+      style = "padding: 20px; margin-bottom: 32px;",
       uiOutput(ns("header"))
     ),
     
     # Statistics Row (Consolidated)
     uiOutput(ns("metricRow")),
     
-    # Main Frequency Chart
-    div(
-      class = "chart-card",
-      style = "margin-top: 20px;",
-      uiOutput(ns("chartTitle1")),
-      p(class = "info-text", uiOutput(ns("chartDesc1"))),
-      plotlyOutput(ns("freq"), height = "450px")
-    ),
-    
-    # Hot and Cold Numbers Row
+    # Frequency and Heatmap (2 columns)
     layout_column_wrap(
       width = 1/2,
       heights_equal = "row",
-      div(
-        class = "chart-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("chartTitle2")),
-        p(class = "info-text", uiOutput(ns("chartDesc2"))),
-        plotlyOutput(ns("hotNumbers"), height = "400px")
-      ),
-      div(
-        class = "chart-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("chartTitle3")),
-        p(class = "info-text", uiOutput(ns("chartDesc3"))),
-        plotlyOutput(ns("coldNumbers"), height = "400px")
-      )
+      create_chart_card(ns, "chartTitle1", NULL, "freq", height = "350px"),
+      create_chart_card(ns, "chartTitle4", NULL, "heatGrid", height = "350px")
     ),
     
-    # Interactive Visual Grid
-    div(
-      class = "chart-card",
-      style = "margin-top: 20px;",
-      uiOutput(ns("chartTitle4")),
-      p(class = "info-text", uiOutput(ns("chartDesc4"))),
-      plotlyOutput(ns("heatGrid"), height = "500px")
-    ),
-    
-    # Frequency Distribution & Ball Position Analysis
+    # Hot and Cold Numbers (2 columns)
     layout_column_wrap(
       width = 1/2,
       heights_equal = "row",
-      div(
-        class = "chart-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("chartTitle5")),
-        p(class = "info-text", uiOutput(ns("chartDesc5"))),
-        plotlyOutput(ns("freqDist"), height = "400px")
-      ),
-      div(
-        class = "chart-card",
-        style = "margin-top: 20px;",
-        uiOutput(ns("chartTitle6")),
-        p(class = "info-text", uiOutput(ns("chartDesc6"))),
-        plotlyOutput(ns("positionAnalysis"), height = "400px")
-      )
-    ),
-    
-    # Deviation from Expected Frequency
-    div(
-      class = "chart-card",
-      style = "margin-top: 20px;",
-      uiOutput(ns("chartTitle7")),
-      p(class = "info-text", uiOutput(ns("chartDesc7"))),
-      plotlyOutput(ns("deviation"), height = "450px")
-    ),
-    
-    # Detailed Frequency Table
-    div(
-      class = "chart-card",
-      style = "margin-top: 20px;",
-      uiOutput(ns("chartTitle8")),
-      p(class = "info-text", uiOutput(ns("chartDesc8"))),
-      DT::dataTableOutput(ns("freqTable"))
+      create_chart_card(ns, "chartTitle2", NULL, "hotNumbers", height = "400px", style = "margin-top: 20px;"),
+      create_chart_card(ns, "chartTitle3", NULL, "coldNumbers", height = "400px", style = "margin-top: 20px;")
     )
   )
 }
@@ -110,23 +50,11 @@ tableMetricServer <- function(id, filtered_data) {
       )
     })
     
-    # Chart titles and descriptions
-    output$chartTitle1 <- render_title("table_chart_frequencies", get_lang, "📊")
-    output$chartDesc1 <- render_desc("table_chart_frequencies_desc", get_lang)
-    output$chartTitle2 <- render_title("table_chart_hot", get_lang, "🔥")
-    output$chartDesc2 <- render_desc("table_chart_hot_desc", get_lang)
-    output$chartTitle3 <- render_title("table_chart_cold", get_lang, "❄️")
-    output$chartDesc3 <- render_desc("table_chart_cold_desc", get_lang)
-    output$chartTitle4 <- render_title("table_chart_grid", get_lang, "🎯")
-    output$chartDesc4 <- render_desc("table_chart_grid_desc", get_lang)
-    output$chartTitle5 <- render_title("table_chart_dist", get_lang, "📈")
-    output$chartDesc5 <- render_desc("table_chart_dist_desc", get_lang)
-    output$chartTitle6 <- render_title("table_chart_position", get_lang, "🎲")
-    output$chartDesc6 <- render_desc("table_chart_position_desc", get_lang)
-    output$chartTitle7 <- render_title("table_chart_deviation", get_lang, "⚖️")
-    output$chartDesc7 <- render_desc("table_chart_deviation_desc", get_lang)
-    output$chartTitle8 <- render_title("table_chart_table", get_lang, "📋")
-    output$chartDesc8 <- render_desc("table_chart_table_desc", get_lang)
+    # Chart titles
+    output$chartTitle1 <- render_title("table_chart_frequencies", get_lang)
+    output$chartTitle2 <- render_title("table_chart_hot", get_lang)
+    output$chartTitle3 <- render_title("table_chart_cold", get_lang)
+    output$chartTitle4 <- render_title("table_chart_grid", get_lang)
     
     # Calculate frequency statistics
     freq_stats <- reactive({
@@ -172,19 +100,21 @@ tableMetricServer <- function(id, filtered_data) {
       stats <- freq_stats()
       range_val <- stats$max_freq - stats$min_freq
       
-      create_card <- function(label, value) {
-        div(class = "metric-card",
-            div(class = "metric-label", label),
-            div(class = "metric-value", value))
+      create_metric_card <- function(title, value, value_symbol = "") {
+        div(
+          class = "metric-card",
+          div(class = "metric-label", title),
+          div(class = "metric-value", paste0(value, value_symbol))
+        )
       }
       
       layout_column_wrap(
         width = 1/4,
         heights_equal = "row",
-        create_card(t("table_metric_hottest", lang), stats$most_common),
-        create_card(t("table_metric_coldest", lang), stats$least_common),
-        create_card(t("table_metric_expected", lang), round(stats$expected_freq, 1)),
-        create_card(t("table_metric_range", lang), range_val)
+        create_metric_card(t("table_metric_hottest", lang), stats$most_common),
+        create_metric_card(t("table_metric_coldest", lang), stats$least_common),
+        create_metric_card(t("table_metric_expected", lang), round(stats$expected_freq, 1)),
+        create_metric_card(t("table_metric_range", lang), range_val)
       )
     })
     

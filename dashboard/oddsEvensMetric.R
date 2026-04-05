@@ -13,19 +13,21 @@ oddsEvensMetricUI <- function(id) {
       # Statistics Row (Consolidated)
       uiOutput(ns("metricRow")),
       
-      # Pascal Triangle Distribution Card
-      create_chart_card(ns, "chartTitle1", "chartDesc1", "pascalChart", height = "450px"),
-      
-      # Charts Row
+      # Pascal and Pie Charts (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle2", NULL, "pie", height = "350px"),
-        create_chart_card(ns, "chartTitle3", NULL, "trendLine", height = "350px")
+        create_chart_card(ns, "chartTitle1", NULL, "pascalChart", height = "350px"),
+        create_chart_card(ns, "chartTitle2", NULL, "pie", height = "350px")
       ),
       
-      # Stacked Bar Chart
-      create_chart_card(ns, "chartTitle4", NULL, "stacked", style = "margin-top: 20px;")
+      # Trend and Stacked Charts (2 columns)
+      layout_column_wrap(
+        width = 1/2,
+        heights_equal = "row",
+        create_chart_card(ns, "chartTitle3", NULL, "trendLine", height = "400px", style = "margin-top: 20px;"),
+        create_chart_card(ns, "chartTitle4", NULL, "stacked", height = "400px", style = "margin-top: 20px;")
+      )
     )
   )
 }
@@ -79,20 +81,23 @@ oddsEvensMetricServer <- function(id, filtered_data) {
     output$metricRow <- renderUI({
       lang <- get_lang()
       stats <- odds_evens_stats()
+      total_draws <- length(stats$combinations)
       
-      create_card <- function(icon, value, label, style = "") {
-        div(class = "value-box-custom",
-            div(class = "value-box-icon", icon),
-            div(class = "value-box-value", style = style, value),
-            div(class = "value-box-label", label))
+      create_metric_card <- function(title, value, value_symbol = "") {
+        div(
+          class = "metric-card",
+          div(class = "metric-label", title),
+          div(class = "metric-value", paste0(value, value_symbol))
+        )
       }
       
       layout_column_wrap(
-        width = 1/3,
+        width = 1/4,
         heights_equal = "row",
-        create_card("🎲", round(stats$avg_odds, 2), t("odds_evens_metric_avg_odds", lang)),
-        create_card("⚖️", round(6 - stats$avg_odds, 2), t("odds_evens_metric_avg_evens", lang)),
-        create_card("⭐", stats$most_common, t("odds_evens_metric_most_common", lang), "font-size: 20px;")
+        create_metric_card(t("odds_evens_metric_avg_odds", lang), round(stats$avg_odds, 2)),
+        create_metric_card(t("odds_evens_metric_avg_evens", lang), round(6 - stats$avg_odds, 2)),
+        create_metric_card(t("odds_evens_metric_most_common", lang), stats$most_common),
+        create_metric_card(t("odds_evens_total_draws", lang), total_draws)
       )
     })
     

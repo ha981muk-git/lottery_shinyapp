@@ -13,54 +13,24 @@ differenceMetricUI <- function(id) {
       # Statistics Row (Consolidated)
       uiOutput(ns("metricRow")),
       
-      # ---------- Add to differenceMetricUI ----------
-      
-      # Add this section after the "Range Categories" div and before "Trend and Box Plot"
-      
-      # Density Distribution Analysis
-      create_chart_card(ns, "chartTitle_density", "chartDesc_density", "densityDistribution", height = "450px", style = "margin-top: 25px;"),
-      
-      # Main Frequency Distribution
-      create_chart_card(ns, "chartTitle1", "chartDesc1", "rangeFreq", height = "450px", style = "margin-top: 25px;"),
-      
-      # Hot and Cold Ranges
+      # Distribution Charts (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        gap = "20px",
-        fill = FALSE,
-        create_chart_card(ns, "chartTitle2", "chartDesc2", "hotRanges"),
-        create_chart_card(ns, "chartTitle3", "chartDesc3", "coldRanges")
+        create_chart_card(ns, "chartTitle_density", NULL, "densityDistribution", height = "350px"),
+        create_chart_card(ns, "chartTitle1", NULL, "rangeFreq", height = "350px")
       ),
       
-      # Range Categories
-      create_chart_card(ns, "chartTitle4", "chartDesc4", "rangeCategories", height = "450px", style = "margin-top: 25px;"),
-      
-      # Trend and Box Plot
+      # Trend and Box Plot (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        gap = "20px",
-        fill = FALSE,
-        create_chart_card(ns, "chartTitle5", "chartDesc5", "rangeTrend"),
-        create_chart_card(ns, "chartTitle6", "chartDesc6", "rangeBox")
+        create_chart_card(ns, "chartTitle5", NULL, "rangeTrend", height = "400px", style = "margin-top: 20px;"),
+        create_chart_card(ns, "chartTitle6", NULL, "rangeBox", height = "400px", style = "margin-top: 20px;")
       ),
       
-      # Heatmap
-      create_chart_card(ns, "chartTitle7", "chartDesc7", "rangeHeatmap", style = "margin-top: 25px;"),
-      
-      # Range Guide
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle8")),
-        p(class = "info-text", uiOutput(ns("chartDesc8"))),
-        div(style = "padding: 20px;",
-            uiOutput(ns("rangeGuide")))
-      ),
-      
-      # Table
-      create_table_card(ns, "chartTitle9", "chartDesc9", "rangeTable", style = "margin-top: 25px;")
+      # Heatmap (Full width)
+      create_chart_card(ns, "chartTitle7", NULL, "rangeHeatmap", height = "400px", style = "margin-top: 20px;")
     )
   )
 }
@@ -139,15 +109,21 @@ differenceMetricServer <- function(id, filtered_data) {
       lang <- get_lang()
       stats <- range_stats()
       
+      create_metric_card <- function(title, value, value_symbol = "") {
+        div(
+          class = "metric-card",
+          div(class = "metric-label", title),
+          div(class = "metric-value", paste0(value, value_symbol))
+        )
+      }
+      
       layout_column_wrap(
-        width = 1/5,
+        width = 1/4,
         heights_equal = "row",
-        gap = "12px",
-        create_stat_card("📊", round(stats$mean, 1), t("difference_metric_avg", lang)),
-        create_stat_card("🎯", stats$median, t("difference_metric_median", lang)),
-        create_stat_card("⭐", stats$most_common, t("difference_metric_most_common", lang)),
-        create_stat_card("📉", stats$min, t("difference_metric_min", lang)),
-        create_stat_card("📈", stats$max, t("difference_metric_max", lang))
+        create_metric_card(t("difference_metric_avg", lang), round(stats$mean, 1)),
+        create_metric_card(t("difference_metric_median", lang), stats$median),
+        create_metric_card(t("difference_metric_min", lang), stats$min),
+        create_metric_card(t("difference_metric_max", lang), stats$max)
       )
     })
     

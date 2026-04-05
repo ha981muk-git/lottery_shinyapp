@@ -43,45 +43,24 @@ lagMetricUI <- function(id) {
         )
       ),
       
-      # Distribution Chart
-      create_chart_card(ns, "chartTitle1", "chartDesc1", "lagDistribution", height = "500px", style = "margin-top: 25px;"),
-      
-      # Jump Preference Charts
+      # Distribution Charts (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        gap = "20px",
-        fill = FALSE,
-        create_chart_card(ns, "chartTitle2", "chartDesc2", "positiveJumps"),
-        create_chart_card(ns, "chartTitle3", "chartDesc3", "negativeJumps")
+        create_chart_card(ns, "chartTitle1", NULL, "lagDistribution", height = "350px"),
+        create_chart_card(ns, "chartTitle4", NULL, "jumpCategories", height = "350px")
       ),
       
-      # Jump Categories
-      create_chart_card(ns, "chartTitle4", "chartDesc4", "jumpCategories", height = "450px", style = "margin-top: 25px;"),
-      
-      # Heatmap and Q-Q Plot
+      # Heatmap and Q-Q Plot (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        gap = "20px",
-        fill = FALSE,
-        create_chart_card(ns, "chartTitle5", "chartDesc5", "lagHeatmap", height = "450px"),
-        create_chart_card(ns, "chartTitle6", "chartDesc6", "qqPlot", height = "450px")
+        create_chart_card(ns, "chartTitle5", NULL, "lagHeatmap", height = "400px", style = "margin-top: 20px;"),
+        create_chart_card(ns, "chartTitle6", NULL, "qqPlot", height = "400px", style = "margin-top: 20px;")
       ),
       
-      # Preferred Zones
-      create_chart_card(ns, "chartTitle7", "chartDesc7", "preferredZones", height = "450px", style = "margin-top: 25px;"),
-      
-      # Statistical Summary
-      div(
-        class = "content-card",
-        style = "margin-top: 25px;",
-        uiOutput(ns("chartTitle8")),
-        uiOutput(ns("statSummary"))
-      ),
-      
-      # Table
-      create_table_card(ns, "chartTitle9", "chartDesc9", "lagTable", style = "margin-top: 25px;")
+      # Trend Chart (Full width)
+      create_chart_card(ns, "chartTitle2", NULL, "positiveJumps", height = "400px", style = "margin-top: 20px;")
     )
   )
 }
@@ -216,14 +195,21 @@ lagMetricServer <- function(id, filtered_data) {
       
       range_val <- stats$max - stats$min
       
+      create_metric_card <- function(title, value, value_symbol = "") {
+        div(
+          class = "metric-card",
+          div(class = "metric-label", title),
+          div(class = "metric-value", paste0(value, value_symbol))
+        )
+      }
+      
       layout_column_wrap(
         width = 1/4,
         heights_equal = "row",
-        gap = "15px",
-        create_stat_card("📊", round(stats$mean, 2), t("lag_metric_avg", lang)),
-        create_stat_card("📏", round(stats$sd, 2), t("lag_metric_sd", lang)),
-        create_stat_card("⭐", stats$most_common, t("lag_metric_most_common", lang)),
-        create_stat_card("📈", range_val, t("lag_metric_range", lang))
+        create_metric_card(t("lag_metric_avg", lang), round(stats$mean, 2)),
+        create_metric_card(t("lag_metric_sd", lang), round(stats$sd, 2)),
+        create_metric_card(t("lag_metric_most_common", lang), stats$most_common),
+        create_metric_card(t("lag_metric_range", lang), range_val)
       )
     })
     

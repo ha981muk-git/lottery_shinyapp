@@ -13,26 +13,21 @@ sumsMetricUI <- function(id) {
       # Statistics Row (Consolidated)
       uiOutput(ns("metricRow")),
       
-      # Distribution and Trend Row
+      # Histogram and Box Plot (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        gap = "20px",
-        create_chart_card(ns, "chartTitle1", "chartDesc1", "hist"),
-        create_chart_card(ns, "chartTitle2", "chartDesc2", "trend")
+        create_chart_card(ns, "chartTitle1", NULL, "hist", height = "350px"),
+        create_chart_card(ns, "chartTitle4", NULL, "boxPlot", height = "350px")
       ),
       
-      # Range Analysis and Box Plot Row
+      # Trend and Range Charts (2 columns)
       layout_column_wrap(
         width = 1/2,
-        gap = "20px",
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle3", "chartDesc3", "rangeChart"),
-        create_chart_card(ns, "chartTitle4", "chartDesc4", "boxPlot")
-      ),
-      
-      # Moving Average and Volatility
-      create_chart_card(ns, "chartTitle5", "chartDesc5", "movingAvg", style = "margin-top: 20px;")
+        create_chart_card(ns, "chartTitle2", NULL, "trend", height = "400px", style = "margin-top: 20px;"),
+        create_chart_card(ns, "chartTitle5", NULL, "movingAvg", height = "400px", style = "margin-top: 20px;")
+      )
     )
   )
 }
@@ -88,22 +83,21 @@ sumsMetricServer <- function(id, filtered_data) {
       lang <- get_lang()
       stats <- sum_stats()
       
-      create_card <- function(icon, value, label) {
-        div(class = "value-box-custom",
-            div(class = "value-box-icon", icon),
-            div(class = "value-box-value", value),
-            div(class = "value-box-label", label))
+      create_metric_card <- function(title, value, value_symbol = "") {
+        div(
+          class = "metric-card",
+          div(class = "metric-label", title),
+          div(class = "metric-value", paste0(value, value_symbol))
+        )
       }
       
       layout_column_wrap(
-        width = 1/5,
-        gap = "12px",
+        width = 1/4,
         heights_equal = "row",
-        create_card("📊", round(stats$mean, 1), t("sums_metric_average", lang)),
-        create_card("🎯", stats$median, t("sums_metric_median", lang)),
-        create_card("⭐", stats$most_common, t("sums_metric_most_common", lang)),
-        create_card("📉", stats$min, t("sums_metric_minimum", lang)),
-        create_card("📈", stats$max, t("sums_metric_maximum", lang))
+        create_metric_card(t("sums_metric_average", lang), round(stats$mean, 1)),
+        create_metric_card(t("sums_metric_median", lang), stats$median),
+        create_metric_card(t("sums_metric_minimum", lang), stats$min),
+        create_metric_card(t("sums_metric_maximum", lang), stats$max)
       )
     })
     

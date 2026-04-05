@@ -279,7 +279,20 @@ dashboardServer <- function(id, input_controls) {
     
     # Load data once at startup
     metrics_data <- generate_metrics()
+    base_row_count <- nrow(metrics_data)
     draws_per_week <- 2
+    filter_cache <- reactiveVal(list(key = NULL, data = NULL))
+    
+    active_metric <- reactive({
+      req(input_controls()$metric)
+      input_controls()$metric
+    })
+    
+    metric_is_active <- function(metric_name) {
+      reactive({
+        identical(active_metric(), metric_name)
+      })
+    }
     
     # ✅ FAST FILTERING PIPELINE
     filtered_data <- eventReactive(
@@ -289,6 +302,12 @@ dashboardServer <- function(id, input_controls) {
       {
         weeks <- as.numeric(input_controls()$timeRange)
         range_vals <- input_controls()$range
+        cache_key <- paste(weeks, range_vals[1], range_vals[2], sep = "|")
+        cached <- filter_cache()
+        
+        if (!is.null(cached$key) && identical(cached$key, cache_key) && !is.null(cached$data)) {
+          return(cached$data)
+        }
         
         data <- metrics_data
         req(!is.null(data) && nrow(data) > 0)
@@ -301,6 +320,7 @@ dashboardServer <- function(id, input_controls) {
         
         data <- data %>% filter(ball_1 >= num_from & ball_6 <= num_to)
         req(nrow(data) > 0)
+        filter_cache(list(key = cache_key, data = data))
         
         data
       },
@@ -315,12 +335,31 @@ dashboardServer <- function(id, input_controls) {
       if (metric %in% already_init) return()
       
       switch(metric,
-             "balls" = ballsMetricServer("balls", filtered_data, input_controls),
-             "sums" = sumsMetricServer("sums", filtered_data),
-             "odds_evens" = oddsEvensMetricServer("odds_evens", filtered_data),
-             "table" = tableMetricServer("table", filtered_data),
-             "difference" = differenceMetricServer("difference", filtered_data),
-             "lag" = lagMetricServer("lag", filtered_data)
+             "balls" = ballsMetricServer(
+               "balls", filtered_data, input_controls,
+               base_row_count = base_row_count,
+               is_active = metric_is_active("balls")
+             ),
+             "sums" = sumsMetricServer(
+               "sums", filtered_data,
+               is_active = metric_is_active("sums")
+             ),
+             "odds_evens" = oddsEvensMetricServer(
+               "odds_evens", filtered_data,
+               is_active = metric_is_active("odds_evens")
+             ),
+             "table" = tableMetricServer(
+               "table", filtered_data,
+               is_active = metric_is_active("table")
+             ),
+             "difference" = differenceMetricServer(
+               "difference", filtered_data,
+               is_active = metric_is_active("difference")
+             ),
+             "lag" = lagMetricServer(
+               "lag", filtered_data,
+               is_active = metric_is_active("lag")
+             )
       )
       
       initialized_servers(c(already_init, metric))

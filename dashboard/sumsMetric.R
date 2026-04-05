@@ -32,7 +32,7 @@ sumsMetricUI <- function(id) {
   )
 }
 
-sumsMetricServer <- function(id, filtered_data) {
+sumsMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
   moduleServer(id, function(input, output, session) {
     
     # Get current language from URL
@@ -61,9 +61,15 @@ sumsMetricServer <- function(id, filtered_data) {
     output$chartDesc4 <- render_desc("sums_chart_boxplot_desc", get_lang)
     output$chartTitle5 <- render_title("sums_chart_moving", get_lang, "📉")
     output$chartDesc5 <- render_desc("sums_chart_moving_desc", get_lang)
+    session$onFlushed(function() {
+      lapply(c("metricRow", "hist", "trend", "boxPlot", "movingAvg"), function(id) {
+        try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
+      })
+    }, once = TRUE)
     
     # Calculate sum statistics
     sum_stats <- reactive({
+      req(is_active())
       data <- filtered_data()
       sums <- rowSums(data[, paste0("ball_", 1:6)])
       
@@ -147,6 +153,7 @@ sumsMetricServer <- function(id, filtered_data) {
             shape = "spline"  # Makes it extra smooth
           ),
           name = t("sums_density_curve", lang),  # Add translation: "Density Curve" / "Dichtekurve"
+          inherit = FALSE,
           fill = "tozeroy",
           fillcolor = "rgba(251, 191, 36, 0.15)",  # Subtle fill under curve
           hovertemplate = paste0(
@@ -163,6 +170,7 @@ sumsMetricServer <- function(id, filtered_data) {
           mode = "lines",
           line = list(color = "#ec4899", width = 3, dash = "dash"),
           name = t("sums_metric_average", lang),
+          inherit = FALSE,
           hovertemplate = paste0(
             t("sums_metric_average", lang), ": ", round(stats$mean, 1),
             "<extra></extra>"
@@ -176,6 +184,7 @@ sumsMetricServer <- function(id, filtered_data) {
           mode = "lines",
           line = list(color = "#10b981", width = 3, dash = "dot"),
           name = t("sums_metric_median", lang),
+          inherit = FALSE,
           hovertemplate = paste0(
             t("sums_metric_median", lang), ": ", stats$median,
             "<extra></extra>"
@@ -233,6 +242,7 @@ sumsMetricServer <- function(id, filtered_data) {
                   type = "scatter", mode = "lines",
                   line = list(color = "#10b981", width = 2, dash = "dash"),
                   name = t("sums_metric_average", lang),
+                  inherit = FALSE,
                   hoverinfo = "skip") %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",

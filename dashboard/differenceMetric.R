@@ -35,7 +35,7 @@ differenceMetricUI <- function(id) {
   )
 }
 
-differenceMetricServer <- function(id, filtered_data) {
+differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
   moduleServer(id, function(input, output, session) {
     
     # Get current language from URL
@@ -72,9 +72,15 @@ differenceMetricServer <- function(id, filtered_data) {
     output$chartDesc8 <- render_desc("difference_chart_guide_desc", get_lang)
     output$chartTitle9 <- render_title("difference_chart_table", get_lang, "📋")
     output$chartDesc9 <- render_desc("difference_chart_table_desc", get_lang)
+    session$onFlushed(function() {
+      lapply(c("metricRow", "densityDistribution", "rangeFreq", "rangeTrend", "rangeBox", "rangeHeatmap"), function(id) {
+        try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
+      })
+    }, once = TRUE)
     
     # Calculate range statistics
     range_stats <- reactive({
+      req(is_active())
       data <- filtered_data()
       
       ranges <- data$ball_6 - data$ball_1
@@ -179,6 +185,7 @@ differenceMetricServer <- function(id, filtered_data) {
           y = ~y,
           name = t("difference_label_density", lang),
           line = list(color = "#DC143C", width = 3),  # red
+          inherit = FALSE,
           hovertemplate = paste0(
             t("difference_label_density", lang), ": %{y:.2f}<extra></extra>"
           )

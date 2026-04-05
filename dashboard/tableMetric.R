@@ -32,7 +32,7 @@ tableMetricUI <- function(id) {
 }
 
 
-tableMetricServer <- function(id, filtered_data) {
+tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
   moduleServer(id, function(input, output, session) {
     
     # Get current language from URL
@@ -55,9 +55,15 @@ tableMetricServer <- function(id, filtered_data) {
     output$chartTitle2 <- render_title("table_chart_hot", get_lang)
     output$chartTitle3 <- render_title("table_chart_cold", get_lang)
     output$chartTitle4 <- render_title("table_chart_grid", get_lang)
+    session$onFlushed(function() {
+      lapply(c("metricRow", "freq", "hotNumbers", "coldNumbers", "heatGrid"), function(id) {
+        try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
+      })
+    }, once = TRUE)
     
     # Calculate frequency statistics
     freq_stats <- reactive({
+      req(is_active())
       data <- filtered_data()
       nums <- as.vector(as.matrix(data[, paste0("ball_", 1:6)]))
       freq_table <- table(nums)

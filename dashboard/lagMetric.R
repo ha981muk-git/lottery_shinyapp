@@ -65,7 +65,7 @@ lagMetricUI <- function(id) {
   )
 }
 
-lagMetricServer <- function(id, filtered_data) {
+lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
   moduleServer(id, function(input, output, session) {
     
     # Get current language from URL
@@ -107,6 +107,11 @@ lagMetricServer <- function(id, filtered_data) {
     output$chartTitle8 <- render_title("lag_chart_summary", get_lang, "📊")
     output$chartTitle9 <- render_title("lag_chart_table", get_lang, "📋")
     output$chartDesc9 <- render_desc("lag_chart_table_desc", get_lang)
+    session$onFlushed(function() {
+      lapply(c("metricRow", "lagDistribution", "jumpCategories", "lagHeatmap", "qqPlot", "positiveJumps"), function(id) {
+        try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
+      })
+    }, once = TRUE)
     
     # Track selected ball
     selected_ball <- reactiveVal(0)
@@ -137,6 +142,7 @@ lagMetricServer <- function(id, filtered_data) {
     
     # Calculate lag statistics
     lag_stats <- reactive({
+      req(is_active())
       data <- filtered_data()
       ball <- selected_ball()
       if(is.null(ball)) ball <- 0
@@ -232,6 +238,7 @@ lagMetricServer <- function(id, filtered_data) {
         add_lines(x = x_seq, y = y_norm_scaled,
                   line = list(color = "#ec4899", width = 3),
                   name = t("lag_chart_normal", lang),
+                  inherit = FALSE,
                   hovertemplate = paste0(t("lag_label_lag", lang), ": %{x:.1f}<br>", t("lag_hover_expected", lang), ": %{y:.1f}<extra></extra>")) %>%
         add_trace(x = c(stats$mean, stats$mean), y = c(0, max(hist_data$counts) * 1.1),
                   type = "scatter", mode = "lines",
@@ -402,6 +409,7 @@ lagMetricServer <- function(id, filtered_data) {
         add_lines(x = range(theoretical$x), y = range(theoretical$x),
                   line = list(color = "#ec4899", width = 3, dash = "dash"),
                   name = t("lag_chart_perfect_normal", lang),
+                  inherit = FALSE,
                   hovertemplate = paste0(t("lag_chart_perfect_normal", lang), "<extra></extra>")) %>%
         layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#e8eaed", family = "Inter"),
                xaxis = list(title = t("lag_label_theoretical", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),

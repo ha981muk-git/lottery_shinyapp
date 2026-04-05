@@ -19,15 +19,15 @@ source("translations.R")
 app_theme <- bs_theme(
   version = 5,
   preset = "shiny",
-  bg = "#0a0e27",
-  fg = "#e8eaed",
-  primary = "#8b5cf6",
-  secondary = "#ec4899",
+  bg = "#061423",
+  fg = "#f4f8fb",
+  primary = "#0ea5e9",
+  secondary = "#f59e0b",
   success = "#10b981",
-  warning = "#f59e0b",
+  warning = "#f97316",
   danger = "#ef4444",
-  base_font = font_google("Inter"),
-  heading_font = font_google("Poppins")
+  base_font = font_google("Manrope"),
+  heading_font = font_google("Space Grotesk")
 )
 
 # Source main files

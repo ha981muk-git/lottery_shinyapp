@@ -32,7 +32,7 @@ oddsEvensMetricUI <- function(id) {
   )
 }
 
-oddsEvensMetricServer <- function(id, filtered_data) {
+oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
   moduleServer(id, function(input, output, session) {
     
     # Get current language from URL
@@ -56,9 +56,15 @@ oddsEvensMetricServer <- function(id, filtered_data) {
     output$chartTitle2 <- render_title("odds_evens_chart_pie", get_lang, "🥧")
     output$chartTitle3 <- render_title("odds_evens_chart_trend", get_lang, "📈")
     output$chartTitle4 <- render_title("odds_evens_chart_stacked", get_lang, "📊")
+    session$onFlushed(function() {
+      lapply(c("metricRow", "pascalChart", "pie", "trendLine", "stacked"), function(id) {
+        try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
+      })
+    }, once = TRUE)
     
     # Calculate odd/even statistics
     odds_evens_stats <- reactive({
+      req(is_active())
       data <- filtered_data()
       odds <- rowSums(data[, paste0("ball_", 1:6)] %% 2 == 1)
       evens <- 6 - odds

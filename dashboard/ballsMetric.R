@@ -41,7 +41,7 @@ ballsMetricUI <- function(id) {
   )
 }
 
-ballsMetricServer <- function(id, filtered_data, input_controls) {
+ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count = NULL, is_active = reactive(TRUE)) {
   moduleServer(id, function(input, output, session) {
     
     # Get current language from URL
@@ -65,6 +65,11 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     output$densityChartTitle <- render_title("balls_chart_density", get_lang)
     output$overviewChartTitle <- render_title("balls_overview_title", get_lang)
     output$lineChartTitle <- render_title("balls_line_chart_title", get_lang)
+    session$onFlushed(function() {
+      lapply(c("metricRow", "trendChart", "distributionChart", "densityChart", "overviewChart", "lineChart"), function(id) {
+        try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
+      })
+    }, once = TRUE)
     
     create_metric_card <- function(title, value, value_symbol) {
       div(
@@ -76,12 +81,13 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     
     # Calculate metrics separately (Best Practice: Separation of Concerns)
     metrics_stats <- reactive({
+      req(is_active())
       data <- filtered_data()
       controls <- input_controls()
       
       # Calc 1
       selected <- nrow(data)
-      total_counts <- getOption("li_base_row_count") %||% nrow(generate_metrics())
+      total_counts <- base_row_count %||% getOption("li_base_row_count") %||% selected
       coverage <- (selected/total_counts) * 100
       
       # Calc 2
@@ -106,6 +112,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     
     # Consolidated Metric Row Renderer
     output$metricRow <- renderUI({
+      req(is_active())
       lang <- get_lang()
       stats <- metrics_stats()
       
@@ -121,6 +128,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     
     # Trend Chart - Box Plot
     output$trendChart <- renderPlotly({
+      req(is_active())
       lang <- get_lang()
       data <- filtered_data()
       p <- plot_ly()
@@ -153,6 +161,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     
     # Distribution Chart - Full Violin Plot
     output$distributionChart <- renderPlotly({
+      req(is_active())
       lang <- get_lang()
       data <- filtered_data()
       p <- plot_ly()
@@ -191,6 +200,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     })
     
     output$densityChart <- renderPlotly({
+      req(is_active())
       lang <- get_lang()
       data <- filtered_data()
       
@@ -236,6 +246,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     
     # Overview Chart - Raincloud / Half Violin
     output$overviewChart <- renderPlotly({
+      req(is_active())
       lang <- get_lang()
       data <- filtered_data()
       p <- plot_ly()
@@ -312,6 +323,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
     
     # Line Chart - Each row represents a line connecting Ball 1 to Ball 6
     output$lineChart <- renderPlotly({
+      req(is_active())
       lang <- get_lang()
       data <- filtered_data()
       

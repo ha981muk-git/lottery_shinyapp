@@ -20,12 +20,16 @@ create_data_loader <- function(file_path = file.path(getwd(), "data", "LOTTO_ab_
   cache <- new.env(parent = emptyenv())
   cache$data <- NULL
   cache$last_modified <- NULL
+  cache$rds_message_shown <- FALSE
   
   rds_path <- file.path(getwd(), "data", "LOTTO_clean.rds")
   
   load_data <- function(force = FALSE) {
     if (!force && file.exists(rds_path)) {
-      message("⚡ Using precomputed RDS data: ", rds_path)
+      if (!isTRUE(cache$rds_message_shown)) {
+        message("⚡ Using precomputed RDS data: ", rds_path)
+        cache$rds_message_shown <- TRUE
+      }
       return(readRDS(rds_path))
     }
     

@@ -1,4 +1,12 @@
 $(document).ready(function() {
+  // Lightweight visual mode for lower-end devices.
+  const lowEndDevice =
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4);
+  if (lowEndDevice) {
+    document.documentElement.classList.add('low-end-device');
+  }
+
   // --- Sidebar Overlay Fix ---
   let debounceTimer;
   function fixSidebarOverlay() {
@@ -63,4 +71,34 @@ $(document).ready(function() {
   }
   checkScreen();
   $(window).on('resize', checkScreen);
+
+  // Smooth-scroll in-page nav anchors.
+  $('a[href^="#"]').on('click', function(event) {
+    const href = $(this).attr('href');
+    if (!href || href === '#') return;
+    const target = $(href);
+    if (!target.length) return;
+
+    event.preventDefault();
+    $('html, body').animate({
+      scrollTop: Math.max(0, target.offset().top - 88)
+    }, 420);
+  });
+
+  // Reveal cards on first viewport entry for a cleaner staged load.
+  const revealTargets = document.querySelectorAll('.metric-card, .content-card, .value-box-custom');
+  if ('IntersectionObserver' in window && revealTargets.length) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.12 });
+
+    revealTargets.forEach((el) => {
+      el.classList.add('will-reveal');
+      revealObserver.observe(el);
+    });
+  }
 });

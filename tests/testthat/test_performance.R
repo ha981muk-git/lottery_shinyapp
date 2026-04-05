@@ -188,28 +188,35 @@ test_metric_switching <- function() {
 }
 
 # ============================================================================
-# TEST 4: TIME RANGE CHANGES
+# TEST 4: DATE RANGE CHANGES
 # ============================================================================
 test_time_range_performance <- function() {
   cat("\n╔════════════════════════════════════════════════════════════╗\n")
-  cat("║ TEST 4: TIME RANGE SELECTION PERFORMANCE                   ║\n")
+  cat("║ TEST 4: DATE RANGE SELECTION PERFORMANCE                   ║\n")
   cat("╚════════════════════════════════════════════════════════════╝\n\n")
   
   tryCatch({
     app <- AppDriver$new(".", load_timeout = 50000, view = FALSE)
     Sys.sleep(3)
     
-    time_ranges <- c(7, 30, 60, 90, 120)
-    time_results <- vector("numeric", length(time_ranges))
+    date_ranges <- list(
+      c("2024-01-01", "2024-12-31"),
+      c("2023-01-01", "2025-12-31"),
+      c("2022-01-01", "2026-03-31"),
+      c("2025-01-01", "2026-03-31"),
+      c("2018-01-01", "2026-03-31")
+    )
+    time_results <- vector("numeric", length(date_ranges))
     
-    cat("📅 Testing time range changes...\n\n")
+    cat("📅 Testing date range changes...\n\n")
     
-    for (i in seq_along(time_ranges)) {
+    for (i in seq_along(date_ranges)) {
       time_start <- Sys.time()
       
-      cat("  [", time_ranges[i], " days]: Updating...", sep = "")
+      current_range <- date_ranges[[i]]
+      cat("  [", current_range[1], " to ", current_range[2], "]: Updating...", sep = "")
       
-      app$set_inputs(`inputs1-timeRange` = time_ranges[i])
+      app$set_inputs(`inputs1-dateRange` = current_range)
       Sys.sleep(0.8)
       
       time_end <- Sys.time()
@@ -270,8 +277,8 @@ test_stress_interactions <- function() {
     app$set_inputs(`inputs1-metric` = "sums")
     Sys.sleep(0.5)
     
-    cat("  3. Changing time range to 60 days...\n")
-    app$set_inputs(`inputs1-timeRange` = 60)
+    cat("  3. Changing date range...\n")
+    app$set_inputs(`inputs1-dateRange` = c("2023-01-01", "2026-03-31"))
     Sys.sleep(0.5)
     
     cat("  4. Clicking refresh button...\n")

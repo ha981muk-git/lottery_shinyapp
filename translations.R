@@ -23,6 +23,12 @@ translations <- list(
     input_analysis_type = "Analysis Type",
     input_time_window = "Time Window",
     input_refresh = "Refresh Data",
+    input_date_window = "Date Range",
+    input_quick_ranges = "Quick Ranges",
+    input_preset_3m = "Last 3 Months",
+    input_preset_6m = "Last 6 Months",
+    input_preset_1y = "Last 1 Year",
+    input_preset_all = "All Data",
     
     # Time choices
     time_last_7 = "Last 7 Weeks",
@@ -346,6 +352,12 @@ translations <- list(
     input_analysis_type = "Analysetyp",
     input_time_window = "Zeitfenster",
     input_refresh = "Daten aktualisieren",
+    input_date_window = "Datumsbereich",
+    input_quick_ranges = "Schnellbereiche",
+    input_preset_3m = "Letzte 3 Monate",
+    input_preset_6m = "Letzte 6 Monate",
+    input_preset_1y = "Letztes Jahr",
+    input_preset_all = "Alle Daten",
     
     # Time choices
     time_last_7 = "Letzte 7 Wochen",

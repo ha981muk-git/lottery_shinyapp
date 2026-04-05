@@ -103,17 +103,32 @@ render_desc <- function(key, get_lang_fn) {
 lotteryInputUI <- function(id, lang = "de") {
   ns <- NS(id)
   
-  # Dynamic choices based on language
-  time_choices <- setNames(
-    c(7, 30, 60, 90, 120, 150, 180),
-    c(t("time_last_7", lang),
-      t("time_last_30", lang),
-      t("time_last_60", lang),
-      t("time_last_90", lang),
-      t("time_last_120", lang),
-      t("time_last_150", lang),
-      t("time_last_180", lang)
-    ))
+  date_bounds <- tryCatch({
+    input_data <- generate_metrics()
+    if (is.null(input_data) || nrow(input_data) == 0 || !"datum" %in% names(input_data)) {
+      stop("Date bounds unavailable")
+    }
+
+    all_dates <- sort(unique(as.Date(input_data$datum)))
+    min_date <- min(all_dates, na.rm = TRUE)
+    max_date <- max(all_dates, na.rm = TRUE)
+    default_start_index <- max(1L, length(all_dates) - 59L)
+
+    list(
+      min = min_date,
+      max = max_date,
+      start = all_dates[default_start_index],
+      end = max_date
+    )
+  }, error = function(e) {
+    fallback_end <- Sys.Date()
+    list(
+      min = fallback_end - 365,
+      max = fallback_end,
+      start = fallback_end - 210,
+      end = fallback_end
+    )
+  })
   
   metric_choices <- setNames(
     c("balls", "sums", "odds_evens", "table", "difference", "lag"),
@@ -128,6 +143,7 @@ lotteryInputUI <- function(id, lang = "de") {
   )
   
   tagList(
+    tags$style(HTML("\n      .preset-range-btn {\n        border-radius: 999px !important;\n        font-size: 0.78rem !important;\n        border-color: rgba(255, 255, 255, 0.35) !important;\n        color: rgba(255, 255, 255, 0.78) !important;\n        background: transparent !important;\n        transition: all 0.2s ease !important;\n      }\n      .preset-range-btn:hover {\n        border-color: rgba(255, 255, 255, 0.7) !important;\n        color: #ffffff !important;\n      }\n      .preset-range-btn.active-preset {\n        border-color: rgba(56, 189, 248, 0.95) !important;\n        background: linear-gradient(120deg, rgba(14, 165, 233, 0.98), rgba(56, 189, 248, 0.98)) !important;\n        color: #04111f !important;\n        font-weight: 700 !important;\n        box-shadow: 0 8px 20px rgba(14, 165, 233, 0.28) !important;\n      }\n      .date-range-clean .input-daterange.input-group {\n        gap: 8px;\n      }\n      .date-range-clean .input-daterange.input-group > :not(:first-child) {\n        margin-left: 0 !important;\n      }\n      .date-range-clean .input-daterange .input-group-text {\n        border: none !important;\n        background: transparent !important;\n        color: rgba(232, 234, 237, 0.78) !important;\n        font-weight: 600 !important;\n        padding: 0 2px !important;\n      }\n      .date-range-clean .input-daterange .form-control {\n        border-radius: 12px !important;\n      }\n    ")),
     div(style = "margin-bottom: 24px;",
         h4(style = "color: #e8eaed; margin-bottom: 8px;",
            span(class = "status-dot"), t("input_live_dashboard", lang)),
@@ -141,10 +157,49 @@ lotteryInputUI <- function(id, lang = "de") {
                 t("input_analysis_type", lang), 
                 choices = metric_choices, 
                 selected = "balls"),
-    selectInput(ns("timeRange"), 
-                t("input_time_window", lang), 
-                choices = time_choices, 
-                selected = 30),
+    div(
+      class = "date-range-clean",
+      dateRangeInput(ns("dateRange"),
+               t("input_date_window", lang),
+               start = date_bounds$start,
+               end = date_bounds$end,
+               min = date_bounds$min,
+               max = date_bounds$max,
+               format = "yyyy-mm-dd",
+               startview = "year",
+               weekstart = 1,
+               separator = if (lang == "de") "bis" else "to")
+    ),
+    div(
+      style = "margin-top: 10px; margin-bottom: 10px;",
+      div(
+        style = "color: rgba(255, 255, 255, 0.65); font-size: 0.78rem; margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase;",
+        t("input_quick_ranges", lang)
+      ),
+      div(
+        class = "d-flex flex-wrap gap-2",
+        actionButton(
+          ns("preset3m"),
+          t("input_preset_3m", lang),
+          class = "btn btn-outline-light btn-sm preset-range-btn"
+        ),
+        actionButton(
+          ns("preset6m"),
+          t("input_preset_6m", lang),
+          class = "btn btn-outline-light btn-sm preset-range-btn"
+        ),
+        actionButton(
+          ns("preset1y"),
+          t("input_preset_1y", lang),
+          class = "btn btn-outline-light btn-sm preset-range-btn"
+        ),
+        actionButton(
+          ns("presetAll"),
+          t("input_preset_all", lang),
+          class = "btn btn-outline-light btn-sm preset-range-btn"
+        )
+      )
+    ),
     actionButton(ns("refresh"), 
                  t("input_refresh", lang), 
                  class = "btn-primary w-100",
@@ -156,6 +211,103 @@ lotteryInputUI <- function(id, lang = "de") {
 lotteryInputServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     minDistance <- 6
+    preset_ids <- c("preset3m", "preset6m", "preset1y", "presetAll")
+
+    date_domain <- tryCatch({
+      input_data <- generate_metrics()
+      if (is.null(input_data) || nrow(input_data) == 0 || !"datum" %in% names(input_data)) {
+        stop("Date bounds unavailable")
+      }
+
+      all_dates <- sort(unique(as.Date(input_data$datum)))
+      list(
+        min = min(all_dates, na.rm = TRUE),
+        max = max(all_dates, na.rm = TRUE)
+      )
+    }, error = function(e) {
+      fallback_end <- Sys.Date()
+      list(min = fallback_end - 365, max = fallback_end)
+    })
+
+    preset_target_range <- function(days_back = NULL) {
+      max_date <- as.Date(date_domain$max)
+      min_date <- as.Date(date_domain$min)
+
+      if (is.null(days_back)) {
+        start_date <- min_date
+      } else {
+        start_date <- max(min_date, max_date - as.integer(days_back))
+      }
+
+      c(start_date, max_date)
+    }
+
+    set_active_preset <- function(active_id = NULL) {
+      for (preset_id in preset_ids) {
+        shinyjs::removeClass(id = preset_id, class = "active-preset")
+      }
+
+      if (!is.null(active_id) && active_id %in% preset_ids) {
+        shinyjs::addClass(id = active_id, class = "active-preset")
+      }
+    }
+
+    apply_preset_range <- function(days_back = NULL, preset_id = NULL) {
+      target_range <- preset_target_range(days_back)
+
+      updateDateRangeInput(
+        session,
+        "dateRange",
+        start = target_range[[1]],
+        end = target_range[[2]],
+        min = as.Date(date_domain$min),
+        max = as.Date(date_domain$max)
+      )
+
+      set_active_preset(preset_id)
+    }
+
+    observeEvent(input$preset3m, {
+      apply_preset_range(days_back = 90L, preset_id = "preset3m")
+    }, ignoreInit = TRUE)
+
+    observeEvent(input$preset6m, {
+      apply_preset_range(days_back = 180L, preset_id = "preset6m")
+    }, ignoreInit = TRUE)
+
+    observeEvent(input$preset1y, {
+      apply_preset_range(days_back = 365L, preset_id = "preset1y")
+    }, ignoreInit = TRUE)
+
+    observeEvent(input$presetAll, {
+      apply_preset_range(days_back = NULL, preset_id = "presetAll")
+    }, ignoreInit = TRUE)
+
+    observeEvent(input$dateRange, {
+      selected_range <- as.Date(input$dateRange)
+      if (length(selected_range) != 2 || any(is.na(selected_range))) {
+        set_active_preset(NULL)
+        return(invisible(NULL))
+      }
+
+      matched_preset <- NULL
+      preset_3m <- preset_target_range(90L)
+      preset_6m <- preset_target_range(180L)
+      preset_1y <- preset_target_range(365L)
+      preset_all <- preset_target_range(NULL)
+
+      if (identical(selected_range, preset_3m)) {
+        matched_preset <- "preset3m"
+      } else if (identical(selected_range, preset_6m)) {
+        matched_preset <- "preset6m"
+      } else if (identical(selected_range, preset_1y)) {
+        matched_preset <- "preset1y"
+      } else if (identical(selected_range, preset_all)) {
+        matched_preset <- "presetAll"
+      }
+
+      set_active_preset(matched_preset)
+    }, ignoreInit = TRUE)
     
     # ✅ FIX 1: Prevent cascade updates - only update if actually out of bounds
     observeEvent(input$range, {
@@ -172,6 +324,10 @@ lotteryInputServer <- function(id) {
     range_debounced <- reactive({
       input$range
     }) %>% debounce(300)
+
+    date_range_debounced <- reactive({
+      input$dateRange
+    }) %>% debounce(300)
     
     # Throttle refresh button
     refresh_throttled <- reactive({
@@ -183,7 +339,7 @@ lotteryInputServer <- function(id) {
       list(
         range = range_debounced(),       # ✅ DEBOUNCED - only updates every 300ms
         metric = input$metric,           # Direct - instant response
-        timeRange = input$timeRange,     # Direct - instant response
+        dateRange = date_range_debounced(),
         refresh = refresh_throttled()    # ✅ THROTTLED - only every 300ms
       )
     }))
@@ -280,7 +436,6 @@ dashboardServer <- function(id, input_controls) {
     # Load data once at startup
     metrics_data <- generate_metrics()
     base_row_count <- nrow(metrics_data)
-    draws_per_week <- 2
     filter_cache <- reactiveVal(list(key = NULL, data = NULL))
     
     active_metric <- reactive({
@@ -297,23 +452,31 @@ dashboardServer <- function(id, input_controls) {
     # ✅ FAST FILTERING PIPELINE
     filtered_data <- eventReactive(
       c(input_controls()$refresh, 
-        input_controls()$timeRange, 
+        input_controls()$dateRange,
         input_controls()$range),  # Uses debounced range
       {
-        weeks <- as.numeric(input_controls()$timeRange)
+        data <- metrics_data
+        req(!is.null(data) && nrow(data) > 0)
+
+        date_vals <- input_controls()$dateRange
+        if (is.null(date_vals) || length(date_vals) != 2) {
+          date_vals <- c(min(data$datum, na.rm = TRUE), max(data$datum, na.rm = TRUE))
+        }
+        date_vals <- as.Date(date_vals)
+        req(length(date_vals) == 2, !any(is.na(date_vals)))
+
+        date_from <- min(date_vals)
+        date_to <- max(date_vals)
         range_vals <- input_controls()$range
-        cache_key <- paste(weeks, range_vals[1], range_vals[2], sep = "|")
+        cache_key <- paste(as.character(date_from), as.character(date_to), range_vals[1], range_vals[2], sep = "|")
         cached <- filter_cache()
         
         if (!is.null(cached$key) && identical(cached$key, cache_key) && !is.null(cached$data)) {
           return(cached$data)
         }
-        
-        data <- metrics_data
-        req(!is.null(data) && nrow(data) > 0)
-        
-        days <- weeks * draws_per_week
-        data <- tail(data, min(days, nrow(data)))
+
+        data <- data %>% filter(datum >= date_from & datum <= date_to)
+        req(nrow(data) > 0)
         
         num_from <- as.numeric(range_vals[1])
         num_to <- as.numeric(range_vals[2])

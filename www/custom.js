@@ -1,4 +1,33 @@
 $(document).ready(function() {
+  // Persistent anonymous visitor token for real daily unique-visitor counting.
+  const makeVisitorToken = () => {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return `v_${window.crypto.randomUUID().replace(/-/g, '')}`;
+    }
+    return `v_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
+  };
+
+  let visitorToken = null;
+  try {
+    visitorToken = window.localStorage.getItem('li_visitor_token');
+    if (!visitorToken) {
+      visitorToken = makeVisitorToken();
+      window.localStorage.setItem('li_visitor_token', visitorToken);
+    }
+  } catch (err) {
+    visitorToken = makeVisitorToken();
+  }
+
+  const publishVisitorToken = () => {
+    if (!visitorToken) return;
+    if (window.Shiny && typeof window.Shiny.setInputValue === 'function') {
+      window.Shiny.setInputValue('visitor_token', visitorToken, { priority: 'event' });
+    }
+  };
+
+  publishVisitorToken();
+  document.addEventListener('shiny:connected', publishVisitorToken, { once: true });
+
   // Lightweight visual mode for lower-end devices.
   const lowEndDevice =
     (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
@@ -83,6 +112,39 @@ $(document).ready(function() {
     $('html, body').animate({
       scrollTop: Math.max(0, target.offset().top - 88)
     }, 420);
+  });
+
+  // Share button: native share on supported devices, else copy link.
+  $('.share-app-btn').on('click', async function() {
+    const button = this;
+    const shareLabel = button.dataset.shareLabel || 'Share Analysis';
+    const copiedLabel = button.dataset.copiedLabel || 'Link Copied';
+    const fallbackLabel = button.dataset.fallbackLabel || 'Copy this link manually';
+    const currentUrl = window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: document.title, url: currentUrl });
+        return;
+      } catch (err) {
+        // Fall back to clipboard if sharing is cancelled or unavailable.
+      }
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(currentUrl);
+        button.textContent = copiedLabel;
+        setTimeout(() => {
+          button.textContent = shareLabel;
+        }, 1600);
+        return;
+      } catch (err) {
+        // Fall through to prompt fallback.
+      }
+    }
+
+    window.prompt(fallbackLabel, currentUrl);
   });
 
   // Reveal cards on first viewport entry for a cleaner staged load.

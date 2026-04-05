@@ -253,7 +253,7 @@ lagMetricServer <- function(id, filtered_data) {
                   name = t("lag_chart_mean", lang),
                   hovertemplate = paste0(t("lag_chart_mean", lang), ": ", round(stats$mean, 2), "<extra></extra>"),
                   inherit = FALSE) %>%
-        toWebGL() %>% layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
+        layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
                font = list(color = "#e8eaed", family = "Inter"),
                xaxis = list(title = t("lag_label_lag", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
                yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
@@ -279,7 +279,7 @@ lagMetricServer <- function(id, filtered_data) {
               text = ~paste0(frequency, " (", percentage, "%)"),
               textposition = "outside", textfont = list(color = "#e8eaed", size = 11),
               hovertemplate = paste0("<b>", t("lag_hover_jump", lang), ": +%{x}</b><br>", t("lag_label_frequency", lang), ": %{y}<br>", t("lag_label_percentage", lang), ": %{text}<extra></extra>")) %>%
-        toWebGL() %>% layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
+        layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
                font = list(color = "#e8eaed", family = "Inter"),
                xaxis = list(title = t("lag_label_jump_size", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
                yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(255, 255, 255, 0.1)"))
@@ -303,7 +303,7 @@ lagMetricServer <- function(id, filtered_data) {
               text = ~paste0(frequency, " (", percentage, "%)"),
               textposition = "outside", textfont = list(color = "#e8eaed", size = 11),
               hovertemplate = paste0("<b>", t("lag_hover_jump", lang), ": %{x}</b><br>", t("lag_label_frequency", lang), ": %{y}<br>", t("lag_label_percentage", lang), ": %{text}<extra></extra>")) %>%
-        toWebGL() %>% layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
+        layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
                font = list(color = "#e8eaed", family = "Inter"),
                xaxis = list(title = t("lag_label_jump_size", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
                yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(255, 255, 255, 0.1)"))
@@ -330,7 +330,7 @@ lagMetricServer <- function(id, filtered_data) {
           }
           p
         } %>%
-        toWebGL() %>% layout(barmode = "stack", paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
+        layout(barmode = "stack", paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
                font = list(color = "#e8eaed", family = "Inter"),
                xaxis = list(title = t("lag_label_jump_category", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
                yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
@@ -390,7 +390,7 @@ lagMetricServer <- function(id, filtered_data) {
           xref = "x",
           yref = "y"
         ) %>%
-        toWebGL() %>% layout(
+        layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -417,7 +417,7 @@ lagMetricServer <- function(id, filtered_data) {
                   line = list(color = "#ec4899", width = 3, dash = "dash"),
                   name = t("lag_chart_perfect_normal", lang),
                   hovertemplate = paste0(t("lag_chart_perfect_normal", lang), "<extra></extra>")) %>%
-        toWebGL() %>% layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#e8eaed", family = "Inter"),
+        layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#e8eaed", family = "Inter"),
                xaxis = list(title = t("lag_label_theoretical", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
                yaxis = list(title = t("lag_label_sample", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
                showlegend = TRUE, legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.15))
@@ -441,7 +441,7 @@ lagMetricServer <- function(id, filtered_data) {
               marker = list(color = ~zone, colors = zone_colors, line = list(color = "rgba(255, 255, 255, 0.3)", width = 1)),
               text = ~zone,
               hovertemplate = paste0("<b>", t("lag_label_lag", lang), ": %{x}</b><br>", t("lag_label_percentage", lang), ": %{y}%<br>Zone: %{text}<extra></extra>")) %>%
-        toWebGL() %>% layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#e8eaed", family = "Inter"),
+        layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#e8eaed", family = "Inter"),
                xaxis = list(title = t("lag_label_lag_value", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
                yaxis = list(title = t("lag_label_percentage", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
                showlegend = TRUE, legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.15))

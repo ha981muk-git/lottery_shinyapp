@@ -5,6 +5,6 @@ account: lottery-insights
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 15714773
-bundleId: 11460127
+bundleId: 11806612
 url: https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/
 version: 1

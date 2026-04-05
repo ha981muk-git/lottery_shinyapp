@@ -187,7 +187,7 @@ sumsMetricServer <- function(id, filtered_data) {
             "<extra></extra>"
           )
         ) %>%
-        toWebGL() %>% layout(
+        layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -240,7 +240,7 @@ sumsMetricServer <- function(id, filtered_data) {
                   line = list(color = "#10b981", width = 2, dash = "dash"),
                   name = t("sums_metric_average", lang),
                   hoverinfo = "skip") %>%
-        toWebGL() %>% layout(
+        layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -298,7 +298,7 @@ sumsMetricServer <- function(id, filtered_data) {
                 t("sums_hover_percentage", lang), ": %{text}<br>",
                 "<extra></extra>"
               )) %>%
-        toWebGL() %>% layout(
+        layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -330,7 +330,7 @@ sumsMetricServer <- function(id, filtered_data) {
                 t("sums_hover_value", lang), ": %{y}<br>",
                 "<extra></extra>"
               )) %>%
-        toWebGL() %>% layout(
+        layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -390,7 +390,7 @@ sumsMetricServer <- function(id, filtered_data) {
           toWebGL()
           else .
         } %>%
-        toWebGL() %>% layout(
+        layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),

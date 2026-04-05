@@ -272,11 +272,7 @@ dashboardUI <- function(id) {
   )
 }
 
-# ✅ GLOBAL CACHE: Shared across all users to save memory and CPU
-# Defined outside the server function so it persists across sessions
-global_filter_cache <- cachem::cache_mem(max_size = 100 * 1024^2)
-
-# Server Module - FULLY OPTIMIZED WITH CACHING
+# Server Module - FULLY OPTIMIZED FOR FREE TIER (No cachem Ram overhead)
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -285,47 +281,28 @@ dashboardServer <- function(id, input_controls) {
     metrics_data <- generate_metrics()
     draws_per_week <- 2
     
-    # Memoized filtering function - returns cached results if same parameters
-    get_filtered_data <- function(weeks, range_vals) {
-      # Create unique cache key from parameters
-      cache_key <- paste(weeks, range_vals[1], range_vals[2], sep = "_")
-      
-      # Return cached result if it exists
-      # IMPORTANT: Use missing = NULL, otherwise cachem returns a special object that crashes graphs
-      cached_data <- global_filter_cache$get(cache_key, missing = NULL)
-      if (!is.null(cached_data)) {
-        return(cached_data)
-      }
-      
-      # Perform filtering
-      data <- metrics_data
-      req(!is.null(data) && nrow(data) > 0)
-      
-      days <- weeks * draws_per_week
-      data <- tail(data, min(days, nrow(data)))
-      
-      num_from <- as.numeric(range_vals[1])
-      num_to <- as.numeric(range_vals[2])
-      
-      data <- data %>%
-        filter(ball_1 >= num_from & ball_6 <= num_to)
-      
-      req(nrow(data) > 0)
-      
-      # Cache the result for future use
-      global_filter_cache$set(cache_key, data)
-      data
-    }
-    
-    # ✅ FIX 4: Use debounced range for filtering - reduces computation
+    # ✅ FAST FILTERING PIPELINE
     filtered_data <- eventReactive(
       c(input_controls()$refresh, 
         input_controls()$timeRange, 
-        input_controls()$range),  # Now uses debounced range (300ms delay)
+        input_controls()$range),  # Uses debounced range
       {
         weeks <- as.numeric(input_controls()$timeRange)
         range_vals <- input_controls()$range
-        get_filtered_data(weeks, range_vals)
+        
+        data <- metrics_data
+        req(!is.null(data) && nrow(data) > 0)
+        
+        days <- weeks * draws_per_week
+        data <- tail(data, min(days, nrow(data)))
+        
+        num_from <- as.numeric(range_vals[1])
+        num_to <- as.numeric(range_vals[2])
+        
+        data <- data %>% filter(ball_1 >= num_from & ball_6 <= num_to)
+        req(nrow(data) > 0)
+        
+        data
       },
       ignoreNULL = TRUE
     )
@@ -363,23 +340,6 @@ dashboardServer <- function(id, input_controls) {
       shinyjs::show(id = paste0("metric-", metric))
       
     }, priority = 100) %>% bindEvent(input_controls()$metric, once = TRUE)
-    
-    # ✅ STEP 2: Preload other metrics after 500ms (low priority = 10, non-blocking)
-    observe({
-      req(input_controls()$metric)
-      first_metric <- input_controls()$metric
-      
-      all_metrics <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
-      other_metrics <- setdiff(all_metrics, first_metric)
-      
-      # Delay preloading to not block initial render
-      shinyjs::delay(500, {
-        lapply(other_metrics, function(m) {
-          initialize_server(m)
-        })
-      })
-      
-    }, priority = 10) %>% bindEvent(input_controls()$metric, once = TRUE)
     
     # ✅ STEP 3: Fast metric switching (priority = 50)
     observeEvent(input_controls()$metric, {

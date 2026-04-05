@@ -139,7 +139,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       }
       
       p %>%
-        layout(
+        toWebGL() %>% layout(
           title = t("balls_boxplot_title", lang),
           paper_bgcolor = 'rgba(0,0,0,0)',
           plot_bgcolor = 'rgba(0,0,0,0)',
@@ -178,7 +178,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       }
       
       p %>%
-        layout(
+        toWebGL() %>% layout(
           title = t("balls_violin_title", lang),
           yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
           xaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
@@ -221,7 +221,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       }
       
       p %>%
-        layout(
+        toWebGL() %>% layout(
           title = t("balls_chart_density_title", lang),
           xaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
           yaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
@@ -291,7 +291,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
       }
       
       p %>%
-        layout(
+        toWebGL() %>% layout(
           title = t("balls_raincloud_title", lang),
           yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
           xaxis = list(
@@ -339,7 +339,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls) {
         toWebGL() # GPU Acceleration for many lines
       
       p %>%
-        layout(
+        toWebGL() %>% layout(
           title = t("balls_line_chart", lang),
           xaxis = list(
             title = t("ball_label", lang),

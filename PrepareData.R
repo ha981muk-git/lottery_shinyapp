@@ -21,7 +21,14 @@ create_data_loader <- function(file_path = file.path(getwd(), "data", "LOTTO_ab_
   cache$data <- NULL
   cache$last_modified <- NULL
   
+  rds_path <- file.path(getwd(), "data", "LOTTO_clean.rds")
+  
   load_data <- function(force = FALSE) {
+    if (!force && file.exists(rds_path)) {
+      message("⚡ Using precomputed RDS data: ", rds_path)
+      return(readRDS(rds_path))
+    }
+    
     if (!file.exists(file_path)) {
       stop("❌ Data file does not exist: ", file_path)
     }
@@ -81,23 +88,23 @@ create_data_loader <- function(file_path = file.path(getwd(), "data", "LOTTO_ab_
         ball_6    = spieleinsatz,
         superzahl = anz_kl_2
       ) %>%
-      filter(if_all(everything(), ~ !is.na(.))) %>%
-      mutate(
-        sorted = purrr::pmap(list(ball_1, ball_2, ball_3, ball_4, ball_5, ball_6), ~ sort(c(...))),
-        ball_1 = map_dbl(sorted, 1),
-        ball_2 = map_dbl(sorted, 2),
-        ball_3 = map_dbl(sorted, 3),
-        ball_4 = map_dbl(sorted, 4),
-        ball_5 = map_dbl(sorted, 5),
-        ball_6 = map_dbl(sorted, 6)
-      ) %>%
-      select(-sorted)
+      filter(if_all(everything(), ~ !is.na(.)))
+    
+    # Fast vectorized sorting instead of purrr::pmap
+    cols <- paste0("ball_", 1:6)
+    m <- as.matrix(lotto_clean[, cols])
+    m_sorted <- base::t(apply(m, 1, sort))
+    
+    lotto_clean[, cols] <- m_sorted
     
     options(li_base_row_count = nrow(lotto_clean))
     cache$data <- lotto_clean
     cache$last_modified <- current_modified
     
-    message("✅ Data loaded: ", nrow(lotto_clean), " rows")
+    # Save the processed data to bypass this slow logic next time
+    saveRDS(lotto_clean, rds_path)
+    
+    message("✅ Data loaded and serialized to RDS: ", nrow(lotto_clean), " rows")
     return(lotto_clean)
   }
   

@@ -135,7 +135,7 @@ oddsEvensMetricServer <- function(id, filtered_data) {
                 t("odds_evens_hover_percentage", lang), ": %{text}<br>",
                 "<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -176,7 +176,7 @@ oddsEvensMetricServer <- function(id, filtered_data) {
                 t("odds_evens_hover_percentage", lang), ": %{percent}<br>",
                 "<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -222,7 +222,7 @@ oddsEvensMetricServer <- function(id, filtered_data) {
           toWebGL()
           else .
         } %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -268,7 +268,7 @@ oddsEvensMetricServer <- function(id, filtered_data) {
         add_trace(y = ~evens, name = t("odds_evens_label_evens", lang), type = "bar",
                   marker = list(color = "#4169E1"),
                   hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>", t("odds_evens_label_evens", lang), ": %{y}<extra></extra>")) %>%
-        layout(
+        toWebGL() %>% layout(
           barmode = "stack",
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",

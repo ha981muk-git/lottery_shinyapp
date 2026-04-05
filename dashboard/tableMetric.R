@@ -131,7 +131,7 @@ tableMetricServer <- function(id, filtered_data) {
     # Calculate frequency statistics
     freq_stats <- reactive({
       data <- filtered_data()
-      nums <- unlist(data[, paste0("ball_", 1:6)])
+      nums <- as.vector(as.matrix(data[, paste0("ball_", 1:6)]))
       freq_table <- table(nums)
       
       # Ensure all numbers 1-49 are represented
@@ -221,7 +221,7 @@ tableMetricServer <- function(id, filtered_data) {
                   hovertemplate = paste0(t("table_label_expected", lang), ": ", round(stats$expected_freq, 1), "<extra></extra>"),
                   showlegend = TRUE,
                   inherit = FALSE) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -269,7 +269,7 @@ tableMetricServer <- function(id, filtered_data) {
                 t("table_label_frequency", lang), ": %{y}<br>",
                 t("table_label_deviation", lang), ": +%{customdata:.1f}<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -308,7 +308,7 @@ tableMetricServer <- function(id, filtered_data) {
                 t("table_label_frequency", lang), ": %{y}<br>",
                 t("table_label_deviation", lang), ": %{customdata:.1f}<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -384,7 +384,7 @@ tableMetricServer <- function(id, filtered_data) {
           xref = "x",
           yref = "y"
         ) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -411,7 +411,7 @@ tableMetricServer <- function(id, filtered_data) {
                 t("table_label_count", lang), ": %{y}<br>",
                 "<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -462,7 +462,7 @@ tableMetricServer <- function(id, filtered_data) {
                 t("table_label_avg_frequency", lang), ": %{y:.2f}<br>",
                 "<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -507,7 +507,7 @@ tableMetricServer <- function(id, filtered_data) {
                   hovertemplate = paste0(t("table_label_expected", lang), ": 0<extra></extra>"),
                   showlegend = FALSE,
                   inherit = FALSE) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),

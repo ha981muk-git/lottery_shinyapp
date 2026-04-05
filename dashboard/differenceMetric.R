@@ -207,7 +207,7 @@ differenceMetricServer <- function(id, filtered_data) {
             t("difference_label_density", lang), ": %{y:.2f}<extra></extra>"
           )
         ) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -269,7 +269,7 @@ differenceMetricServer <- function(id, filtered_data) {
                   hovertemplate = paste0("Average: ", round(stats$mean, 1), "<extra></extra>"),
                   showlegend = TRUE,
                   inherit = FALSE) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -311,7 +311,7 @@ differenceMetricServer <- function(id, filtered_data) {
                 t("difference_label_frequency", lang), ": %{y}<br>",
                 t("difference_hover_percentage", lang), ": %{text}<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -346,7 +346,7 @@ differenceMetricServer <- function(id, filtered_data) {
                 t("difference_label_frequency", lang), ": %{y}<br>",
                 t("difference_hover_percentage", lang), ": %{text}<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -388,7 +388,7 @@ differenceMetricServer <- function(id, filtered_data) {
                 t("difference_label_frequency", lang), ": %{value}<br>",
                 t("difference_hover_percentage", lang), ": %{text}<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -435,7 +435,7 @@ differenceMetricServer <- function(id, filtered_data) {
                   name = "Overall Avg",
                   hovertemplate = paste0("Average: ", round(stats$mean, 1), "<extra></extra>"),
                   inherit = FALSE) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -471,7 +471,7 @@ differenceMetricServer <- function(id, filtered_data) {
               hovertemplate = paste0(
                 t("difference_label_range", lang), ": %{y}<extra></extra>"
               )) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),
@@ -538,7 +538,7 @@ differenceMetricServer <- function(id, filtered_data) {
           xref = "x",
           yref = "y"
         ) %>%
-        layout(
+        toWebGL() %>% layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#e8eaed", family = "Inter"),

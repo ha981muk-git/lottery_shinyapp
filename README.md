@@ -22,6 +22,7 @@ A high-performance, interactive R Shiny application designed for advanced statis
 *   **Fullscreen Mode:** Toggle any chart or table to fullscreen for detailed inspection.
 *   **Responsive Layout:** Adapts to different screen sizes using `bslib` and custom CSS.
 *   **Skeleton Loaders:** Visual feedback during data processing.
+*   **Visitor Trust Metrics:** Shows both total anonymous visitors (all-time) and anonymous visitors today.
 
 ## 🛠️ Installation
 
@@ -42,7 +43,9 @@ install.packages(c(
   "bslib",
   "cachem",
   "zoo",
-  "stringr"
+  "stringr",
+  "httr",
+  "digest"
 ))
 ```
 
@@ -77,6 +80,46 @@ The application uses a global memory cache (`global_filter_cache`) defined in `D
 
 ### Localization
 The app supports dynamic localization (defaulting to German `de`). Text elements are rendered using a helper function `t(key, lang)` which looks up strings based on the user's selected language or URL parameters.
+
+### Automatic Lottery Data Refresh
+The app can automatically refresh LOTTO 6aus49 draw data from the same backend used by the Sachsenlotto download page.
+
+How it works:
+*   On app startup / first data load, it checks whether the local file is older than the refresh window.
+*   If stale, it downloads the latest ZIP archive from `https://www.westlotto.de/wlinfo/WL_InfoService`.
+*   It extracts the CSV, replaces `data/LOTTO_ab_2018.csv`, deletes stale `data/LOTTO_clean.rds`, and rebuilds clean data automatically.
+*   If download fails, the app keeps using existing local data (safe fallback).
+
+Environment variables:
+*   `LOTTO_AUTO_REFRESH_ENABLED`: Enable/disable auto-refresh (`true` by default).
+*   `LOTTO_AUTO_REFRESH_DAYS`: Refresh interval in days (`14` by default).
+*   `LOTTO_AUTO_REFRESH_TOLERANCE_DAYS`: Allowed timing tolerance in days (`5` by default).
+*   `LOTTO_DATA_YEAR_FROM`: Start year for download query (`2018` by default).
+*   `LOTTO_DATA_YEAR_TO`: End year for download query (defaults to current year).
+
+Recommended production setup:
+*   Keep `LOTTO_AUTO_REFRESH_ENABLED=true`.
+*   Keep `LOTTO_AUTO_REFRESH_DAYS=14` for two-week updates.
+*   Set `LOTTO_AUTO_REFRESH_TOLERANCE_DAYS` to `3` to `5` to allow natural timing drift.
+*   If you need exact clock-time scheduling (for example every second Monday at 02:00), trigger a small external scheduled job that starts the app or runs a refresh script.
+
+### Persistent Visitor Counter
+The app tracks anonymous visitors in two ways:
+*   **Anonymous visitors today**: Daily unique visitors, deduplicated by browser token per day.
+*   **Anonymous visitors total**: Cumulative all-time counter.
+
+Persistence strategy:
+*   Primary backend is CountAPI (remote), which survives app restarts and new deployments.
+*   If remote backend is unreachable, the app falls back to local RDS storage.
+
+Recommended deployment settings (keep these stable across all redeployments):
+*   `VISITOR_COUNTER_NAMESPACE`: Unique namespace for this app (for example: `lottery-insights-prod-v1`).
+*   `VISITOR_COUNTER_SALT`: A private random string used to hash daily visitor IDs.
+*   `VISITOR_COUNTER_API_BASE`: Optional override, defaults to `https://api.countapi.xyz`.
+
+Important:
+*   Do not change `VISITOR_COUNTER_NAMESPACE` between deployments if you want the same historical total.
+*   If remote backend is blocked by network policy, counts continue locally but may not persist across redeployments.
 
 ### Custom UI Components
 *   **`create_chart_card`**: A wrapper function that standardizes chart containers, adding titles, descriptions, and the fullscreen toggle functionality.

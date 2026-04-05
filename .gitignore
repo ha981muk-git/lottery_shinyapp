@@ -7,3 +7,4 @@ tests/testthat/test_performance.R
 .DS_Store
 .Rproj.user/
 rsconnect/
+data/LOTTO_refresh_meta.rds

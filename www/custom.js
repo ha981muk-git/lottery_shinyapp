@@ -18,15 +18,38 @@ $(document).ready(function() {
     visitorToken = makeVisitorToken();
   }
 
+  const visitorPayload = () => ({ id: visitorToken, nonce: Date.now() });
+
   const publishVisitorToken = () => {
-    if (!visitorToken) return;
+    if (!visitorToken) return false;
     if (window.Shiny && typeof window.Shiny.setInputValue === 'function') {
-      window.Shiny.setInputValue('visitor_token', visitorToken, { priority: 'event' });
+      window.Shiny.setInputValue('visitor_token', visitorPayload(), { priority: 'event' });
+      return true;
+    }
+    return false;
+  };
+
+  let publishAttempts = 0;
+  const ensureVisitorTokenPublished = () => {
+    if (publishVisitorToken()) return;
+    publishAttempts += 1;
+    if (publishAttempts <= 20) {
+      setTimeout(ensureVisitorTokenPublished, 250);
     }
   };
 
-  publishVisitorToken();
-  document.addEventListener('shiny:connected', publishVisitorToken, { once: true });
+  ensureVisitorTokenPublished();
+  document.addEventListener('shiny:connected', () => {
+    publishVisitorToken();
+    setTimeout(publishVisitorToken, 300);
+    setTimeout(publishVisitorToken, 1200);
+  }, { once: true });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      publishVisitorToken();
+    }
+  });
 
   // Lightweight visual mode for lower-end devices.
   const lowEndDevice =

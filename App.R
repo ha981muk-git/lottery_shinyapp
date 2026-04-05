@@ -243,7 +243,19 @@ create_visitor_counter <- function(
   
   sanitize_id <- function(visitor_id) {
     if (is.null(visitor_id) || length(visitor_id) == 0) return(NULL)
-    id <- as.character(visitor_id[[1]])
+
+    raw_id <- NULL
+    if (is.list(visitor_id) && !is.null(visitor_id$id)) {
+      raw_id <- visitor_id$id
+    } else if (is.atomic(visitor_id) && !is.null(names(visitor_id)) && "id" %in% names(visitor_id)) {
+      raw_id <- visitor_id[["id"]]
+    } else {
+      raw_id <- visitor_id[[1]]
+    }
+
+    if (is.null(raw_id) || length(raw_id) == 0) return(NULL)
+
+    id <- as.character(raw_id[[1]])
     id <- gsub("[^A-Za-z0-9_-]", "", id)
     if (!nzchar(id) || nchar(id) < 8) return(NULL)
     substr(id, 1, 64)

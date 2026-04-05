@@ -73,8 +73,8 @@ create_visitor_counter <- function(
   counter$memory_store <- NULL
   counter$use_file <- FALSE
   counter$remote_failures <- 0L
-  counter$remote_disabled <- FALSE
   counter$remote_warned <- FALSE
+  counter$remote_disabled_until <- as.POSIXct(NA)
 
   normalize_namespace <- function(x) {
     ns <- tolower(trimws(as.character(x %||% "")))
@@ -85,13 +85,39 @@ create_visitor_counter <- function(
     substr(ns, 1, 64)
   }
 
+  as_bool <- function(value, default = FALSE) {
+    value_chr <- as.character(value %||% "")
+    if (!nzchar(value_chr)) return(default)
+    tolower(trimws(value_chr)) %in% c("1", "true", "yes", "y", "on")
+  }
+
+  as_int <- function(value, default = 0L) {
+    parsed <- suppressWarnings(as.integer(value))
+    if (is.na(parsed)) return(default)
+    parsed
+  }
+
   counter$namespace <- normalize_namespace(namespace)
   counter$api_base <- sub("/+$", "", as.character(api_base))
   counter$id_salt <- Sys.getenv("VISITOR_COUNTER_SALT", unset = "lottery-insights-v2")
   counter$use_remote <- nzchar(counter$namespace) && grepl("^https?://", counter$api_base)
+  counter$baseline_total <- max(0L, as_int(Sys.getenv("VISITOR_COUNTER_BASELINE_TOTAL", unset = "523"), 523L))
+  remote_timeout_raw <- suppressWarnings(as.numeric(Sys.getenv("VISITOR_COUNTER_REMOTE_TIMEOUT_SEC", unset = "4")))
+  if (is.na(remote_timeout_raw)) remote_timeout_raw <- 4
+  counter$remote_timeout_sec <- max(1, remote_timeout_raw)
+  counter$remote_failure_threshold <- max(1L, as_int(Sys.getenv("VISITOR_COUNTER_REMOTE_FAILURE_THRESHOLD", unset = "8"), 8L))
+  counter$remote_cooldown_sec <- max(5L, as_int(Sys.getenv("VISITOR_COUNTER_REMOTE_COOLDOWN_SEC", unset = "45"), 45L))
+  running_on_shinyapps <- identical(tolower(Sys.getenv("R_CONFIG_ACTIVE", unset = "")), "shinyapps")
+  counter$allow_file_fallback <- as_bool(
+    Sys.getenv("VISITOR_COUNTER_ALLOW_FILE_FALLBACK", unset = if (running_on_shinyapps) "false" else "true"),
+    default = !running_on_shinyapps
+  )
 
   if (isTRUE(counter$use_remote)) {
     message("Visitor counter backend: remote namespace '", counter$namespace, "'")
+  }
+  if (counter$baseline_total > 0L) {
+    message("Visitor counter baseline total: ", counter$baseline_total)
   }
 
   as_store_v2 <- function(raw_store) {
@@ -124,15 +150,17 @@ create_visitor_counter <- function(
   }
   
   store_dir <- dirname(counter$store_path)
-  if (!dir.exists(store_dir)) {
-    dir.create(store_dir, recursive = TRUE, showWarnings = FALSE)
-  }
-  
-  if (dir.exists(store_dir) && file.access(store_dir, 2) == 0) {
-    if (!file.exists(counter$store_path)) {
-      try(saveRDS(list(), counter$store_path), silent = TRUE)
+  if (isTRUE(counter$allow_file_fallback)) {
+    if (!dir.exists(store_dir)) {
+      dir.create(store_dir, recursive = TRUE, showWarnings = FALSE)
     }
-    counter$use_file <- file.exists(counter$store_path)
+    
+    if (dir.exists(store_dir) && file.access(store_dir, 2) == 0) {
+      if (!file.exists(counter$store_path)) {
+        try(saveRDS(list(), counter$store_path), silent = TRUE)
+      }
+      counter$use_file <- file.exists(counter$store_path)
+    }
   }
   
   prune_store <- function(store) {
@@ -178,22 +206,31 @@ create_visitor_counter <- function(
   }
 
   remote_enabled <- function() {
-    isTRUE(counter$use_remote) && !isTRUE(counter$remote_disabled)
+    if (!isTRUE(counter$use_remote)) return(FALSE)
+    if (is.na(counter$remote_disabled_until)) return(TRUE)
+    Sys.time() >= counter$remote_disabled_until
   }
 
   mark_remote_failure <- function() {
     counter$remote_failures <- counter$remote_failures + 1L
-    if (counter$remote_failures >= 3L) {
-      counter$remote_disabled <- TRUE
+    if (counter$remote_failures >= counter$remote_failure_threshold) {
+      counter$remote_disabled_until <- Sys.time() + as.difftime(counter$remote_cooldown_sec, units = "secs")
+      counter$remote_failures <- 0L
       if (!isTRUE(counter$remote_warned)) {
-        message("Visitor counter remote backend unavailable; using local fallback.")
+        message("Visitor counter remote backend temporarily unavailable; using local fallback and retrying shortly.")
         counter$remote_warned <- TRUE
       }
     }
   }
 
   mark_remote_success <- function() {
+    recovered <- isTRUE(counter$remote_warned)
     counter$remote_failures <- 0L
+    counter$remote_disabled_until <- as.POSIXct(NA)
+    if (recovered) {
+      message("Visitor counter remote backend restored.")
+    }
+    counter$remote_warned <- FALSE
   }
 
   build_remote_url <- function(action, key) {
@@ -217,10 +254,17 @@ create_visitor_counter <- function(
     value
   }
 
-  remote_get <- function(key) {
+  fetch_remote <- function(action, key) {
     if (!remote_enabled()) return(NA_integer_)
-    response <- try(httr::GET(build_remote_url("get", key), httr::timeout(1.2)), silent = TRUE)
+    url <- build_remote_url(action, key)
+    response <- try(httr::GET(url, httr::timeout(counter$remote_timeout_sec)), silent = TRUE)
     value <- parse_remote_value(response)
+
+    if (is.na(value)) {
+      retry_response <- try(httr::GET(url, httr::timeout(counter$remote_timeout_sec)), silent = TRUE)
+      value <- parse_remote_value(retry_response)
+    }
+
     if (is.na(value)) {
       mark_remote_failure()
     } else {
@@ -229,16 +273,12 @@ create_visitor_counter <- function(
     value
   }
 
+  remote_get <- function(key) {
+    fetch_remote("get", key)
+  }
+
   remote_hit <- function(key) {
-    if (!remote_enabled()) return(NA_integer_)
-    response <- try(httr::GET(build_remote_url("hit", key), httr::timeout(1.2)), silent = TRUE)
-    value <- parse_remote_value(response)
-    if (is.na(value)) {
-      mark_remote_failure()
-    } else {
-      mark_remote_success()
-    }
-    value
+    fetch_remote("hit", key)
   }
   
   sanitize_id <- function(visitor_id) {
@@ -278,6 +318,12 @@ create_visitor_counter <- function(
     if (is.na(total_count) || total_count < 0L) return(0L)
     total_count
   }
+
+  apply_total_baseline <- function(value) {
+    val <- suppressWarnings(as.integer(value))
+    if (is.na(val) || val < 0L) val <- 0L
+    as.integer(val + counter$baseline_total)
+  }
   
   count <- function(day = as.character(Sys.Date())) {
     remote_daily <- remote_get(paste0("daily_", day_key(day)))
@@ -287,8 +333,8 @@ create_visitor_counter <- function(
 
   total <- function() {
     remote_total <- remote_get("total_all_days")
-    if (!is.na(remote_total)) return(remote_total)
-    local_total()
+    if (!is.na(remote_total)) return(apply_total_baseline(remote_total))
+    apply_total_baseline(local_total())
   }
   
   register <- function(visitor_id, day = as.character(Sys.Date())) {
@@ -308,7 +354,7 @@ create_visitor_counter <- function(
           total_value <- remote_hit("total_all_days")
           if (is.na(daily_value)) daily_value <- local_count(day)
           if (is.na(total_value)) total_value <- local_total()
-          return(list(daily = daily_value, total = total_value))
+          return(list(daily = daily_value, total = apply_total_baseline(total_value)))
         }
 
         return(list(
@@ -329,7 +375,7 @@ create_visitor_counter <- function(
     }
     list(
       daily = as.integer(length(store$daily_ids[[day]])),
-      total = as.integer(store$total_count)
+      total = apply_total_baseline(store$total_count)
     )
   }
   

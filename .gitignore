@@ -8,3 +8,4 @@ tests/testthat/test_performance.R
 .Rproj.user/
 rsconnect/
 data/LOTTO_refresh_meta.rds
+data/visitor_daily_counts.rds

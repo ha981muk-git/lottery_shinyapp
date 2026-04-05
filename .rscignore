@@ -3,3 +3,5 @@
 .DS_Store
 *.RData
 *.bak
+data/visitor_daily_counts.rds
+data/LOTTO_refresh_meta.rds

@@ -116,6 +116,11 @@ Recommended deployment settings (keep these stable across all redeployments):
 *   `VISITOR_COUNTER_NAMESPACE`: Unique namespace for this app (for example: `lottery-insights-prod-v1`).
 *   `VISITOR_COUNTER_SALT`: A private random string used to hash daily visitor IDs.
 *   `VISITOR_COUNTER_API_BASE`: Optional override, defaults to `https://api.countapi.xyz`.
+*   `VISITOR_COUNTER_BASELINE_TOTAL`: Optional real historical baseline added to total visitors (default is `523` from analytics snapshot).
+*   `VISITOR_COUNTER_REMOTE_TIMEOUT_SEC`: Remote request timeout in seconds (default `4`).
+*   `VISITOR_COUNTER_REMOTE_FAILURE_THRESHOLD`: Consecutive failures before short cooldown (default `8`).
+*   `VISITOR_COUNTER_REMOTE_COOLDOWN_SEC`: Cooldown duration before retrying remote backend (default `45`).
+*   `VISITOR_COUNTER_ALLOW_FILE_FALLBACK`: Enable local file fallback (`false` on shinyapps, `true` elsewhere by default).
 
 Important:
 *   Do not change `VISITOR_COUNTER_NAMESPACE` between deployments if you want the same historical total.

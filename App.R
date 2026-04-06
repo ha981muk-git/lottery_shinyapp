@@ -390,6 +390,64 @@ ui <- function(request) {
   # ✅ Get language from URL or default to German
   query <- parseQueryString(request$QUERY_STRING)
   LANG <- query$lang %||% "de"
+  feedback_form_url <- trimws(Sys.getenv("APP_FEEDBACK_FORM_URL", unset = ""))
+  support_email <- trimws(Sys.getenv("APP_SUPPORT_EMAIL", unset = ""))
+
+  feedback_subject <- if (LANG == "de") {
+    "Fehlerbericht / Feedback - 6/49 Analyse"
+  } else {
+    "Bug Report / Feedback - 6/49 Analysis"
+  }
+
+  feedback_body <- if (LANG == "de") {
+    paste(
+      "Bitte beschreibe den Fehler oder dein Feedback:",
+      "",
+      "Seite/Modul:",
+      "Browser/Geraet:",
+      "Schritte zur Reproduktion:",
+      "1)",
+      "2)",
+      "",
+      "Erwartetes Verhalten:",
+      "",
+      "Tatsaechliches Verhalten:",
+      "",
+      sep = "\n"
+    )
+  } else {
+    paste(
+      "Please describe the bug or your feedback:",
+      "",
+      "Page/Module:",
+      "Browser/Device:",
+      "Steps to reproduce:",
+      "1)",
+      "2)",
+      "",
+      "Expected behavior:",
+      "",
+      "Actual behavior:",
+      "",
+      sep = "\n"
+    )
+  }
+
+  feedback_href <- if (nzchar(feedback_form_url)) {
+    feedback_form_url
+  } else if (nzchar(support_email)) {
+    paste0(
+      "mailto:",
+      support_email,
+      "?subject=", URLencode(feedback_subject, reserved = TRUE),
+      "&body=", URLencode(feedback_body, reserved = TRUE)
+    )
+  } else {
+    "#disclaimer"
+  }
+
+  feedback_target <- if (nzchar(feedback_form_url)) "_blank" else NULL
+  feedback_rel <- if (nzchar(feedback_form_url)) "noopener noreferrer" else NULL
   
   fluidPage(
     theme = app_theme,
@@ -660,7 +718,13 @@ ui <- function(request) {
                       tags$li(a(href = "#home", t("nav_home", LANG))),
                       tags$li(a(href = "#analyzer", t("nav_analyzer", LANG))),
                       tags$li(a(href = "#educational", t("nav_educational", LANG))),
-                      tags$li(a(href = "#disclaimer", t("nav_disclaimer", LANG)))
+                      tags$li(a(href = "#disclaimer", t("nav_disclaimer", LANG))),
+                      tags$li(a(
+                        href = feedback_href,
+                        target = feedback_target,
+                        rel = feedback_rel,
+                        t("footer_report_bug", LANG)
+                      ))
                     )
                 ),
                 # Legal & Disclaimer

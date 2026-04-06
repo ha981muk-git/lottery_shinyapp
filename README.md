@@ -126,6 +126,18 @@ Important:
 *   Do not change `VISITOR_COUNTER_NAMESPACE` between deployments if you want the same historical total.
 *   If remote backend is blocked by network policy, counts continue locally but may not persist across redeployments.
 
+### Bug Report / Feedback Link
+The footer includes a **Report a bug / Feedback** link.
+
+Recommended deployment setting:
+*   `APP_SUPPORT_EMAIL`: Contact email used to build a prefilled `mailto:` draft from the footer link.
+*   `APP_FEEDBACK_FORM_URL`: Public feedback form URL (for example Google Forms). When set, this is used instead of email.
+
+Behavior:
+*   If `APP_FEEDBACK_FORM_URL` is configured, clicking the footer link opens that form in a new tab.
+*   Else if `APP_SUPPORT_EMAIL` is configured, clicking the footer link opens the user's email client with a prefilled bug report template.
+*   If neither setting is configured, the link falls back to the FAQ/disclaimer section.
+
 ### Custom UI Components
 *   **`create_chart_card`**: A wrapper function that standardizes chart containers, adding titles, descriptions, and the fullscreen toggle functionality.
 *   **`create_stat_card`**: Standardized KPI cards for the top of metric views.

@@ -329,7 +329,8 @@ translations <- list(
     footer_for_edu = "FOR EDUCATIONAL PURPOSES ONLY",
     footer_play_resp = "Play Responsibly",
     footer_no_services = "No Real Gambling Services Provided",
-    footer_under_const = "Under Construction"
+    footer_under_const = "Under Construction",
+    footer_report_bug = "Report a bug / Feedback"
   ),
   
   de = list(
@@ -660,6 +661,7 @@ translations <- list(
     footer_play_resp = "Spielen Sie verantwortungsvoll",
     footer_no_services = "Keine echten Glücksspieldienste bereitgestellt",
     footer_under_const = "Im Aufbau",
+    footer_report_bug = "Fehler melden / Feedback",
     
     # Educational Notice
     notice_title = "⚠️ Wichtiger Hinweis - Nur zu Bildungszwecken",
@@ -705,7 +707,8 @@ translations <- list(
     footer_for_edu = "NUR FÜR BILDUNGSZWECKE",
     footer_play_resp = "Spielen Sie verantwortungsvoll",
     footer_no_services = "Keine echten Glücksspieldienste bereitgestellt",
-    footer_under_const = "Im Aufbau"
+    footer_under_const = "Im Aufbau",
+    footer_report_bug = "Fehler melden / Feedback"
   )
 )
 

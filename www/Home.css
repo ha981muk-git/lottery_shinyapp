@@ -978,6 +978,56 @@ table.dataTable tbody tr:hover {
   color: #fff;
 }
 
+.footer-feedback-item {
+  margin-top: 10px;
+}
+
+.footer-feedback-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  color: #09111d !important;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  animation: feedbackAttentionPulse 2.8s ease-in-out infinite;
+}
+
+.footer-feedback-link:hover {
+  color: #09111d !important;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(249, 115, 22, 0.34);
+  filter: brightness(1.04);
+}
+
+.footer-feedback-link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.feedback-link-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+@keyframes feedbackAttentionPulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.28);
+  }
+  50% {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(249, 115, 22, 0.38);
+  }
+}
+
 .footer-bottom {
   border-top: 1px solid rgba(159, 181, 196, 0.2);
   padding-top: 18px;
@@ -1184,6 +1234,11 @@ table.dataTable tbody tr:hover {
 
   .footer-sections {
     grid-template-columns: 1fr;
+  }
+
+  .footer-feedback-link {
+    width: 100%;
+    justify-content: center;
   }
 }
 

@@ -719,12 +719,17 @@ ui <- function(request) {
                       tags$li(a(href = "#analyzer", t("nav_analyzer", LANG))),
                       tags$li(a(href = "#educational", t("nav_educational", LANG))),
                       tags$li(a(href = "#disclaimer", t("nav_disclaimer", LANG))),
-                      tags$li(a(
-                        href = feedback_href,
-                        target = feedback_target,
-                        rel = feedback_rel,
-                        t("footer_report_bug", LANG)
-                      ))
+                      tags$li(
+                        class = "footer-feedback-item",
+                        a(
+                          href = feedback_href,
+                          target = feedback_target,
+                          rel = feedback_rel,
+                          class = "footer-feedback-link",
+                          span(class = "feedback-link-icon", "🐞"),
+                          span(t("footer_report_bug", LANG))
+                        )
+                      )
                     )
                 ),
                 # Legal & Disclaimer

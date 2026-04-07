@@ -9,3 +9,4 @@ tests/testthat/test_performance.R
 rsconnect/
 data/LOTTO_refresh_meta.rds
 data/visitor_daily_counts.rds
+rsconnect/shinyapps.io/lottery-insights/lottery_shinyapp_v2.dcf

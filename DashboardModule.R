@@ -379,9 +379,9 @@ lotteryInputServer <- function(id) {
         updateSliderInput(session, "range", value = c(range_min, range_max))
       }
 
-      query_from <- suppressWarnings(as.Date(query$from))
-      query_to <- suppressWarnings(as.Date(query$to))
-      if (!is.na(query_from) && !is.na(query_to)) {
+      query_from <- suppressWarnings(as.Date(query$from %||% NA_character_))
+      query_to <- suppressWarnings(as.Date(query$to %||% NA_character_))
+      if (length(query_from) > 0 && length(query_to) > 0 && !is.na(query_from) && !is.na(query_to)) {
         min_date <- as.Date(date_domain$min)
         max_date <- as.Date(date_domain$max)
 

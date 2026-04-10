@@ -312,149 +312,6 @@ body::after {
   min-height: calc(100vh - 420px);
 }
 
-/* ========== CONVERSION HERO ========== */
-.conversion-hero {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 18px;
-  margin-bottom: 18px;
-}
-
-.conversion-hero-main {
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(125, 211, 252, 0.32);
-  background:
-    radial-gradient(circle at 8% -30%, rgba(34, 211, 238, 0.22), transparent 45%),
-    linear-gradient(145deg, rgba(15, 39, 63, 0.95), rgba(8, 25, 40, 0.95));
-  box-shadow: var(--shadow-soft);
-  padding: clamp(20px, 3vw, 34px);
-}
-
-.conversion-hero-main h2 {
-  margin: 0;
-  font-size: clamp(1.5rem, 2.5vw, 2.2rem);
-  line-height: 1.2;
-  font-family: "Space Grotesk", "Manrope", sans-serif;
-  background: linear-gradient(125deg, #ffffff 0%, #c4f1ff 52%, #ffe0b5 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.conversion-hero-main p {
-  margin: 14px 0 0;
-  color: var(--text-200);
-  line-height: 1.7;
-}
-
-.hero-action-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 18px;
-}
-
-.hero-cta {
-  border: none;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  padding: 11px 16px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-}
-
-.hero-cta:hover {
-  transform: translateY(-2px);
-}
-
-.hero-cta-primary {
-  color: #fff;
-  background: linear-gradient(120deg, #0ea5e9, #0284c7 50%, #f59e0b 120%);
-  box-shadow: 0 10px 22px rgba(2, 16, 31, 0.38);
-}
-
-.hero-cta-primary:hover {
-  color: #fff;
-  filter: brightness(1.05);
-}
-
-.hero-cta-secondary {
-  color: #e6f8ff;
-  border: 1px solid rgba(125, 211, 252, 0.45);
-  background: rgba(8, 30, 48, 0.85);
-}
-
-.hero-cta-secondary:hover {
-  color: #fff;
-  background: rgba(10, 42, 66, 0.92);
-}
-
-.hero-micro-note {
-  margin-top: 12px;
-  font-size: 0.92rem;
-  color: var(--text-300);
-}
-
-.hero-proof-grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.hero-proof-card {
-  border-radius: 16px;
-  border: 1px solid var(--line-soft);
-  background: linear-gradient(145deg, rgba(17, 36, 59, 0.9), rgba(10, 26, 45, 0.92));
-  box-shadow: var(--shadow-soft);
-  padding: 16px;
-}
-
-.hero-proof-value {
-  font-size: clamp(1.3rem, 2vw, 1.9rem);
-  font-weight: 800;
-  letter-spacing: -0.2px;
-  font-family: "Space Grotesk", "Manrope", sans-serif;
-  color: #f6fbff;
-}
-
-.hero-proof-label {
-  margin-top: 4px;
-  font-size: 0.84rem;
-  color: var(--text-300);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-
-/* ========== INSIGHT STRIP ========== */
-.insight-strip {
-  display: grid;
-  gap: 12px;
-  margin-bottom: 20px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.insight-card {
-  border-radius: 14px;
-  border: 1px solid rgba(125, 211, 252, 0.24);
-  background: linear-gradient(145deg, rgba(8, 26, 44, 0.8), rgba(8, 21, 35, 0.88));
-  padding: 14px;
-}
-
-.insight-title {
-  font-size: 0.8rem;
-  color: var(--text-300);
-  text-transform: uppercase;
-  letter-spacing: 0.9px;
-}
-
-.insight-value {
-  margin-top: 6px;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #dff6ff;
-}
-
 /* ========== FAQ ========== */
 .faq-section {
   margin-top: 34px;
@@ -1150,8 +1007,6 @@ table.dataTable tbody tr:hover {
 @media (max-width: 1024px) {
   .bslib-sidebar-layout { grid-template-columns: 220px 1fr !important; }
   .header-content { padding: 0 20px; }
-  .conversion-hero { grid-template-columns: 1fr; }
-  .hero-proof-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
@@ -1171,23 +1026,6 @@ table.dataTable tbody tr:hover {
   .main-content,
   .content-card {
     padding: 16px 14px;
-  }
-
-  .hero-action-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .hero-cta {
-    text-align: center;
-  }
-
-  .insight-strip {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-proof-grid {
-    grid-template-columns: 1fr;
   }
 
   .bslib-sidebar-layout {

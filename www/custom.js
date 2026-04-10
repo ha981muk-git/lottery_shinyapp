@@ -137,39 +137,6 @@ $(document).ready(function() {
     }, 420);
   });
 
-  // Share button: native share on supported devices, else copy link.
-  $('.share-app-btn').on('click', async function() {
-    const button = this;
-    const shareLabel = button.dataset.shareLabel || 'Share Analysis';
-    const copiedLabel = button.dataset.copiedLabel || 'Link Copied';
-    const fallbackLabel = button.dataset.fallbackLabel || 'Copy this link manually';
-    const currentUrl = window.location.href;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: document.title, url: currentUrl });
-        return;
-      } catch (err) {
-        // Fall back to clipboard if sharing is cancelled or unavailable.
-      }
-    }
-
-    if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(currentUrl);
-        button.textContent = copiedLabel;
-        setTimeout(() => {
-          button.textContent = shareLabel;
-        }, 1600);
-        return;
-      } catch (err) {
-        // Fall through to prompt fallback.
-      }
-    }
-
-    window.prompt(fallbackLabel, currentUrl);
-  });
-
   // Reveal cards on first viewport entry for a cleaner staged load.
   const revealTargets = document.querySelectorAll('.metric-card, .content-card, .value-box-custom');
   if ('IntersectionObserver' in window && revealTargets.length) {

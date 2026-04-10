@@ -542,76 +542,7 @@ ui <- function(request) {
     
     # Main Content
     div(class = "main-content",
-        # Conversion Hero
-        div(id = "home", class = "conversion-hero", role = "region", `aria-label` = if(LANG == "de") "Startbereich" else "Home section",
-            div(class = "conversion-hero-main",
-                h2(if(LANG == "de") "Erkenne Lotto-Muster in Sekunden" else "Spot Lottery Patterns in Seconds"),
-                p(
-                  if(LANG == "de") {
-                    "Interaktive, schnelle und transparente Datenanalyse für 6/49. Kein Hype, keine Versprechen - nur Statistik, die man verstehen kann."
-                  } else {
-                    "Interactive, fast, and transparent 6/49 data analysis. No hype, no promises - only statistics you can understand."
-                  }
-                ),
-                div(class = "hero-action-row",
-                    a(
-                      href = "#analyzer",
-                      class = "hero-cta hero-cta-primary",
-                      if(LANG == "de") "Jetzt analysieren" else "Start Analyzing"
-                    ),
-                    tags$button(
-                      type = "button",
-                      class = "hero-cta hero-cta-secondary share-app-btn",
-                      `data-share-label` = if(LANG == "de") "Analyse teilen" else "Share Analysis",
-                      `data-copied-label` = if(LANG == "de") "Link kopiert" else "Link Copied",
-                      `data-fallback-label` = if(LANG == "de") "Link manuell kopieren" else "Copy Link Manually",
-                      if(LANG == "de") "Analyse teilen" else "Share Analysis"
-                    )
-                ),
-                p(
-                  class = "hero-micro-note",
-                  if(LANG == "de") {
-                    "Tipp: Wenn dir das Tool hilft, teile den Link in deiner Community."
-                  } else {
-                    "Tip: If this tool helps, share the link with your community."
-                  }
-                )
-            ),
-            div(class = "hero-proof-grid",
-                div(class = "hero-proof-card",
-                    div(class = "hero-proof-value", "13,983,816"),
-                    div(class = "hero-proof-label", if(LANG == "de") "Mögliche 6/49 Kombinationen" else "Possible 6/49 combinations")
-                ),
-                div(class = "hero-proof-card",
-                    div(class = "hero-proof-value", textOutput("heroLatestDate")),
-                    div(class = "hero-proof-label", if(LANG == "de") "Letzte verfügbare Ziehung" else "Latest available draw")
-                ),
-                div(class = "hero-proof-card",
-                  div(class = "hero-proof-value", textOutput("heroTotalVisitors")),
-                  div(class = "hero-proof-label", if(LANG == "de") "Anonyme Besucher gesamt" else "Anonymous visitors total")
-                ),
-                div(class = "hero-proof-card",
-                  div(class = "hero-proof-value", textOutput("heroTodayVisitors")),
-                  div(class = "hero-proof-label", if(LANG == "de") "Anonyme Besucher heute" else "Anonymous visitors today")
-                )
-            )
-        ),
-        
-        # Live Insight Strip
-        div(class = "insight-strip", role = "region", `aria-label` = if(LANG == "de") "Tages-Insights" else "Daily insights",
-            div(class = "insight-card",
-                div(class = "insight-title", if(LANG == "de") "Ø Summe (letzte 100)" else "Avg Sum (last 100)"),
-                div(class = "insight-value", textOutput("heroAvgSum"))
-            ),
-            div(class = "insight-card",
-                div(class = "insight-title", if(LANG == "de") "Häufigste Spannweite" else "Most common range"),
-                div(class = "insight-value", textOutput("heroMostCommonRange"))
-            ),
-            div(class = "insight-card",
-                div(class = "insight-title", if(LANG == "de") "Datenzeitraum" else "Data timespan"),
-                div(class = "insight-value", textOutput("heroSpanYears"))
-            )
-        ),
+        div(id = "home"),
         
         # Main Analyzer Section
         div(id = "analyzer", role = "region", `aria-label` = if(LANG == "de") "Analyse-Dashboard" else "Analysis Dashboard",
@@ -768,74 +699,9 @@ ui <- function(request) {
 # Server
 # ============================================================================
 server <- function(input, output, session) {
-  today_visitors_current <- reactiveVal(visitor_counter$count())
-  total_visitors_current <- reactiveVal(visitor_counter$total())
-
   observeEvent(input$visitor_token, {
-    counts <- visitor_counter$register(input$visitor_token)
-    today_visitors_current(counts$daily)
-    total_visitors_current(counts$total)
+    visitor_counter$register(input$visitor_token)
   }, ignoreInit = FALSE)
-  
-  visitor_counts <- reactivePoll(
-    intervalMillis = 5000,
-    session = session,
-    checkFunc = function() {
-      paste(visitor_counter$count(), visitor_counter$total(), sep = ":")
-    },
-    valueFunc = function() {
-      list(
-        daily = visitor_counter$count(),
-        total = visitor_counter$total()
-      )
-    }
-  )
-
-  observeEvent(visitor_counts(), {
-    counts <- visitor_counts()
-    today_visitors_current(counts$daily)
-    total_visitors_current(counts$total)
-  }, ignoreInit = TRUE)
-  
-  growth_stats <- tryCatch({
-    data <- generate_metrics()
-    if (is.null(data) || nrow(data) == 0) stop("No data")
-    
-    sums <- rowSums(data[, paste0("ball_", 1:6)], na.rm = TRUE)
-    recent_sums <- tail(sums, min(100, length(sums)))
-    ranges <- data$ball_6 - data$ball_1
-    range_mode <- as.numeric(names(sort(table(ranges), decreasing = TRUE))[1])
-    
-    latest_date <- suppressWarnings(max(data$datum, na.rm = TRUE))
-    earliest_date <- suppressWarnings(min(data$datum, na.rm = TRUE))
-    has_valid_dates <- inherits(latest_date, "Date") && !is.na(latest_date) &&
-      inherits(earliest_date, "Date") && !is.na(earliest_date)
-    
-    list(
-      latest_date = if (has_valid_dates) format(latest_date, "%d %b %Y") else "-",
-      avg_sum = round(mean(recent_sums, na.rm = TRUE), 1),
-      most_common_range = if (!is.na(range_mode)) range_mode else "-",
-      span_years = if (has_valid_dates) {
-        paste0(format(earliest_date, "%Y"), " - ", format(latest_date, "%Y"))
-      } else {
-        "-"
-      }
-    )
-  }, error = function(e) {
-    list(
-      latest_date = "-",
-      avg_sum = "-",
-      most_common_range = "-",
-      span_years = "-"
-    )
-  })
-  
-  output$heroLatestDate <- renderText(growth_stats$latest_date)
-  output$heroAvgSum <- renderText(growth_stats$avg_sum)
-  output$heroMostCommonRange <- renderText(growth_stats$most_common_range)
-  output$heroSpanYears <- renderText(growth_stats$span_years)
-  output$heroTotalVisitors <- renderText(format(total_visitors_current(), big.mark = ","))
-  output$heroTodayVisitors <- renderText(format(today_visitors_current(), big.mark = ","))
   
   # Call input module
   input_controls <- lotteryInputServer("inputs1")

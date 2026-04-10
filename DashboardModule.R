@@ -360,9 +360,9 @@ lotteryInputServer <- function(id) {
         updateSelectInput(session, "metric", selected = query_metric)
       }
 
-      range_min <- suppressWarnings(as.integer(query$range_min))
-      range_max <- suppressWarnings(as.integer(query$range_max))
-      if (!is.na(range_min) && !is.na(range_max)) {
+      range_min <- suppressWarnings(as.integer(query$range_min %||% NA_integer_))
+      range_max <- suppressWarnings(as.integer(query$range_max %||% NA_integer_))
+      if (length(range_min) > 0 && length(range_max) > 0 && !is.na(range_min) && !is.na(range_max)) {
         range_min <- max(1L, min(49L, range_min))
         range_max <- max(1L, min(49L, range_max))
 

@@ -150,6 +150,12 @@ lotteryInputUI <- function(id, lang = "de") {
         p(style = "color: rgba(255, 255, 255, 0.5); font-size: 0.875rem;", 
           t("input_realtime", lang))
     ),
+    div(
+      class = "journey-card",
+      div(class = "journey-title", t("input_journey_title", lang)),
+      p(class = "journey-subtitle", t("input_journey_subtitle", lang)),
+      uiOutput(ns("journeySteps"))
+    ),
     sliderInput(ns("range"), 
                 t("input_ball_range", lang), 
                 min = 1, max = 49, value = c(1,49), step = 1),
@@ -203,7 +209,17 @@ lotteryInputUI <- function(id, lang = "de") {
     actionButton(ns("refresh"), 
                  t("input_refresh", lang), 
                  class = "btn-primary w-100",
-                 style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;")
+                 style = "margin-top: 20px; border-radius: 10px; padding: 10px; font-weight: 600;"),
+    div(
+      class = "share-view-panel",
+      actionButton(
+        ns("copyView"),
+        t("input_copy_view", lang),
+        icon = icon("link"),
+        class = "btn btn-outline-light w-100 copy-view-btn"
+      ),
+      p(class = "share-view-help", t("input_copy_view_help", lang))
+    )
   )
 }
 
@@ -211,7 +227,18 @@ lotteryInputUI <- function(id, lang = "de") {
 lotteryInputServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     minDistance <- 6
+    metric_ids <- c("balls", "sums", "odds_evens", "table", "difference", "lag")
     preset_ids <- c("preset3m", "preset6m", "preset1y", "presetAll")
+    get_lang <- reactive({
+      query <- parseQueryString(isolate(session$clientData$url_search))
+      lang <- query$lang %||% "de"
+      if (is.null(lang) || !nzchar(lang)) "de" else as.character(lang)
+    })
+    journey_state <- reactiveValues(
+      filters_applied = FALSE,
+      metric_chosen = FALSE,
+      refreshed = FALSE
+    )
 
     date_domain <- tryCatch({
       input_data <- generate_metrics()
@@ -267,6 +294,120 @@ lotteryInputServer <- function(id) {
       set_active_preset(preset_id)
     }
 
+    observeEvent(input$range, {
+      journey_state$filters_applied <- TRUE
+    }, ignoreInit = TRUE)
+
+    observeEvent(input$dateRange, {
+      journey_state$filters_applied <- TRUE
+    }, ignoreInit = TRUE)
+
+    observeEvent(input$metric, {
+      journey_state$metric_chosen <- TRUE
+    }, ignoreInit = TRUE)
+
+    observeEvent(input$refresh, {
+      journey_state$refreshed <- TRUE
+    }, ignoreInit = TRUE)
+
+    output$journeySteps <- renderUI({
+      lang <- get_lang()
+      step_done <- c(
+        isTRUE(journey_state$filters_applied),
+        isTRUE(journey_state$metric_chosen),
+        isTRUE(journey_state$refreshed)
+      )
+      step_labels <- c(
+        t("input_journey_step_filters", lang),
+        t("input_journey_step_metric", lang),
+        t("input_journey_step_refresh", lang)
+      )
+      first_incomplete <- which(!step_done)
+      active_step <- if (length(first_incomplete) > 0) first_incomplete[[1]] else NA_integer_
+
+      step_nodes <- lapply(seq_along(step_labels), function(i) {
+        state_class <- if (step_done[[i]]) {
+          "is-complete"
+        } else if (!is.na(active_step) && i == active_step) {
+          "is-current"
+        } else {
+          "is-upcoming"
+        }
+
+        div(
+          class = paste("journey-step", state_class),
+          span(class = "journey-index", i),
+          span(class = "journey-text", step_labels[[i]])
+        )
+      })
+
+      tagList(
+        div(class = "journey-steps", step_nodes),
+        if (all(step_done)) {
+          div(class = "journey-complete", t("input_journey_complete", lang))
+        }
+      )
+    })
+
+    restore_view_from_query <- function() {
+      query <- parseQueryString(isolate(session$clientData$url_search))
+      if (length(query) == 0) {
+        return(invisible(NULL))
+      }
+
+      query_metric <- as.character(query$metric %||% "")
+      if (nzchar(query_metric) && query_metric %in% metric_ids) {
+        updateSelectInput(session, "metric", selected = query_metric)
+      }
+
+      range_min <- suppressWarnings(as.integer(query$range_min))
+      range_max <- suppressWarnings(as.integer(query$range_max))
+      if (!is.na(range_min) && !is.na(range_max)) {
+        range_min <- max(1L, min(49L, range_min))
+        range_max <- max(1L, min(49L, range_max))
+
+        if (range_min > range_max) {
+          tmp <- range_min
+          range_min <- range_max
+          range_max <- tmp
+        }
+
+        if ((range_max - range_min) < minDistance) {
+          range_min <- max(1L, range_max - minDistance)
+        }
+
+        updateSliderInput(session, "range", value = c(range_min, range_max))
+      }
+
+      query_from <- suppressWarnings(as.Date(query$from))
+      query_to <- suppressWarnings(as.Date(query$to))
+      if (!is.na(query_from) && !is.na(query_to)) {
+        min_date <- as.Date(date_domain$min)
+        max_date <- as.Date(date_domain$max)
+
+        query_from <- max(min_date, min(query_from, max_date))
+        query_to <- max(min_date, min(query_to, max_date))
+        if (query_from > query_to) {
+          tmp <- query_from
+          query_from <- query_to
+          query_to <- tmp
+        }
+
+        updateDateRangeInput(
+          session,
+          "dateRange",
+          start = query_from,
+          end = query_to,
+          min = min_date,
+          max = max_date
+        )
+      }
+    }
+
+    session$onFlushed(function() {
+      restore_view_from_query()
+    }, once = TRUE)
+
     observeEvent(input$preset3m, {
       apply_preset_range(days_back = 90L, preset_id = "preset3m")
     }, ignoreInit = TRUE)
@@ -308,6 +449,39 @@ lotteryInputServer <- function(id) {
 
       set_active_preset(matched_preset)
     }, ignoreInit = TRUE)
+
+    observeEvent(input$copyView, {
+      req(!is.null(input$range), length(input$range) == 2)
+      req(!is.null(input$dateRange), length(input$dateRange) == 2)
+
+      lang <- get_lang()
+      selected_dates <- as.Date(input$dateRange)
+      selected_metric <- as.character(input$metric %||% "balls")
+      if (!(selected_metric %in% metric_ids)) {
+        selected_metric <- "balls"
+      }
+
+      safe_lang <- as.character(parseQueryString(isolate(session$clientData$url_search))$lang %||% lang)
+      safe_lang <- if (nzchar(safe_lang)) safe_lang else "de"
+
+      query_parts <- c(
+        paste0("lang=", URLencode(safe_lang, reserved = TRUE)),
+        paste0("metric=", URLencode(selected_metric, reserved = TRUE)),
+        paste0("range_min=", as.integer(input$range[[1]])),
+        paste0("range_max=", as.integer(input$range[[2]])),
+        paste0("from=", format(min(selected_dates), "%Y-%m-%d")),
+        paste0("to=", format(max(selected_dates), "%Y-%m-%d"))
+      )
+
+      base_url <- sub("\\?.*$", "", isolate(session$clientData$url_href))
+      share_url <- paste0(base_url, "?", paste(query_parts, collapse = "&"))
+
+      session$sendCustomMessage("copyViewLink", list(
+        url = share_url,
+        success = t("input_copy_view_success", lang),
+        failure = t("input_copy_view_fail", lang)
+      ))
+    }, ignoreInit = TRUE)
     
     # ✅ FIX 1: Prevent cascade updates - only update if actually out of bounds
     observeEvent(input$range, {
@@ -340,7 +514,8 @@ lotteryInputServer <- function(id) {
         range = range_debounced(),       # ✅ DEBOUNCED - only updates every 300ms
         metric = input$metric,           # Direct - instant response
         dateRange = date_range_debounced(),
-        refresh = refresh_throttled()    # ✅ THROTTLED - only every 300ms
+        refresh = refresh_throttled(),   # ✅ THROTTLED - only every 300ms
+        lang = get_lang()
       )
     }))
   })
@@ -383,8 +558,8 @@ dashboardUI <- function(id) {
         padding-bottom: 20px;
       }
       .content-card:hover {
-        border-color: rgba(139, 92, 246, 0.4);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        border-color: rgba(34, 211, 238, 0.45);
+        box-shadow: 0 8px 24px rgba(2, 11, 24, 0.45);
       }
     ")),
     
@@ -400,6 +575,7 @@ dashboardUI <- function(id) {
     # Container for all metrics (all pre-rendered, hidden via CSS)
     div(id = ns("metricsContainer"),
         style = "display: none;",
+      uiOutput(ns("experienceStrip")),
         
         div(id = ns("metric-balls"), 
             style = "display: none;",
@@ -442,6 +618,24 @@ dashboardServer <- function(id, input_controls) {
       req(input_controls()$metric)
       input_controls()$metric
     })
+
+    get_lang <- reactive({
+      lang <- input_controls()$lang %||% "de"
+      if (is.null(lang) || !nzchar(lang)) "de" else as.character(lang)
+    })
+
+    metric_label <- function(metric_id, lang) {
+      switch(
+        metric_id,
+        balls = t("metric_balls", lang),
+        sums = t("metric_sums", lang),
+        odds_evens = t("metric_odds_evens", lang),
+        table = t("metric_tables", lang),
+        difference = t("metric_difference", lang),
+        lag = t("metric_lag", lang),
+        metric_id
+      )
+    }
     
     metric_is_active <- function(metric_name) {
       reactive({
@@ -489,6 +683,50 @@ dashboardServer <- function(id, input_controls) {
       },
       ignoreNULL = TRUE
     )
+
+    output$experienceStrip <- renderUI({
+      req(input_controls()$metric)
+
+      lang <- get_lang()
+      metric_name <- metric_label(input_controls()$metric, lang)
+      date_separator <- if (identical(lang, "de")) " bis " else " to "
+      range_vals <- input_controls()$range %||% c(1, 49)
+      date_vals <- as.Date(input_controls()$dateRange)
+      if (length(date_vals) != 2 || any(is.na(date_vals))) {
+        all_dates <- as.Date(metrics_data$datum)
+        date_vals <- c(min(all_dates, na.rm = TRUE), max(all_dates, na.rm = TRUE))
+      }
+
+      filtered_rows <- tryCatch(nrow(filtered_data()), error = function(e) 0L)
+
+      div(
+        class = "experience-strip",
+        div(
+          class = "experience-pill",
+          span(class = "pill-label", t("dashboard_strip_metric", lang)),
+          span(class = "pill-value", metric_name)
+        ),
+        div(
+          class = "experience-pill",
+          span(class = "pill-label", t("dashboard_strip_window", lang)),
+          span(
+            class = "pill-value",
+            paste(format(min(date_vals), "%Y-%m-%d"), format(max(date_vals), "%Y-%m-%d"), sep = date_separator)
+          )
+        ),
+        div(
+          class = "experience-pill",
+          span(class = "pill-label", t("dashboard_strip_range", lang)),
+          span(class = "pill-value", paste(range_vals[[1]], range_vals[[2]], sep = "-"))
+        ),
+        div(
+          class = "experience-pill",
+          span(class = "pill-label", t("dashboard_strip_draws", lang)),
+          span(class = "pill-value", format(filtered_rows, big.mark = ",", scientific = FALSE, trim = TRUE))
+        ),
+        p(class = "experience-strip-hint", t("dashboard_strip_hint", lang))
+      )
+    })
     
     # Track which servers are initialized
     initialized_servers <- reactiveVal(list())

@@ -21,7 +21,7 @@ ballsMetricUI <- function(id) {
     div(
       style = "padding: 20px;",
       div(
-        style = "margin-bottom: 32px;",
+        style = "margin-bottom: 18px;",
         # Header will be rendered dynamically in server
         uiOutput(ns("header"))
       ),

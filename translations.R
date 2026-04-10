@@ -29,6 +29,16 @@ translations <- list(
     input_preset_6m = "Last 6 Months",
     input_preset_1y = "Last 1 Year",
     input_preset_all = "All Data",
+    input_journey_title = "3-Step Quick Start",
+    input_journey_subtitle = "Set filters, choose a metric, and refresh to lock in your view.",
+    input_journey_step_filters = "Set your filters",
+    input_journey_step_metric = "Pick an analysis",
+    input_journey_step_refresh = "Refresh dashboard",
+    input_journey_complete = "Setup complete. You can now compare trends faster.",
+    input_copy_view = "Copy Shareable View",
+    input_copy_view_help = "Save this exact setup and return later.",
+    input_copy_view_success = "Share link copied to clipboard.",
+    input_copy_view_fail = "Could not copy the link. Please copy it manually.",
     
     # Time choices
     time_last_7 = "Last 7 Weeks",
@@ -46,6 +56,11 @@ translations <- list(
     metric_tables = "Tables",
     metric_difference = "Difference",
     metric_lag = "Lag",
+    dashboard_strip_metric = "Active Metric",
+    dashboard_strip_window = "Date Window",
+    dashboard_strip_range = "Number Range",
+    dashboard_strip_draws = "Draws Analyzed",
+    dashboard_strip_hint = "Tip: copy this view to continue where you left off.",
     
     
     # Balls Metric Module
@@ -359,6 +374,16 @@ translations <- list(
     input_preset_6m = "Letzte 6 Monate",
     input_preset_1y = "Letztes Jahr",
     input_preset_all = "Alle Daten",
+    input_journey_title = "3-Schritte-Schnellstart",
+    input_journey_subtitle = "Filter setzen, Metrik auswaehlen und aktualisieren, um diese Ansicht zu sichern.",
+    input_journey_step_filters = "Filter festlegen",
+    input_journey_step_metric = "Analyse waehlen",
+    input_journey_step_refresh = "Dashboard aktualisieren",
+    input_journey_complete = "Setup abgeschlossen. Trends lassen sich jetzt schneller vergleichen.",
+    input_copy_view = "Teilbare Ansicht kopieren",
+    input_copy_view_help = "Speichere diese Konfiguration und komme spaeter zurueck.",
+    input_copy_view_success = "Link zur Ansicht in die Zwischenablage kopiert.",
+    input_copy_view_fail = "Link konnte nicht kopiert werden. Bitte manuell kopieren.",
     
     # Time choices
     time_last_7 = "Letzte 7 Wochen",
@@ -376,6 +401,11 @@ translations <- list(
     metric_tables = "Tabellen",
     metric_difference = "Differenz",
     metric_lag = "Verzögerung",
+    dashboard_strip_metric = "Aktive Metrik",
+    dashboard_strip_window = "Datumsfenster",
+    dashboard_strip_range = "Zahlenbereich",
+    dashboard_strip_draws = "Analysierte Ziehungen",
+    dashboard_strip_hint = "Tipp: Kopiere diese Ansicht, um spaeter genau hier weiterzumachen.",
     
     # Balls Metric Module
     balls_title = "6/49 Statistische Analyse Demo",

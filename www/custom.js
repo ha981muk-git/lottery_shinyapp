@@ -59,6 +59,73 @@ $(document).ready(function() {
     document.documentElement.classList.add('low-end-device');
   }
 
+  const showFloatingToast = (message, type = 'success') => {
+    if (!message) return;
+    const toast = document.createElement('div');
+    toast.className = `floating-toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    window.requestAnimationFrame(() => {
+      toast.classList.add('show');
+    });
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+      }, 260);
+    }, 2400);
+  };
+
+  const fallbackCopyText = (text) => {
+    const helper = document.createElement('textarea');
+    helper.value = text;
+    helper.setAttribute('readonly', 'readonly');
+    helper.style.position = 'fixed';
+    helper.style.opacity = '0';
+    helper.style.pointerEvents = 'none';
+    document.body.appendChild(helper);
+    helper.select();
+    helper.setSelectionRange(0, helper.value.length);
+
+    let copied = false;
+    try {
+      copied = document.execCommand('copy');
+    } catch (err) {
+      copied = false;
+    }
+
+    document.body.removeChild(helper);
+    return copied;
+  };
+
+  if (window.Shiny && typeof window.Shiny.addCustomMessageHandler === 'function') {
+    window.Shiny.addCustomMessageHandler('copyViewLink', (payload) => {
+      const link = payload && payload.url ? payload.url : '';
+      const successText = (payload && payload.success) || 'Link copied.';
+      const failureText = (payload && payload.failure) || 'Unable to copy link.';
+      if (!link) {
+        showFloatingToast(failureText, 'error');
+        return;
+      }
+
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(link)
+          .then(() => showFloatingToast(successText, 'success'))
+          .catch(() => {
+            const copied = fallbackCopyText(link);
+            showFloatingToast(copied ? successText : failureText, copied ? 'success' : 'error');
+          });
+      } else {
+        const copied = fallbackCopyText(link);
+        showFloatingToast(copied ? successText : failureText, copied ? 'success' : 'error');
+      }
+    });
+  }
+
   // --- Sidebar Overlay Fix ---
   let debounceTimer;
   function fixSidebarOverlay() {
@@ -69,11 +136,7 @@ $(document).ready(function() {
       'transition': 'none'
     });
     $('.sidebar-backdrop, .bslib-sidebar-backdrop').remove();
-    $('.bslib-sidebar-layout').css({
-      'display': 'grid',
-      'grid-template-columns': 'auto 1fr',
-      'gap': '20px'
-    });
+    $('.bslib-sidebar-layout > .collapse-toggle').css('display', 'none');
   }
   fixSidebarOverlay();
   setTimeout(fixSidebarOverlay, 100);

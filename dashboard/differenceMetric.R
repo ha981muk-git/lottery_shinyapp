@@ -6,7 +6,7 @@ differenceMetricUI <- function(id) {
     div(
       style = "padding: 20px;",
       div(
-        style = "margin-bottom: 32px;",
+        style = "margin-bottom: 18px;",
         uiOutput(ns("header"))
       ),
       

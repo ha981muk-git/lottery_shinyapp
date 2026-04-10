@@ -6,7 +6,7 @@ tableMetricUI <- function(id) {
   tagList(
     # Header Section
     div(
-      style = "padding: 20px; margin-bottom: 32px;",
+      style = "padding: 20px; margin-bottom: 18px;",
       uiOutput(ns("header"))
     ),
     

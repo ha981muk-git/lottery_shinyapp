@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Methodology | Lottery Insights</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#071726;color:#e8f1f8;line-height:1.6;margin:0}
+    main{max-width:900px;margin:0 auto;padding:28px 18px}
+    h1,h2{color:#fff}
+    .card{background:#0d253b;border:1px solid rgba(125,211,252,.25);border-radius:12px;padding:18px;margin-bottom:14px}
+  </style>
+</head>
+<body>
+<main>
+  <h1 id="title">Methodology</h1>
+  <div class="card" data-lang="en">
+    <p>The dashboard visualizes historical Lotto 6aus49 draws using descriptive statistics: frequencies, distributions, moving averages, and lag/range analyses.</p>
+    <h2>Data source</h2>
+    <p>Public draw archive downloaded from the official provider endpoint configured in the app.</p>
+    <h2>Limitations</h2>
+    <p>Historical patterns do not imply future predictability.</p>
+  </div>
+  <div class="card" data-lang="de" hidden>
+    <p>Das Dashboard visualisiert historische Lotto-6aus49-Ziehungen mit deskriptiver Statistik: Häufigkeiten, Verteilungen, gleitende Durchschnitte sowie Sprung- und Bereichsanalysen.</p>
+    <h2>Datenquelle</h2>
+    <p>Öffentliches Ziehungsarchiv, das über den in der App konfigurierten offiziellen Endpunkt geladen wird.</p>
+    <h2>Einschränkungen</h2>
+    <p>Historische Muster sind keine Vorhersage für zukünftige Ergebnisse.</p>
+  </div>
+</main>
+<script>
+  const lang = new URLSearchParams(location.search).get('lang') === 'de' ? 'de' : 'en';
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-lang]').forEach(el => { el.hidden = el.dataset.lang !== lang; });
+  document.getElementById('title').textContent = lang === 'de' ? 'Methodik' : 'Methodology';
+</script>
+</body>
+</html>

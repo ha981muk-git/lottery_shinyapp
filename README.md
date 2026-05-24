@@ -138,6 +138,20 @@ Behavior:
 *   Else if `APP_SUPPORT_EMAIL` is configured, clicking the footer link opens the user's email client with a prefilled bug report template.
 *   If neither setting is configured, the link falls back to the FAQ/disclaimer section.
 
+### Analytics, Consent, and Lead Capture
+The app now includes a lightweight consent banner and optional frontend analytics tracking.
+
+Recommended deployment settings:
+*   `APP_GA4_MEASUREMENT_ID`: GA4 Measurement ID (for example `G-XXXXXXXXXX`). If unset, GA4 is not loaded.
+*   `APP_NEWSLETTER_URL`: Optional external newsletter/signup form URL used by hero and sticky CTA.
+*   `APP_NEWSLETTER_EMAIL`: Optional fallback email for lead capture if no newsletter URL is configured.
+
+Behavior:
+*   Analytics events are only sent after the user accepts optional analytics tracking.
+*   Tracked events include session start, filter/metric interactions, copy-view usage, scroll depth, and outbound link clicks.
+*   Lead capture CTA opens `APP_NEWSLETTER_URL` in a new tab when configured; otherwise it falls back to `APP_NEWSLETTER_EMAIL` mailto.
+*   Footer legal links point to static pages in `www/` (`privacy.html`, `terms.html`, `disclaimer.html`, `methodology.html`).
+
 ### Custom UI Components
 *   **`create_chart_card`**: A wrapper function that standardizes chart containers, adding titles, descriptions, and the fullscreen toggle functionality.
 *   **`create_stat_card`**: Standardized KPI cards for the top of metric views.

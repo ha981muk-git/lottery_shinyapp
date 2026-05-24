@@ -1,4 +1,111 @@
 $(document).ready(function() {
+  const appConfig = window.liAppConfig || {};
+  const ga4MeasurementId = (appConfig.ga4MeasurementId || '').trim();
+  const consentStorageKey = 'li_analytics_consent';
+  let analyticsConsent = false;
+  let gaInitialized = false;
+  const firedScrollDepths = new Set();
+
+  const getConsent = () => {
+    try {
+      return window.localStorage.getItem(consentStorageKey);
+    } catch (err) {
+      return null;
+    }
+  };
+
+  const setConsent = (value) => {
+    try {
+      window.localStorage.setItem(consentStorageKey, value);
+    } catch (err) {
+      // no-op
+    }
+  };
+
+  const ensureDataLayer = () => {
+    window.dataLayer = window.dataLayer || [];
+    if (typeof window.gtag !== 'function') {
+      window.gtag = function(){ window.dataLayer.push(arguments); };
+    }
+  };
+
+  const initGA4 = () => {
+    if (!analyticsConsent || gaInitialized || !ga4MeasurementId) return;
+    ensureDataLayer();
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4MeasurementId)}`;
+    document.head.appendChild(script);
+
+    window.gtag('js', new Date());
+    window.gtag('config', ga4MeasurementId, {
+      anonymize_ip: true,
+      send_page_view: true,
+      page_language: appConfig.lang || 'de'
+    });
+
+    gaInitialized = true;
+  };
+
+  const trackEvent = (eventName, params = {}) => {
+    if (!analyticsConsent) return;
+    ensureDataLayer();
+    initGA4();
+
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', eventName, {
+        event_category: 'engagement',
+        ...params
+      });
+    }
+  };
+
+  const showConsentBanner = () => {
+    const banner = document.getElementById('consentBanner');
+    if (!banner) return;
+    banner.classList.add('is-visible');
+  };
+
+  const hideConsentBanner = () => {
+    const banner = document.getElementById('consentBanner');
+    if (!banner) return;
+    banner.classList.remove('is-visible');
+  };
+
+  const consentState = getConsent();
+  if (consentState === 'accepted') {
+    analyticsConsent = true;
+    initGA4();
+  } else if (consentState !== 'rejected') {
+    showConsentBanner();
+  }
+
+  const acceptBtn = document.getElementById('consentAccept');
+  if (acceptBtn) {
+    acceptBtn.addEventListener('click', () => {
+      analyticsConsent = true;
+      setConsent('accepted');
+      hideConsentBanner();
+      initGA4();
+      trackEvent('analytics_consent_accepted');
+      trackEvent('session_start', { source: 'consent_accept' });
+    });
+  }
+
+  const rejectBtn = document.getElementById('consentReject');
+  if (rejectBtn) {
+    rejectBtn.addEventListener('click', () => {
+      analyticsConsent = false;
+      setConsent('rejected');
+      hideConsentBanner();
+    });
+  }
+
+  if (consentState === 'accepted') {
+    trackEvent('session_start', { source: 'stored_consent' });
+  }
+
   // Persistent anonymous visitor token for real daily unique-visitor counting.
   const makeVisitorToken = () => {
     if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -48,6 +155,7 @@ $(document).ready(function() {
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
       publishVisitorToken();
+      trackEvent('visibility_return');
     }
   });
 
@@ -114,14 +222,23 @@ $(document).ready(function() {
 
       if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         navigator.clipboard.writeText(link)
-          .then(() => showFloatingToast(successText, 'success'))
+          .then(() => {
+            showFloatingToast(successText, 'success');
+            trackEvent('copy_view_link', { method: 'clipboard_api' });
+          })
           .catch(() => {
             const copied = fallbackCopyText(link);
             showFloatingToast(copied ? successText : failureText, copied ? 'success' : 'error');
+            if (copied) {
+              trackEvent('copy_view_link', { method: 'exec_command' });
+            }
           });
       } else {
         const copied = fallbackCopyText(link);
         showFloatingToast(copied ? successText : failureText, copied ? 'success' : 'error');
+        if (copied) {
+          trackEvent('copy_view_link', { method: 'exec_command' });
+        }
       }
     });
   }
@@ -141,14 +258,14 @@ $(document).ready(function() {
   fixSidebarOverlay();
   setTimeout(fixSidebarOverlay, 100);
   setTimeout(fixSidebarOverlay, 500);
-  
+
   // Debounced observer
   const observer = new MutationObserver(() => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(fixSidebarOverlay, 100);
   });
   observer.observe(document.body, { childList: true, subtree: true });
-  
+
   // CRITICAL: Stop observing after 3 seconds - sidebar is stable
   setTimeout(() => observer.disconnect(), 3000);
 
@@ -216,4 +333,56 @@ $(document).ready(function() {
       revealObserver.observe(el);
     });
   }
+
+  // Analytics event hooks
+  document.addEventListener('click', (event) => {
+    const eventNode = event.target.closest('[data-analytics-event]');
+    if (eventNode) {
+      trackEvent(eventNode.getAttribute('data-analytics-event'));
+    }
+
+    const anchor = event.target.closest('a[href]');
+    if (!anchor) return;
+    const href = anchor.getAttribute('href') || '';
+    if (/^https?:\/\//i.test(href) || /^mailto:/i.test(href)) {
+      trackEvent('outbound_click', { link_url: href.slice(0, 200) });
+    }
+  });
+
+  document.addEventListener('shiny:inputchanged', (event) => {
+    if (!event || !event.name) return;
+    const key = event.name;
+
+    if (key === 'inputs1-metric') {
+      trackEvent('metric_switch', { metric: String(event.value || '') });
+      return;
+    }
+
+    if (key === 'inputs1-range' || key === 'inputs1-dateRange') {
+      trackEvent('filter_change', { filter_name: key.replace('inputs1-', '') });
+      return;
+    }
+
+    if (key === 'inputs1-refresh') {
+      trackEvent('refresh_click');
+    }
+  });
+
+  const scrollMilestones = [25, 50, 75, 90];
+  const onScroll = () => {
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const totalHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+    const maxScrollable = Math.max(totalHeight - viewportHeight, 1);
+    const scrolled = window.scrollY || document.documentElement.scrollTop || 0;
+    const pct = Math.min(100, Math.round((scrolled / maxScrollable) * 100));
+
+    scrollMilestones.forEach((depth) => {
+      if (pct >= depth && !firedScrollDepths.has(depth)) {
+        firedScrollDepths.add(depth);
+        trackEvent('scroll_depth', { depth_percent: depth });
+      }
+    });
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
 });

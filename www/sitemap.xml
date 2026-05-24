@@ -2,21 +2,44 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/</loc>
-    <lastmod>2025-10-19</lastmod>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/?lang=de</loc>
-    <lastmod>2025-10-19</lastmod>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/?lang=en</loc>
-    <lastmod>2025-10-19</lastmod>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/privacy.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/terms.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/disclaimer.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/methodology.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>
-

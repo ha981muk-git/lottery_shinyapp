@@ -99,10 +99,12 @@ render_desc <- function(key, get_lang_fn) {
   })
 }
 
-# UI Module
-lotteryInputUI <- function(id, lang = "de") {
-  ns <- NS(id)
-  
+get_cached_date_bounds <- function(force_refresh = FALSE) {
+  cache <- getOption("li_date_bounds_cache")
+  if (!isTRUE(force_refresh) && is.list(cache) && !is.null(cache$min) && !is.null(cache$max)) {
+    return(cache)
+  }
+
   date_bounds <- tryCatch({
     input_data <- generate_metrics()
     if (is.null(input_data) || nrow(input_data) == 0 || !"datum" %in% names(input_data)) {
@@ -129,6 +131,16 @@ lotteryInputUI <- function(id, lang = "de") {
       end = fallback_end
     )
   })
+
+  options(li_date_bounds_cache = date_bounds)
+  date_bounds
+}
+
+# UI Module
+lotteryInputUI <- function(id, lang = "de") {
+  ns <- NS(id)
+  
+  date_bounds <- get_cached_date_bounds()
   
   metric_choices <- setNames(
     c("balls", "sums", "odds_evens", "table", "difference", "lag"),
@@ -240,21 +252,11 @@ lotteryInputServer <- function(id) {
       refreshed = FALSE
     )
 
-    date_domain <- tryCatch({
-      input_data <- generate_metrics()
-      if (is.null(input_data) || nrow(input_data) == 0 || !"datum" %in% names(input_data)) {
-        stop("Date bounds unavailable")
-      }
-
-      all_dates <- sort(unique(as.Date(input_data$datum)))
-      list(
-        min = min(all_dates, na.rm = TRUE),
-        max = max(all_dates, na.rm = TRUE)
-      )
-    }, error = function(e) {
-      fallback_end <- Sys.Date()
-      list(min = fallback_end - 365, max = fallback_end)
-    })
+    date_bounds <- get_cached_date_bounds()
+    date_domain <- list(
+      min = as.Date(date_bounds$min),
+      max = as.Date(date_bounds$max)
+    )
 
     preset_target_range <- function(days_back = NULL) {
       max_date <- as.Date(date_domain$max)

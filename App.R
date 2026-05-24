@@ -397,6 +397,9 @@ ui <- function(request) {
   newsletter_url <- trimws(Sys.getenv("APP_NEWSLETTER_URL", unset = ""))
   newsletter_email <- trimws(Sys.getenv("APP_NEWSLETTER_EMAIL", unset = support_email))
   ga4_measurement_id <- trimws(Sys.getenv("APP_GA4_MEASUREMENT_ID", unset = ""))
+  if (!nzchar(ga4_measurement_id)) {
+    ga4_measurement_id <- "G-46CYMW6T38"
+  }
 
   seo_title <- t("seo_title", LANG)
   seo_description <- t("seo_description", LANG)
@@ -533,6 +536,14 @@ ui <- function(request) {
       tags$link(rel = "alternate", hreflang = "x-default", href = app_base_url),
       tags$script(type = "application/ld+json", HTML(schema_json)),
       tags$link(rel = "icon", type = "image/svg+xml", href = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>"),
+
+      if (nzchar(ga4_measurement_id)) tags$script(
+        async = NA,
+        src = paste0("https://www.googletagmanager.com/gtag/js?id=", URLencode(ga4_measurement_id, reserved = TRUE))
+      ),
+      if (nzchar(ga4_measurement_id)) tags$script(HTML(
+        "window.dataLayer = window.dataLayer || [];\nwindow.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };\nwindow.gtag('js', new Date());\nwindow.gtag('consent', 'default', { analytics_storage: 'denied' });"
+      )),
 
       tags$script(HTML(sprintf(
         "window.liAppConfig = {lang: '%s', ga4MeasurementId: '%s'};",

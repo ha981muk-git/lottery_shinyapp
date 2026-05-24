@@ -29,14 +29,24 @@ $(document).ready(function() {
     }
   };
 
+  const ensureGtagScript = () => {
+    if (!ga4MeasurementId) return;
+    const encodedId = encodeURIComponent(ga4MeasurementId);
+    const selector = `script[src*="googletagmanager.com/gtag/js?id=${encodedId}"]`;
+    if (document.querySelector(selector)) return;
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodedId}`;
+    document.head.appendChild(script);
+  };
+
   const initGA4 = () => {
     if (!analyticsConsent || gaInitialized || !ga4MeasurementId) return;
     ensureDataLayer();
 
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4MeasurementId)}`;
-    document.head.appendChild(script);
+    ensureGtagScript();
+    window.gtag('consent', 'update', { analytics_storage: 'granted' });
 
     window.gtag('js', new Date());
     window.gtag('config', ga4MeasurementId, {
@@ -99,6 +109,9 @@ $(document).ready(function() {
       analyticsConsent = false;
       setConsent('rejected');
       hideConsentBanner();
+      if (typeof window.gtag === 'function') {
+        window.gtag('consent', 'update', { analytics_storage: 'denied' });
+      }
     });
   }
 

@@ -742,6 +742,71 @@ translations <- list(
   )
 )
 
+# Fast-win growth/SEO/compliance keys
+translations$en <- c(
+  translations$en,
+  list(
+    trust_badge = "LIVE",
+    seo_title = "6/49 Lotto Statistics Dashboard | Free Interactive Analysis",
+    seo_description = "Explore Lotto 6aus49 draw statistics, frequency trends, odd/even distributions, and number range insights with an interactive analytics dashboard.",
+    seo_keywords = "lotto statistics, lotto 6aus49 analysis, lottery number frequency, odd even lotto, lotto trends",
+    seo_og_title = "6/49 Lotto Statistics Dashboard",
+    seo_og_description = "Interactive and educational lottery statistics dashboard with real historical draw analysis.",
+    seo_schema_name = "6/49 Lotto Statistics Dashboard",
+    seo_schema_alt_name = "Lottery Insights 6/49 Analyzer",
+    growth_badge = "Free weekly lottery insights",
+    growth_title = "Analyze draws faster and return to your best setup instantly",
+    growth_subtitle = "Get practical statistical insights, save time with shareable views, and receive weekly updates with the newest draw patterns.",
+    growth_point_1 = "Interactive breakdown of frequencies, ranges, sums, and parity",
+    growth_point_2 = "Shareable deep links keep your exact filters and metric selection",
+    growth_point_3 = "Data refresh runs automatically with safe fallback handling",
+    growth_cta_primary = "Get weekly insights",
+    growth_cta_secondary = "Explore dashboard",
+    growth_trust_title = "Why users trust this tool",
+    growth_trust_1 = "Built from public historical draw data",
+    growth_trust_2 = "Clear educational context and transparent methodology",
+    growth_trust_3 = "No gambling transactions or betting services",
+    growth_sticky_cta = "Get updates",
+    lead_mail_subject = "Subscribe: Weekly Lottery Insights",
+    lead_mail_body = "Please subscribe me to weekly lottery insights updates.",
+    consent_text = "We use analytics cookies to understand product usage and improve the dashboard experience. You can accept or decline optional analytics tracking.",
+    consent_accept = "Accept analytics",
+    consent_reject = "Decline"
+  )
+)
+
+translations$de <- c(
+  translations$de,
+  list(
+    trust_badge = "LIVE",
+    seo_title = "6/49 Lotto Statistik Dashboard | Kostenlose interaktive Analyse",
+    seo_description = "Analysiere Lotto 6aus49 Ziehungen mit interaktiven Statistiken zu Häufigkeit, Gerade/Ungerade, Summen, Bereichen und Trends.",
+    seo_keywords = "lotto statistik, lotto 6 aus 49 analyse, lotto häufigkeit, lotto gerade ungerade, lotto trends",
+    seo_og_title = "6/49 Lotto Statistik Dashboard",
+    seo_og_description = "Interaktives Bildungs-Dashboard für historische Lotto-Auswertungen und Zahlenmuster.",
+    seo_schema_name = "6/49 Lotto Statistik Dashboard",
+    seo_schema_alt_name = "Lottery Insights 6/49 Analysator",
+    growth_badge = "Kostenlose wöchentliche Lotto-Insights",
+    growth_title = "Ziehungen schneller analysieren und deine beste Ansicht sofort wiederfinden",
+    growth_subtitle = "Erhalte praktische statistische Einblicke, spare Zeit mit teilbaren Ansichten und bleibe mit wöchentlichen Updates auf dem neuesten Stand.",
+    growth_point_1 = "Interaktive Auswertung von Häufigkeit, Bereichen, Summen und Parität",
+    growth_point_2 = "Teilbare Deep-Links speichern exakt deine Filter und gewählte Metrik",
+    growth_point_3 = "Automatische Datenaktualisierung mit sicherem Fallback",
+    growth_cta_primary = "Wöchentliche Insights erhalten",
+    growth_cta_secondary = "Dashboard öffnen",
+    growth_trust_title = "Warum Nutzer diesem Tool vertrauen",
+    growth_trust_1 = "Basiert auf öffentlichen historischen Ziehungsdaten",
+    growth_trust_2 = "Klare Bildungs-Einordnung und transparente Methodik",
+    growth_trust_3 = "Keine Glücksspiel-Transaktionen oder Wettangebote",
+    growth_sticky_cta = "Updates erhalten",
+    lead_mail_subject = "Anmeldung: Wöchentliche Lotto-Insights",
+    lead_mail_body = "Bitte melde mich für wöchentliche Lotto-Insights an.",
+    consent_text = "Wir verwenden optionale Analytics-Cookies, um die Nutzung zu verstehen und das Dashboard zu verbessern. Du kannst dem Tracking zustimmen oder es ablehnen.",
+    consent_accept = "Analytics erlauben",
+    consent_reject = "Ablehnen"
+  )
+)
+
 # Helper function to get translation
 t <- function(key, lang = "de") {
   translations[[lang]][[key]] %||% key

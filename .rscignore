@@ -2,6 +2,15 @@
 .git
 .DS_Store
 *.RData
+.RData
+.Rhistory
+.Renviron
+.Rprofile
+.github/
+profile.out
+.vscode/
 *.bak
-data/visitor_daily_counts.rds
-data/LOTTO_refresh_meta.rds
+# Exclude runtime-generated RDS artifacts, keep the primary clean dataset.
+data/*.rds
+!data/LOTTO_clean.rds
+rsconnect/

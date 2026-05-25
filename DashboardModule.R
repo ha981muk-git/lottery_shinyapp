@@ -475,7 +475,31 @@ lotteryInputServer <- function(id) {
         paste0("to=", format(max(selected_dates), "%Y-%m-%d"))
       )
 
-      base_url <- sub("\\?.*$", "", isolate(session$clientData$url_href))
+      url_href <- as.character(isolate(session$clientData$url_href) %||% "")
+      base_url <- sub("\\?.*$", "", url_href)
+
+      if (!nzchar(base_url) || identical(base_url, "/") || grepl("^\\?", url_href)) {
+        protocol <- as.character(isolate(session$clientData$url_protocol) %||% "")
+        hostname <- as.character(isolate(session$clientData$url_hostname) %||% "")
+        port <- as.character(isolate(session$clientData$url_port) %||% "")
+        pathname <- as.character(isolate(session$clientData$url_pathname) %||% "")
+
+        if (!nzchar(pathname)) pathname <- "/"
+
+        if (nzchar(protocol) && !grepl(":$", protocol)) {
+          protocol <- paste0(protocol, ":")
+        }
+
+        if (nzchar(protocol) && nzchar(hostname)) {
+          host_part <- if (nzchar(port)) paste0(hostname, ":", port) else hostname
+          base_url <- paste0(protocol, "//", host_part, pathname)
+        }
+      }
+
+      if (!nzchar(base_url)) {
+        base_url <- "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/"
+      }
+
       share_url <- paste0(base_url, "?", paste(query_parts, collapse = "&"))
 
       session$sendCustomMessage("copyViewLink", list(

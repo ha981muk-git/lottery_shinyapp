@@ -223,9 +223,26 @@ $(document).ready(function() {
     return copied;
   };
 
+  const toAbsoluteLink = (rawLink) => {
+    const normalized = String(rawLink || '').trim();
+    if (!normalized) return '';
+
+    try {
+      return new URL(normalized).toString();
+    } catch (err) {
+      // Continue with relative/query resolution below.
+    }
+
+    try {
+      return new URL(normalized, `${window.location.origin}${window.location.pathname}`).toString();
+    } catch (err) {
+      return normalized;
+    }
+  };
+
   if (window.Shiny && typeof window.Shiny.addCustomMessageHandler === 'function') {
     window.Shiny.addCustomMessageHandler('copyViewLink', (payload) => {
-      const link = payload && payload.url ? payload.url : '';
+      const link = toAbsoluteLink(payload && payload.url ? payload.url : '');
       const successText = (payload && payload.success) || 'Link copied.';
       const failureText = (payload && payload.failure) || 'Unable to copy link.';
       if (!link) {

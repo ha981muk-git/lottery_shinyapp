@@ -22,6 +22,7 @@ create_data_loader <- function(file_path = file.path(getwd(), "data", "LOTTO_ab_
   cache$last_modified <- NULL
   cache$rds_message_shown <- FALSE
   cache$refresh_checked <- FALSE
+  cache$startup_refresh_pending <- TRUE
   
   rds_path <- file.path(getwd(), "data", "LOTTO_clean.rds")
   refresh_meta_path <- file.path(getwd(), "data", "LOTTO_refresh_meta.rds")
@@ -37,7 +38,16 @@ create_data_loader <- function(file_path = file.path(getwd(), "data", "LOTTO_ab_
     parsed
   }
 
+  running_on_shinyapps <- identical(tolower(Sys.getenv("R_CONFIG_ACTIVE", unset = "")), "shinyapps")
+
   refresh_enabled <- as_bool(Sys.getenv("LOTTO_AUTO_REFRESH_ENABLED", unset = "true"), TRUE)
+  force_refresh_on_startup <- as_bool(
+    Sys.getenv(
+      "LOTTO_FORCE_REFRESH_ON_STARTUP",
+      unset = if (running_on_shinyapps) "true" else "false"
+    ),
+    default = running_on_shinyapps
+  )
   refresh_days <- max(1L, as_int(Sys.getenv("LOTTO_AUTO_REFRESH_DAYS", unset = "14"), 14L))
   refresh_tolerance_days <- max(0L, as_int(Sys.getenv("LOTTO_AUTO_REFRESH_TOLERANCE_DAYS", unset = "5"), 5L))
   refresh_min_days <- max(1L, refresh_days - refresh_tolerance_days)
@@ -161,10 +171,14 @@ create_data_loader <- function(file_path = file.path(getwd(), "data", "LOTTO_ab_
 
   maybe_auto_refresh <- function(force = FALSE) {
     if (!isTRUE(refresh_enabled)) return(invisible(FALSE))
-    if (!force && isTRUE(cache$refresh_checked)) return(invisible(FALSE))
+    force_now <- isTRUE(force) ||
+      (isTRUE(force_refresh_on_startup) && isTRUE(cache$startup_refresh_pending))
 
-    due <- isTRUE(force) || refresh_due()
+    if (!force_now && isTRUE(cache$refresh_checked)) return(invisible(FALSE))
+
+    due <- force_now || refresh_due()
     cache$refresh_checked <- TRUE
+    cache$startup_refresh_pending <- FALSE
 
     if (!due) return(invisible(FALSE))
 

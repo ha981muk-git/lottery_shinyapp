@@ -85,13 +85,15 @@ The app supports dynamic localization (defaulting to German `de`). Text elements
 The app can automatically refresh LOTTO 6aus49 draw data from the same backend used by the Sachsenlotto download page.
 
 How it works:
-*   On app startup / first data load, it checks whether the local file is older than the refresh window.
+*   On first data load, it checks whether the local file is older than the refresh window.
+*   On shinyapps.io, first data load is forced to refresh by default so new deployments do not wait for the normal interval.
 *   If stale, it downloads the latest ZIP archive from `https://www.westlotto.de/wlinfo/WL_InfoService`.
 *   It extracts the CSV, replaces `data/LOTTO_ab_2018.csv`, deletes stale `data/LOTTO_clean.rds`, and rebuilds clean data automatically.
 *   If download fails, the app keeps using existing local data (safe fallback).
 
 Environment variables:
 *   `LOTTO_AUTO_REFRESH_ENABLED`: Enable/disable auto-refresh (`true` by default).
+*   `LOTTO_FORCE_REFRESH_ON_STARTUP`: Force refresh on first data load (`true` by default on shinyapps.io, `false` elsewhere).
 *   `LOTTO_AUTO_REFRESH_DAYS`: Refresh interval in days (`14` by default).
 *   `LOTTO_AUTO_REFRESH_TOLERANCE_DAYS`: Allowed timing tolerance in days (`5` by default).
 *   `LOTTO_DATA_YEAR_FROM`: Start year for download query (`2018` by default).

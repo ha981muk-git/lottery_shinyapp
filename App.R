@@ -20,15 +20,15 @@ source("translations.R")
 app_theme <- bs_theme(
   version = 5,
   preset = "shiny",
-  bg = "#061423",
-  fg = "#f4f8fb",
-  primary = "#0ea5e9",
-  secondary = "#f59e0b",
-  success = "#10b981",
-  warning = "#f97316",
-  danger = "#ef4444",
-  base_font = font_google("Manrope"),
-  heading_font = font_google("Space Grotesk")
+  bg = "#fdf8f1",
+  fg = "#2f2720",
+  primary = "#c96b3b",
+  secondary = "#b1916a",
+  success = "#4e8a63",
+  warning = "#d39b45",
+  danger = "#ba5d4c",
+  base_font = font_google("Instrument Sans"),
+  heading_font = font_google("Instrument Sans")
 )
 
 # Source main files
@@ -639,7 +639,7 @@ ui <- function(request) {
                 open = "desktop",
                 position = "left",
                 max_height_mobile = NULL,
-                h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #e8eaed;"),
+                h3(t("analysis_settings", LANG), style = "margin-top: 0; color: #3a2e24;"),
                 lotteryInputUI("inputs1", lang = LANG)
               ),
               # Main content
@@ -664,20 +664,20 @@ ui <- function(request) {
               tags$li(t("notice_5", LANG)),
               tags$li(strong(t("notice_6", LANG)), t("notice_6b", LANG))
             ),
-            p(style = "margin-top: 15px; font-style: italic; color: rgba(255,255,255,0.7);",
+            p(style = "margin-top: 15px; font-style: italic; color: rgba(78, 63, 50, 0.75);",
               t("notice_purpose", LANG))
         ),
         
         # Additional Educational Section
         div(id = "educational", role = "region", `aria-label` = if(LANG == "de") "Bildungsinformationen" else "Educational Information",
-            style = "margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px;",
-            h2(t("edu_title", LANG), style = "color: #e8eaed;"),
-            p(style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
+            style = "margin-top: 40px; padding: 30px; border-radius: 18px; border: 1px solid rgba(126, 95, 66, 0.14); background: linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(251, 243, 231, 0.9)); box-shadow: 0 18px 30px rgba(82, 56, 34, 0.08);",
+            h2(t("edu_title", LANG), style = "color: #33271f;"),
+            p(style = "color: rgba(73, 59, 47, 0.86); line-height: 1.8;",
               t("edu_intro", LANG)
             ),
-            h3(t("edu_objectives", LANG), style = "color: #e8eaed; margin-top: 20px;"),
+            h3(t("edu_objectives", LANG), style = "color: #33271f; margin-top: 20px;"),
             tags$ul(
-              style = "color: rgba(255,255,255,0.7); line-height: 1.8;",
+              style = "color: rgba(73, 59, 47, 0.86); line-height: 1.8;",
               tags$li(t("edu_obj_1", LANG)),
               tags$li(t("edu_obj_2", LANG)),
               tags$li(t("edu_obj_3", LANG)),
@@ -757,7 +757,7 @@ ui <- function(request) {
                       tags$li(a(href = terms_href, target = "_blank", rel = "noopener noreferrer", t("footer_terms", LANG))),
                       tags$li(a(href = methodology_href, target = "_blank", rel = "noopener noreferrer", t("footer_edu_statement", LANG)))
                     ),
-                    p(style = "color: #e74c3c; font-size: 0.85em; margin-top: 10px;",
+                    p(style = "color: #df8b72; font-size: 0.85em; margin-top: 10px;",
                       t("footer_no_gambling", LANG))
                 ),
                 # Important Information

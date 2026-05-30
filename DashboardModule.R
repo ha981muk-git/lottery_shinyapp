@@ -155,11 +155,11 @@ lotteryInputUI <- function(id, lang = "de") {
   )
   
   tagList(
-    tags$style(HTML("\n      .preset-range-btn {\n        border-radius: 999px !important;\n        font-size: 0.78rem !important;\n        border-color: rgba(255, 255, 255, 0.35) !important;\n        color: rgba(255, 255, 255, 0.78) !important;\n        background: transparent !important;\n        transition: all 0.2s ease !important;\n      }\n      .preset-range-btn:hover {\n        border-color: rgba(255, 255, 255, 0.7) !important;\n        color: #ffffff !important;\n      }\n      .preset-range-btn.active-preset {\n        border-color: rgba(56, 189, 248, 0.95) !important;\n        background: linear-gradient(120deg, rgba(14, 165, 233, 0.98), rgba(56, 189, 248, 0.98)) !important;\n        color: #04111f !important;\n        font-weight: 700 !important;\n        box-shadow: 0 8px 20px rgba(14, 165, 233, 0.28) !important;\n      }\n      .date-range-clean .input-daterange.input-group {\n        gap: 8px;\n      }\n      .date-range-clean .input-daterange.input-group > :not(:first-child) {\n        margin-left: 0 !important;\n      }\n      .date-range-clean .input-daterange .input-group-text {\n        border: none !important;\n        background: transparent !important;\n        color: rgba(232, 234, 237, 0.78) !important;\n        font-weight: 600 !important;\n        padding: 0 2px !important;\n      }\n      .date-range-clean .input-daterange .form-control {\n        border-radius: 12px !important;\n      }\n    ")),
+    tags$style(HTML("\n      .preset-range-btn {\n        border-radius: 999px !important;\n        font-size: 0.78rem !important;\n        border-color: rgba(126, 95, 66, 0.32) !important;\n        color: rgba(72, 56, 42, 0.88) !important;\n        background: rgba(255, 255, 255, 0.55) !important;\n        transition: all 0.2s ease !important;\n      }\n      .preset-range-btn:hover {\n        border-color: rgba(201, 107, 59, 0.72) !important;\n        color: #2d2118 !important;\n        background: rgba(255, 244, 229, 0.88) !important;\n      }\n      .preset-range-btn.active-preset {\n        border-color: rgba(201, 107, 59, 0.9) !important;\n        background: linear-gradient(120deg, rgba(247, 190, 124, 0.95), rgba(234, 158, 97, 0.95)) !important;\n        color: #2a1f16 !important;\n        font-weight: 700 !important;\n        box-shadow: 0 9px 20px rgba(98, 55, 26, 0.18) !important;\n      }\n      .date-range-clean .input-daterange.input-group {\n        gap: 8px;\n      }\n      .date-range-clean .input-daterange.input-group > :not(:first-child) {\n        margin-left: 0 !important;\n      }\n      .date-range-clean .input-daterange .input-group-text {\n        border: none !important;\n        background: transparent !important;\n        color: rgba(90, 73, 58, 0.74) !important;\n        font-weight: 600 !important;\n        padding: 0 2px !important;\n      }\n      .date-range-clean .input-daterange .form-control {\n        border-radius: 12px !important;\n      }\n    ")),
     div(style = "margin-bottom: 24px;",
-        h4(style = "color: #e8eaed; margin-bottom: 8px;",
+      h4(style = "color: #372b21; margin-bottom: 8px;",
            span(class = "status-dot"), t("input_live_dashboard", lang)),
-        p(style = "color: rgba(255, 255, 255, 0.5); font-size: 0.875rem;", 
+      p(style = "color: rgba(90, 73, 58, 0.72); font-size: 0.875rem;", 
           t("input_realtime", lang))
     ),
     div(
@@ -191,7 +191,7 @@ lotteryInputUI <- function(id, lang = "de") {
     div(
       style = "margin-top: 10px; margin-bottom: 10px;",
       div(
-        style = "color: rgba(255, 255, 255, 0.65); font-size: 0.78rem; margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase;",
+        style = "color: rgba(90, 73, 58, 0.72); font-size: 0.78rem; margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase;",
         t("input_quick_ranges", lang)
       ),
       div(

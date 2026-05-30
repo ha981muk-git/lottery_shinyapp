@@ -139,12 +139,12 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                   c(0.66, "#ec4899"),
                   c(1, "#DC143C")
                 ),
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 1),
+                line = list(color = "rgba(126, 95, 66, 0.28)", width = 1),
                 showscale = TRUE,
                 colorbar = list(
                   title = t("table_label_frequency", lang),
-                  titlefont = list(color = "#e8eaed"),
-                  tickfont = list(color = "#e8eaed")
+                  titlefont = list(color = "#4f3d2d"),
+                  tickfont = list(color = "#4f3d2d")
                 )
               ),
               customdata = ~cbind(percentage, deviation),
@@ -160,17 +160,17 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("table_label_number", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
+            gridcolor = "rgba(126, 95, 66, 0.18)",
             dtick = 1,
-            color = "#e8eaed"
+            color = "#4f3d2d"
           ),
           yaxis = list(
             title = t("table_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
-            color = "#e8eaed"
+            gridcolor = "rgba(126, 95, 66, 0.18)",
+            color = "#4f3d2d"
           ),
           showlegend = TRUE,
           legend = list(
@@ -178,7 +178,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
             x = 0.5,
             xanchor = "center",
             y = -0.15,
-            font = list(color = "#e8eaed")
+            font = list(color = "#4f3d2d")
           )
         ) %>%
         config(displayModeBar = FALSE)
@@ -194,11 +194,11 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       plot_ly(hot, x = ~reorder(number, frequency), y = ~frequency, type = "bar",
               marker = list(
                 color = colorRampPalette(c("#ff6b6b", "#DC143C"))(10),
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
+                line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~frequency,
               textposition = "outside",
-              textfont = list(color = "#e8eaed", size = 12),
+              textfont = list(color = "#4f3d2d", size = 12),
               customdata = ~deviation,
               hovertemplate = paste0(
                 "<b>", t("table_label_number", lang), ": %{x}</b><br>",
@@ -208,16 +208,16 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("table_label_number", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
-            color = "#e8eaed"
+            gridcolor = "rgba(126, 95, 66, 0.18)",
+            color = "#4f3d2d"
           ),
           yaxis = list(
             title = t("table_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
-            color = "#e8eaed"
+            gridcolor = "rgba(126, 95, 66, 0.18)",
+            color = "#4f3d2d"
           )
         ) %>%
         config(displayModeBar = FALSE)
@@ -233,11 +233,11 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       plot_ly(cold, x = ~reorder(number, -frequency), y = ~frequency, type = "bar",
               marker = list(
                 color = colorRampPalette(c("#00f2fe", "#4facfe"))(10),
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
+                line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~frequency,
               textposition = "outside",
-              textfont = list(color = "#e8eaed", size = 12),
+              textfont = list(color = "#4f3d2d", size = 12),
               customdata = ~deviation,
               hovertemplate = paste0(
                 "<b>", t("table_label_number", lang), ": %{x}</b><br>",
@@ -247,16 +247,16 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("table_label_number", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
-            color = "#e8eaed"
+            gridcolor = "rgba(126, 95, 66, 0.18)",
+            color = "#4f3d2d"
           ),
           yaxis = list(
             title = t("table_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
-            color = "#e8eaed"
+            gridcolor = "rgba(126, 95, 66, 0.18)",
+            color = "#4f3d2d"
           )
         ) %>%
         config(displayModeBar = FALSE)
@@ -308,14 +308,14 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
               showscale = TRUE,
               colorbar = list(
                 title = label_frequency,
-                titlefont = list(color = "#e8eaed"),
-                tickfont = list(color = "#e8eaed")
+                titlefont = list(color = "#4f3d2d"),
+                tickfont = list(color = "#4f3d2d")
               )) %>%
         add_annotations(
           x = rep(1:n_cols, each = n_rows),
           y = rep(1:n_rows, times = n_cols),
           text = anno_text,
-          textfont = list(color = "#FFFFFF", size = 14, family = "Inter"),
+          textfont = list(color = "#FFFFFF", size = 14, family = "Instrument Sans"),
           showarrow = FALSE,
           xref = "x",
           yref = "y"
@@ -323,7 +323,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE),
           yaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE)
         ) %>%
@@ -339,7 +339,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       plot_ly(x = ~df$frequency, type = "histogram",
               marker = list(
                 color = "#8b5cf6",
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 1.5)
+                line = list(color = "rgba(126, 95, 66, 0.28)", width = 1.5)
               ),
               nbinsx = 20,
               hovertemplate = paste0(
@@ -350,16 +350,16 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("table_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
-            color = "#e8eaed"
+            gridcolor = "rgba(126, 95, 66, 0.18)",
+            color = "#4f3d2d"
           ),
           yaxis = list(
             title = paste0(t("table_label_number", lang), "s"),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
-            color = "#e8eaed"
+            gridcolor = "rgba(126, 95, 66, 0.18)",
+            color = "#4f3d2d"
           ),
           bargap = 0.1
         ) %>%
@@ -388,11 +388,11 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       plot_ly(df, x = ~position, y = ~avg_freq, type = "bar",
               marker = list(
                 color = ball_colors,
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
+                line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~round(avg_freq, 1),
               textposition = "outside",
-              textfont = list(color = "#e8eaed", size = 14),
+              textfont = list(color = "#4f3d2d", size = 14),
               hovertemplate = paste0(
                 "<b>%{x}</b><br>",
                 t("table_label_avg_frequency", lang), ": %{y:.2f}<br>",
@@ -401,16 +401,16 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("table_label_ball_position", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
-            color = "#e8eaed"
+            gridcolor = "rgba(126, 95, 66, 0.18)",
+            color = "#4f3d2d"
           ),
           yaxis = list(
             title = t("table_label_avg_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
-            color = "#e8eaed"
+            gridcolor = "rgba(126, 95, 66, 0.18)",
+            color = "#4f3d2d"
           )
         ) %>%
         config(displayModeBar = FALSE)
@@ -427,7 +427,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       plot_ly(df, x = ~number, y = ~deviation, type = "bar",
               marker = list(
                 color = ~color,
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 1)
+                line = list(color = "rgba(126, 95, 66, 0.28)", width = 1)
               ),
               customdata = ~deviation_pct,
               hovertemplate = paste0(
@@ -438,7 +438,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         add_trace(x = c(min(df$number), max(df$number)), 
                   y = c(0, 0),
                   type = "scatter", mode = "lines",
-                  line = list(color = "#e8eaed", width = 2),
+                  line = list(color = "#4f3d2d", width = 2),
                   name = t("table_label_expected", lang),
                   hovertemplate = paste0(t("table_label_expected", lang), ": 0<extra></extra>"),
                   showlegend = FALSE,
@@ -446,19 +446,19 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("table_label_number", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
+            gridcolor = "rgba(126, 95, 66, 0.18)",
             dtick = 1,
-            color = "#e8eaed"
+            color = "#4f3d2d"
           ),
           yaxis = list(
             title = t("table_chart_deviation", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
+            gridcolor = "rgba(126, 95, 66, 0.18)",
             zeroline = TRUE,
-            zerolinecolor = "rgba(255, 255, 255, 0.3)",
-            color = "#e8eaed"
+            zerolinecolor = "rgba(126, 95, 66, 0.28)",
+            color = "#4f3d2d"
           )
         ) %>%
         config(displayModeBar = FALSE)
@@ -488,7 +488,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
           scrollX = TRUE,
           initComplete = DT::JS(
             "function(settings, json) {",
-            "$(this.api().table().container()).css({'background-color': 'rgba(255,255,255,0.05)', 'color': '#e8eaed'});",
+            "$(this.api().table().container()).css({'background-color': 'rgba(255,255,255,0.05)', 'color': '#4f3d2d'});",
             "}"
           )
         ),
@@ -498,7 +498,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         DT::formatStyle(
           columns = 1:5,
           backgroundColor = 'rgba(255,255,255,0.02)',
-          color = '#e8eaed'
+          color = '#4f3d2d'
         )
     })
   })

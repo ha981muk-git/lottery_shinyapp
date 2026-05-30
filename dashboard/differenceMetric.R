@@ -172,7 +172,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
           name = t("difference_label_histogram", lang),
           marker = list(
             color = "rgba(135, 206, 250, 0.7)",  # lightblue
-            line = list(color = "rgba(255, 255, 255, 0.3)", width = 1.5)
+            line = list(color = "rgba(126, 95, 66, 0.28)", width = 1.5)
           ),
           hovertemplate = paste0(
             t("difference_label_difference", lang), ": %{x}<br>",
@@ -193,14 +193,14 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("difference_label_difference", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("difference_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           showlegend = TRUE,
           legend = list(
@@ -228,12 +228,12 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
                   c(0.66, "#ec4899"),
                   c(1, "#DC143C")
                 ),
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 1.5),
+                line = list(color = "rgba(126, 95, 66, 0.28)", width = 1.5),
                 showscale = TRUE,
                 colorbar = list(
                   title = t("difference_label_frequency", lang),
-                  titlefont = list(color = "#e8eaed"),
-                  tickfont = list(color = "#e8eaed")
+                  titlefont = list(color = "#4f3d2d"),
+                  tickfont = list(color = "#4f3d2d")
                 )
               ),
               customdata = ~cbind(percentage, category),
@@ -255,14 +255,14 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("difference_label_range", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("difference_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           showlegend = TRUE,
           legend = list(
@@ -284,11 +284,11 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
       plot_ly(hot, x = ~reorder(range, frequency), y = ~frequency, type = "bar",
               marker = list(
                 color = colorRampPalette(c("#ff6b6b", "#DC143C"))(nrow(hot)),
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
+                line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~paste0(frequency, " ", t("difference_hover_times", lang), " (", percentage, "%)"),
               textposition = "outside",
-              textfont = list(color = "#e8eaed", size = 11),
+              textfont = list(color = "#4f3d2d", size = 11),
               hovertemplate = paste0(
                 "<b>", t("difference_label_range", lang), ": %{x}</b><br>",
                 t("difference_label_frequency", lang), ": %{y}<br>",
@@ -297,14 +297,14 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("difference_label_range", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("difference_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           )
         )
     })
@@ -319,11 +319,11 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
       plot_ly(cold, x = ~reorder(range, -frequency), y = ~frequency, type = "bar",
               marker = list(
                 color = colorRampPalette(c("#00f2fe", "#4facfe"))(nrow(cold)),
-                line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
+                line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~paste0(frequency, " ", t("difference_hover_times", lang), " (", percentage, "%)"),
               textposition = "outside",
-              textfont = list(color = "#e8eaed", size = 11),
+              textfont = list(color = "#4f3d2d", size = 11),
               hovertemplate = paste0(
                 "<b>", t("difference_label_range", lang), ": %{x}</b><br>",
                 t("difference_label_frequency", lang), ": %{y}<br>",
@@ -332,14 +332,14 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("difference_label_range", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("difference_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           )
         )
     })
@@ -365,7 +365,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
               ),
               text = ~paste0(percentage, "%"),
               textinfo = "label+text",
-              textfont = list(size = 14, color = "#FFFFFF", family = "Inter"),
+              textfont = list(size = 14, color = "#FFFFFF", family = "Instrument Sans"),
               hovertemplate = paste0(
                 "<b>%{label}</b><br>",
                 t("difference_label_frequency", lang), ": %{value}<br>",
@@ -374,7 +374,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           showlegend = TRUE,
           legend = list(
             orientation = "v",
@@ -421,14 +421,14 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = "Draw Number",
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("difference_label_range", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           hovermode = "x unified",
           legend = list(
@@ -457,10 +457,10 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           yaxis = list(
             title = t("difference_label_range", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           xaxis = list(
             title = "",
@@ -509,14 +509,14 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
               showscale = TRUE,
               colorbar = list(
                 title = label_frequency,
-                titlefont = list(color = "#e8eaed"),
-                tickfont = list(color = "#e8eaed")
+                titlefont = list(color = "#4f3d2d"),
+                tickfont = list(color = "#4f3d2d")
               )) %>%
         add_annotations(
           x = rep(1:n_cols, each = n_rows),
           y = rep(1:n_rows, times = n_cols),
           text = anno_text,
-          textfont = list(color = "#FFFFFF", size = 12, family = "Inter"),
+          textfont = list(color = "#FFFFFF", size = 12, family = "Instrument Sans"),
           showarrow = FALSE,
           xref = "x",
           yref = "y"
@@ -524,7 +524,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE),
           yaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE)
         ) %>%
@@ -555,13 +555,13 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
               style = "list-style: none; padding: 0;",
               lapply(1:nrow(top_ranges), function(i) {
                 tags$li(
-                  style = "padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);",
+                  style = "padding: 8px 0; border-bottom: 1px solid rgba(126, 95, 66, 0.18);",
                   tags$span(
                     style = "font-size: 20px; font-weight: bold; color: #8b5cf6;",
                     top_ranges$range[i]
                   ),
                   tags$span(
-                    style = "margin-left: 15px; color: rgba(255,255,255,0.7);",
+                    style = "margin-left: 15px; color: rgba(95, 76, 58, 0.90);",
                     paste0("(", top_ranges$frequency[i], " ", t("difference_hover_times", lang), ", ", top_ranges$percentage[i], "%)")
                   )
                 )
@@ -579,11 +579,11 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
               paste0(optimal_start, " - ", optimal_end)
             ),
             p(
-              style = "margin-top: 10px; color: rgba(255,255,255,0.6);",
+              style = "margin-top: 10px; color: rgba(95, 76, 58, 0.88);",
               t("difference_guide_optimal", lang)
             ),
             p(
-              style = "color: rgba(255,255,255,0.8);",
+              style = "color: rgba(95, 76, 58, 0.92);",
               t("difference_guide_coverage", lang)
             )
           ),
@@ -598,22 +598,22 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
               tags$div(
                 style = "margin: 8px 0;",
                 tags$span(style = "color: #4169E1; font-weight: bold;", paste0(t("difference_label_small", lang), ": ")),
-                tags$span(style = "color: rgba(255,255,255,0.7);", t("difference_label_compact", lang))
+                tags$span(style = "color: rgba(95, 76, 58, 0.90);", t("difference_label_compact", lang))
               ),
               tags$div(
                 style = "margin: 8px 0;",
                 tags$span(style = "color: #8b5cf6; font-weight: bold;", paste0(t("difference_label_medium", lang), ": ")),
-                tags$span(style = "color: rgba(255,255,255,0.7);", t("difference_label_balanced", lang))
+                tags$span(style = "color: rgba(95, 76, 58, 0.90);", t("difference_label_balanced", lang))
               ),
               tags$div(
                 style = "margin: 8px 0;",
                 tags$span(style = "color: #ec4899; font-weight: bold;", paste0(t("difference_label_large", lang), ": ")),
-                tags$span(style = "color: rgba(255,255,255,0.7);", t("difference_label_wide", lang))
+                tags$span(style = "color: rgba(95, 76, 58, 0.90);", t("difference_label_wide", lang))
               ),
               tags$div(
                 style = "margin: 8px 0;",
                 tags$span(style = "color: #DC143C; font-weight: bold;", paste0(t("difference_label_very_large", lang), ": ")),
-                tags$span(style = "color: rgba(255,255,255,0.7);", t("difference_label_maximum", lang))
+                tags$span(style = "color: rgba(95, 76, 58, 0.90);", t("difference_label_maximum", lang))
               )
             )
           )
@@ -644,7 +644,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
           scrollX = TRUE,
           initComplete = DT::JS(
             "function(settings, json) {",
-            "$(this.api().table().container()).css({'background-color': 'rgba(255,255,255,0.05)', 'color': '#e8eaed'});",
+            "$(this.api().table().container()).css({'background-color': 'rgba(255,255,255,0.05)', 'color': '#4f3d2d'});",
             "}"
           )
         ),
@@ -654,7 +654,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
         DT::formatStyle(
           columns = 1:5,
           backgroundColor = 'rgba(255,255,255,0.02)',
-          color = '#e8eaed'
+          color = '#4f3d2d'
         ) %>%
         DT::formatStyle(
           'Frequency',

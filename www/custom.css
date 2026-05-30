@@ -1315,6 +1315,16 @@ h6,
   color: var(--ui-text-500) !important;
 }
 
+.pill-value {
+  color: var(--ui-text-900) !important;
+  font-family: var(--font-ui) !important;
+  font-weight: 700 !important;
+}
+
+.experience-pill:nth-child(2) .pill-value {
+  font-family: var(--font-ui) !important;
+}
+
 .header-title,
 .metric-value,
 .value-box-value {

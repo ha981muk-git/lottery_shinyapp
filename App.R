@@ -492,15 +492,8 @@ ui <- function(request) {
 
   lead_capture_href <- if (nzchar(newsletter_url)) {
     newsletter_url
-  } else if (nzchar(newsletter_email)) {
-    paste0(
-      "mailto:",
-      newsletter_email,
-      "?subject=", URLencode(t("lead_mail_subject", LANG), reserved = TRUE),
-      "&body=", URLencode(t("lead_mail_body", LANG), reserved = TRUE)
-    )
   } else {
-    feedback_href
+    "#analyzer"
   }
   lead_capture_target <- if (grepl("^https?://", lead_capture_href)) "_blank" else NULL
   lead_capture_rel <- if (identical(lead_capture_target, "_blank")) "noopener noreferrer" else NULL

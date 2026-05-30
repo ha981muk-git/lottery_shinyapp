@@ -151,9 +151,9 @@ ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count 
           title = t("balls_boxplot_title", lang),
           paper_bgcolor = 'rgba(0,0,0,0)',
           plot_bgcolor = 'rgba(0,0,0,0)',
-          xaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
-          yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
-          font = list(color = 'rgba(255,255,255,0.6)'),
+          xaxis = list(title = t("ball_label", lang), color = 'rgba(95, 76, 58, 0.88)'),
+          yaxis = list(title = t("value_label", lang), color = 'rgba(95, 76, 58, 0.88)'),
+          font = list(color = 'rgba(95, 76, 58, 0.88)'),
           showlegend = TRUE
         ) %>%
         config(displayModeBar = FALSE)
@@ -189,11 +189,11 @@ ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count 
       p %>%
         layout(
           title = t("balls_violin_title", lang),
-          yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
-          xaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
+          yaxis = list(title = t("value_label", lang), color = 'rgba(95, 76, 58, 0.88)'),
+          xaxis = list(title = t("ball_label", lang), color = 'rgba(95, 76, 58, 0.88)'),
           paper_bgcolor = 'rgba(0,0,0,0)',
           plot_bgcolor = 'rgba(0,0,0,0)',
-          font = list(color = 'rgba(255,255,255,0.6)'),
+          font = list(color = 'rgba(95, 76, 58, 0.88)'),
           showlegend = TRUE
         ) %>%
         config(displayModeBar = FALSE)
@@ -233,11 +233,11 @@ ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count 
       p %>%
         layout(
           title = t("balls_chart_density_title", lang),
-          xaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
-          yaxis = list(title = t("ball_label", lang), color = 'rgba(255,255,255,0.6)'),
+          xaxis = list(title = t("value_label", lang), color = 'rgba(95, 76, 58, 0.88)'),
+          yaxis = list(title = t("ball_label", lang), color = 'rgba(95, 76, 58, 0.88)'),
           paper_bgcolor = 'rgba(0,0,0,0)',
           plot_bgcolor = 'rgba(0,0,0,0)',
-          font = list(color = 'rgba(255,255,255,0.6)'),
+          font = list(color = 'rgba(95, 76, 58, 0.88)'),
           barmode = "overlay",
           legend = list(orientation = 'h', y = -0.2)
         ) %>%
@@ -304,10 +304,10 @@ ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count 
       p %>%
         layout(
           title = t("balls_raincloud_title", lang),
-          yaxis = list(title = t("value_label", lang), color = 'rgba(255,255,255,0.6)'),
+          yaxis = list(title = t("value_label", lang), color = 'rgba(95, 76, 58, 0.88)'),
           xaxis = list(
             title = t("ball_label", lang), 
-            color = 'rgba(255,255,255,0.6)',
+            color = 'rgba(95, 76, 58, 0.88)',
             tickmode = 'array',
             tickvals = 1:6,
             ticktext = ball_labels,
@@ -315,7 +315,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count 
           ),
           paper_bgcolor = 'rgba(0,0,0,0)',
           plot_bgcolor = 'rgba(0,0,0,0)',
-          font = list(color = 'rgba(255,255,255,0.6)'),
+          font = list(color = 'rgba(95, 76, 58, 0.88)'),
           showlegend = FALSE
         ) %>%
         config(displayModeBar = FALSE)
@@ -343,8 +343,8 @@ ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count 
       p <- plot_ly(plot_data, x = ~ball_num, y = ~value, split = ~draw_id,
                    type = 'scatter',
                    mode = 'lines+markers',
-                   line = list(color = 'rgba(255,255,255,0.3)', width = 1),
-                   marker = list(size = 4, color = 'rgba(255,255,255,0.4)'),
+                   line = list(color = 'rgba(115, 86, 59, 0.62)', width = 1.5),
+                   marker = list(size = 4, color = 'rgba(115, 86, 59, 0.78)'),
                    hoverinfo = 'y+x',
                    showlegend = FALSE,
                    name = ~paste("Row", draw_id)) %>%
@@ -355,7 +355,7 @@ ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count 
           title = t("balls_line_chart", lang),
           xaxis = list(
             title = t("ball_label", lang),
-            color = 'rgba(255,255,255,0.6)',
+            color = 'rgba(95, 76, 58, 0.88)',
             tickmode = 'array',
             tickvals = x_positions,
             ticktext = ball_labels,
@@ -363,11 +363,11 @@ ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count 
           ),
           yaxis = list(
             title = t("value_label", lang),
-            color = 'rgba(255,255,255,0.6)'
+            color = 'rgba(95, 76, 58, 0.88)'
           ),
           paper_bgcolor = 'rgba(0,0,0,0)',
           plot_bgcolor = 'rgba(0,0,0,0)',
-          font = list(color = 'rgba(255,255,255,0.6)'),
+          font = list(color = 'rgba(95, 76, 58, 0.88)'),
           hovermode = 'closest'
         ) %>%
         config(displayModeBar = FALSE)

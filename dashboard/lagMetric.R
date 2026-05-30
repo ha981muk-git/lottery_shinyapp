@@ -232,7 +232,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       
       plot_ly() %>%
         add_bars(x = hist_data$mids, y = hist_data$counts,
-                 marker = list(color = "#8b5cf6", line = list(color = "rgba(255, 255, 255, 0.3)", width = 1.5)),
+                 marker = list(color = "#8b5cf6", line = list(color = "rgba(126, 95, 66, 0.28)", width = 1.5)),
                  name = t("lag_chart_actual", lang),
                  hovertemplate = paste0(t("lag_label_lag", lang), ": %{x}<br>", t("lag_label_frequency", lang), ": %{y}<extra></extra>")) %>%
         add_lines(x = x_seq, y = y_norm_scaled,
@@ -247,9 +247,9 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                   hovertemplate = paste0(t("lag_chart_mean", lang), ": ", round(stats$mean, 2), "<extra></extra>"),
                   inherit = FALSE) %>%
         layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
-               font = list(color = "#e8eaed", family = "Inter"),
-               xaxis = list(title = t("lag_label_lag", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
-               yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
+               font = list(color = "#4f3d2d", family = "Instrument Sans"),
+               xaxis = list(title = t("lag_label_lag", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
+               yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
                showlegend = TRUE, legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.15),
                bargap = 0.05)
     })
@@ -268,14 +268,14 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       
       plot_ly(positive, x = ~reorder(lag, frequency), y = ~frequency, type = "bar",
               marker = list(color = colorRampPalette(c("#32CD32", "#10b981"))(nrow(positive)),
-                            line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)),
+                            line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)),
               text = ~paste0(frequency, " (", percentage, "%)"),
-              textposition = "outside", textfont = list(color = "#e8eaed", size = 11),
+              textposition = "outside", textfont = list(color = "#4f3d2d", size = 11),
               hovertemplate = paste0("<b>", t("lag_hover_jump", lang), ": +%{x}</b><br>", t("lag_label_frequency", lang), ": %{y}<br>", t("lag_label_percentage", lang), ": %{text}<extra></extra>")) %>%
         layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
-               font = list(color = "#e8eaed", family = "Inter"),
-               xaxis = list(title = t("lag_label_jump_size", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
-               yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(255, 255, 255, 0.1)"))
+               font = list(color = "#4f3d2d", family = "Instrument Sans"),
+               xaxis = list(title = t("lag_label_jump_size", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
+               yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(126, 95, 66, 0.18)"))
     })
     
     # Negative Jumps
@@ -292,14 +292,14 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       
       plot_ly(negative, x = ~reorder(lag, -frequency), y = ~frequency, type = "bar",
               marker = list(color = colorRampPalette(c("#ef4444", "#DC143C"))(nrow(negative)),
-                            line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)),
+                            line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)),
               text = ~paste0(frequency, " (", percentage, "%)"),
-              textposition = "outside", textfont = list(color = "#e8eaed", size = 11),
+              textposition = "outside", textfont = list(color = "#4f3d2d", size = 11),
               hovertemplate = paste0("<b>", t("lag_hover_jump", lang), ": %{x}</b><br>", t("lag_label_frequency", lang), ": %{y}<br>", t("lag_label_percentage", lang), ": %{text}<extra></extra>")) %>%
         layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
-               font = list(color = "#e8eaed", family = "Inter"),
-               xaxis = list(title = t("lag_label_jump_size", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
-               yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(255, 255, 255, 0.1)"))
+               font = list(color = "#4f3d2d", family = "Instrument Sans"),
+               xaxis = list(title = t("lag_label_jump_size", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
+               yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(126, 95, 66, 0.18)"))
     })
     
     # Jump Categories
@@ -324,9 +324,9 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
           p
         } %>%
         layout(barmode = "stack", paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
-               font = list(color = "#e8eaed", family = "Inter"),
-               xaxis = list(title = t("lag_label_jump_category", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
-               yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
+               font = list(color = "#4f3d2d", family = "Instrument Sans"),
+               xaxis = list(title = t("lag_label_jump_category", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
+               yaxis = list(title = t("lag_label_frequency", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
                showlegend = TRUE, legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.15))
     })
     
@@ -371,14 +371,14 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
               showscale = TRUE,
               colorbar = list(
                 title = label_frequency,
-                titlefont = list(color = "#e8eaed"),
-                tickfont = list(color = "#e8eaed")
+                titlefont = list(color = "#4f3d2d"),
+                tickfont = list(color = "#4f3d2d")
               )) %>%
         add_annotations(
           x = rep(1:n_cols, each = n_rows),
           y = rep(1:n_rows, times = n_cols),
           text = anno_text,
-          textfont = list(color = "#FFFFFF", size = 10, family = "Inter"),
+          textfont = list(color = "#FFFFFF", size = 10, family = "Instrument Sans"),
           showarrow = FALSE,
           xref = "x",
           yref = "y"
@@ -386,7 +386,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE),
           yaxis = list(showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE)
         ) %>%
@@ -411,9 +411,9 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                   name = t("lag_chart_perfect_normal", lang),
                   inherit = FALSE,
                   hovertemplate = paste0(t("lag_chart_perfect_normal", lang), "<extra></extra>")) %>%
-        layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#e8eaed", family = "Inter"),
-               xaxis = list(title = t("lag_label_theoretical", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
-               yaxis = list(title = t("lag_label_sample", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
+        layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#4f3d2d", family = "Instrument Sans"),
+               xaxis = list(title = t("lag_label_theoretical", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
+               yaxis = list(title = t("lag_label_sample", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
                showlegend = TRUE, legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.15))
     })
     
@@ -432,12 +432,12 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       zone_colors <- c("Hot Zone" = "#DC143C", "Warm Zone" = "#ff6b6b", "Cool Zone" = "#4facfe", "Cold Zone" = "#4169E1")
       
       plot_ly(df, x = ~lag, y = ~percentage, type = "bar",
-              marker = list(color = ~zone, colors = zone_colors, line = list(color = "rgba(255, 255, 255, 0.3)", width = 1)),
+              marker = list(color = ~zone, colors = zone_colors, line = list(color = "rgba(126, 95, 66, 0.28)", width = 1)),
               text = ~zone,
               hovertemplate = paste0("<b>", t("lag_label_lag", lang), ": %{x}</b><br>", t("lag_label_percentage", lang), ": %{y}%<br>Zone: %{text}<extra></extra>")) %>%
-        layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#e8eaed", family = "Inter"),
-               xaxis = list(title = t("lag_label_lag_value", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
-               yaxis = list(title = t("lag_label_percentage", lang), gridcolor = "rgba(255, 255, 255, 0.1)"),
+        layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#4f3d2d", family = "Instrument Sans"),
+               xaxis = list(title = t("lag_label_lag_value", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
+               yaxis = list(title = t("lag_label_percentage", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
                showlegend = TRUE, legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.15))
     })
     
@@ -462,9 +462,9 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                 style = "list-style: none; padding: 0;",
                 lapply(1:nrow(hot_lags), function(i) {
                   tags$li(
-                    style = "padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);",
+                    style = "padding: 8px 0; border-bottom: 1px solid rgba(126, 95, 66, 0.18);",
                     tags$span(style = "font-size: 18px; font-weight: bold; color: #8b5cf6;", hot_lags$lag[i]),
-                    tags$span(style = "margin-left: 15px; color: rgba(255,255,255,0.7);", paste0("(", hot_lags$percentage[i], "%)"))
+                    tags$span(style = "margin-left: 15px; color: rgba(95, 76, 58, 0.90);", paste0("(", hot_lags$percentage[i], "%)"))
                   )
                 })
               )
@@ -483,7 +483,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
           ),
           div(class = "value-box-custom", style = "text-align: left;",
               h4(style = "color: #FFD700; margin-bottom: 15px;", paste0("💡 ", t("lag_summary_recommendations", lang))),
-              div(style = "line-height: 1.8; color: rgba(255,255,255,0.8);",
+              div(style = "line-height: 1.8; color: rgba(95, 76, 58, 0.92);",
                   div(paste0("✓ ", t("lag_summary_rec_hot", lang))),
                   div(paste0("✓ ", t("lag_summary_rec_within", lang), " ±", round(stats$sd, 1), " ", t("lag_summary_rec_of_mean", lang))),
                   div(paste0("✓ ", t("lag_summary_rec_avoid", lang))),
@@ -520,7 +520,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
           scrollX = TRUE,
           initComplete = DT::JS(
             "function(settings, json) {",
-            "$(this.api().table().container()).css({'background-color': 'rgba(255,255,255,0.05)', 'color': '#e8eaed'});",
+            "$(this.api().table().container()).css({'background-color': 'rgba(255,255,255,0.05)', 'color': '#4f3d2d'});",
             "}"
           )
         ),
@@ -530,7 +530,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         DT::formatStyle(
           columns = 1:6,
           backgroundColor = 'rgba(255,255,255,0.02)',
-          color = '#e8eaed'
+          color = '#4f3d2d'
         ) %>%
         DT::formatStyle(
           'Frequency',

@@ -1,19 +1,8 @@
-# Source main files
-script_folder <- "."
-data_path <- file.path(script_folder,'data',"LOTTO_ab_2018.csv")
-
 library(vroom)
 library(janitor)
 library(dplyr)
 library(readr)
-library(purrr)
 
-# ==== Loading data
-# data <- read_delim(
-#   "~/drive/workspace/global/code/R/lottery_bayesian/LOTTO_ab_2018.csv",
-#   delim = ";",
-#   trim_ws = TRUE
-# )
 # ==== Data Loader with Caching and Robust Column Handling
 create_data_loader <- function(file_path = file.path(getwd(), "data", "LOTTO_ab_2018.csv")) {
   
@@ -295,7 +284,7 @@ create_data_loader <- function(file_path = file.path(getwd(), "data", "LOTTO_ab_
 }
 
 # Initialize Loader
-data_loader <- create_data_loader(data_path)
+data_loader <- create_data_loader()
 
 # Wrapper for compatibility
 generate_metrics <- function() {

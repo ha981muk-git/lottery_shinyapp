@@ -2,7 +2,7 @@
 
 ## Code Style
 - Keep code modular with the existing Shiny module pattern: `nameUI(id)` and `nameServer(id, ...)`.
-- Reuse shared UI helpers from `DashboardModule.R` (for example `create_chart_card`, `create_table_card`, `render_title`) instead of duplicating card/header logic.
+- Reuse shared UI helpers from `DashboardModule.R` (for example `create_chart_card`, `render_title`) instead of duplicating card/header logic.
 - Keep translation usage consistent: all user-facing strings should go through `t(key, lang)` and new keys must be added to both `en` and `de` in `translations.R`.
 - Prefer explicit namespaces for HTTP calls (`httr::GET`, `httr::timeout`, etc.) instead of attaching `httr` with `library(httr)` to avoid masking conflicts.
 - Preserve the existing reactive performance style: debounce/throttle expensive inputs and gate heavy outputs with `req()`.
@@ -26,8 +26,8 @@
 ## Conventions
 - Keep the primary date input id as `inputs1-dateRange` (not `inputs1-timeRange`).
 - For output suspension behavior, prefer calling `outputOptions(...)` inside `session$onFlushed(..., once = TRUE)` and guard with `try(..., silent = TRUE)`.
-- Do not commit or rely on ephemeral runtime artifacts (`data/visitor_daily_counts.rds`, `data/LOTTO_refresh_meta.rds`, `.RData`, `.Rhistory`, `.Rproj.user/`).
-- Respect environment-driven behavior for deployment (`R_CONFIG_ACTIVE`, `VISITOR_COUNTER_*`, `LOTTO_AUTO_REFRESH_*`, `APP_SUPPORT_EMAIL`, `APP_FEEDBACK_FORM_URL`) and do not hardcode secrets.
+- Do not commit or rely on ephemeral runtime artifacts (`data/LOTTO_refresh_meta.rds`, `.RData`, `.Rhistory`, `.Rproj.user/`).
+- Respect environment-driven behavior for deployment (`R_CONFIG_ACTIVE`, `LOTTO_AUTO_REFRESH_*`, `APP_SUPPORT_EMAIL`, `APP_FEEDBACK_FORM_URL`, `APP_NEWSLETTER_URL`, `APP_GA4_MEASUREMENT_ID`) and do not hardcode secrets.
 
 ## Documentation
-- Use `README.md` as the source of truth for detailed setup, feature descriptions, deployment notes, localization, visitor counter behavior, and refresh strategy.
+- Use `README.md` as the source of truth for detailed setup, feature descriptions, deployment notes, localization, analytics/consent behavior, and refresh strategy.

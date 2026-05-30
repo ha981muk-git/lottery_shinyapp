@@ -38,50 +38,6 @@ create_chart_card <- function(ns, title_id, desc_id = NULL, plot_id, height = "4
   )
 }
 
-# Helper for consistent table cards with fullscreen support
-create_table_card <- function(ns, title_id, desc_id = NULL, table_id, style = "") {
-  card_dom_id <- ns(paste0("card_", table_id))
-  
-  div(
-    id = card_dom_id,
-    class = "content-card",
-    style = paste("position: relative; transition: all 0.3s ease;", style),
-    
-    div(
-      class = "d-flex justify-content-between align-items-start",
-      div(style = "flex-grow: 1;", uiOutput(ns(title_id))),
-      tags$button(
-        class = "btn btn-sm btn-ghost-light",
-        style = "color: rgba(255,255,255,0.5); min-width: 30px; margin-left: 10px; background: transparent; border: none; font-size: 1.2rem; line-height: 1;",
-        title = "Toggle Fullscreen",
-        onclick = sprintf("
-          var card = document.getElementById('%s');
-          card.classList.toggle('fullscreen-mode');
-          var isFull = card.classList.contains('fullscreen-mode');
-          this.innerText = isFull ? '✕' : '⤢';
-        ", card_dom_id),
-        "⤢"
-      )
-    ),
-    
-    if (!is.null(desc_id)) p(class = "info-text", uiOutput(ns(desc_id))),
-    
-    div(
-      class = "table-wrapper",
-      style = "width: 100%; overflow-x: auto; min-height: 200px;",
-      DT::dataTableOutput(ns(table_id))
-    )
-  )
-}
-
-# Helper for consistent stat cards
-create_stat_card <- function(icon, value, label) {
-  div(class = "value-box-custom",
-      div(class = "value-box-icon", icon),
-      div(class = "value-box-value", value),
-      div(class = "value-box-label", label))
-}
-
 # --- Helpers for Reducing Boilerplate & Speed ---
 
 render_title <- function(key, get_lang_fn, icon = NULL) {
@@ -630,7 +586,7 @@ dashboardUI <- function(id) {
   )
 }
 
-# Server Module - FULLY OPTIMIZED FOR FREE TIER (No cachem Ram overhead)
+# Server Module - optimized for lower-tier deployments
 dashboardServer <- function(id, input_controls) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns

@@ -119,55 +119,8 @@ $(document).ready(function() {
     trackEvent('session_start', { source: 'stored_consent' });
   }
 
-  // Persistent anonymous visitor token for real daily unique-visitor counting.
-  const makeVisitorToken = () => {
-    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-      return `v_${window.crypto.randomUUID().replace(/-/g, '')}`;
-    }
-    return `v_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
-  };
-
-  let visitorToken = null;
-  try {
-    visitorToken = window.localStorage.getItem('li_visitor_token');
-    if (!visitorToken) {
-      visitorToken = makeVisitorToken();
-      window.localStorage.setItem('li_visitor_token', visitorToken);
-    }
-  } catch (err) {
-    visitorToken = makeVisitorToken();
-  }
-
-  const visitorPayload = () => ({ id: visitorToken, nonce: Date.now() });
-
-  const publishVisitorToken = () => {
-    if (!visitorToken) return false;
-    if (window.Shiny && typeof window.Shiny.setInputValue === 'function') {
-      window.Shiny.setInputValue('visitor_token', visitorPayload(), { priority: 'event' });
-      return true;
-    }
-    return false;
-  };
-
-  let publishAttempts = 0;
-  const ensureVisitorTokenPublished = () => {
-    if (publishVisitorToken()) return;
-    publishAttempts += 1;
-    if (publishAttempts <= 20) {
-      setTimeout(ensureVisitorTokenPublished, 250);
-    }
-  };
-
-  ensureVisitorTokenPublished();
-  document.addEventListener('shiny:connected', () => {
-    publishVisitorToken();
-    setTimeout(publishVisitorToken, 300);
-    setTimeout(publishVisitorToken, 1200);
-  }, { once: true });
-
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-      publishVisitorToken();
       trackEvent('visibility_return');
     }
   });

@@ -1,173 +1,195 @@
-# Lottery Analytics Dashboard 🎰
+# Lottery Insights Dashboard
 
-A high-performance, interactive R Shiny application designed for advanced statistical analysis of lottery draw history. This dashboard provides deep insights into number patterns, frequencies, and statistical anomalies using modern visualization techniques.
+A modular R Shiny application for educational analysis of LOTTO 6aus49 historical draw data.
+It focuses on fast filtering, interactive metric views, bilingual UX, and production-friendly refresh and telemetry behavior.
 
-## 🚀 Features
+## Highlights
 
-### 📊 Advanced Analytics Modules
-*   **Ball Frequency & Trends:** Analyze individual ball occurrences, coverage, and probability using Violin plots, Raincloud plots, and Box plots.
-*   **Difference (Range) Analysis:** Statistical breakdown of the spread between the first and last drawn numbers (Ball 6 - Ball 1), including heatmaps and density distributions.
-*   **Lag Analysis:** Study the "jump" or difference between consecutive draws to identify sequential patterns.
-*   **Sums & Parity:** Analysis of sum totals and Odd/Even distributions.
+- Six analysis modules: balls, sums, odd/even, table, difference, and lag.
+- Bright, responsive interface with a sidebar-driven workflow, skeleton loading, and fullscreen chart/table cards.
+- Fast interactions through debounced filters and lazy metric server initialization.
+- Shareable deep links that preserve language, metric, date range, and number range.
+- Bilingual content (`de` and `en`) via the shared translation helper `t(key, lang)`.
+- Automatic data refresh from WestLotto with safe fallback to local data.
+- Consent-aware frontend analytics events (GA4).
 
-### ⚡ Performance & Architecture
-*   **Global Caching:** Implements `cachem` for server-side memory caching, ensuring instant response times for shared filters across concurrent users.
-*   **Optimized Rendering:** Uses WebGL for heavy scatter plots and debounced inputs to minimize server load.
-*   **Modular Design:** Built using Shiny Modules for scalability and maintainability.
-*   **Lazy Loading:** Metrics are initialized on-demand to speed up the initial application load.
-
-### 🎨 UI/UX Experience
-*   **Dark Mode Theme:** A sleek, modern dark interface designed for long analysis sessions.
-*   **Interactive Charts:** Fully interactive Plotly graphs with zoom, pan, and hover details.
-*   **Fullscreen Mode:** Toggle any chart or table to fullscreen for detailed inspection.
-*   **Responsive Layout:** Adapts to different screen sizes using `bslib` and custom CSS.
-*   **Skeleton Loaders:** Visual feedback during data processing.
-*   **Visitor Trust Metrics:** Shows both total anonymous visitors (all-time) and anonymous visitors today.
-
-## 🛠️ Installation
-
-### Prerequisites
-Ensure you have R installed (version 4.0+ recommended).
-
-### Required Packages
-Run the following R command to install necessary dependencies:
-
-```r
-install.packages(c(
-  "shiny",
-  "plotly",
-  "dplyr",
-  "tidyr",
-  "DT",
-  "shinyjs",
-  "bslib",
-  "cachem",
-  "zoo",
-  "stringr",
-  "httr",
-  "digest"
-))
-```
-
-## 📂 Project Structure
+## Project Layout
 
 ```text
 lottery_shinyapp_v2/
-├── DashboardModule.R     # Core UI/Server logic, Helpers & Global Cache
+├── App.R                         # Entry point, theme, top-level UI, env-driven links
+├── PrepareData.R                 # Data loader, refresh scheduler, CSV/RDS pipeline
+├── DashboardModule.R             # Input controls, share-link flow, dashboard orchestration
+├── translations.R                # Text dictionary for de/en and translation helper
 ├── dashboard/
-│   ├── ballsMetric.R     # Ball frequency analysis module
-│   ├── differenceMetric.R# Range/Difference analysis module
-│   ├── lagMetric.R       # Lag/Jump analysis module
-│   ├── sumsMetric.R      # Sums analysis module
-│   ├── oddsEvensMetric.R # Parity analysis module
-│   └── tableMetric.R     # Raw data table module
-└── README.md             # Project documentation
+│   ├── ballsMetric.R             # Ball frequency and trend analysis
+│   ├── sumsMetric.R              # Sum distribution analysis
+│   ├── oddsEvensMetric.R         # Odd/even analysis
+│   ├── tableMetric.R             # Detailed table view
+│   ├── differenceMetric.R        # Ball_6 - Ball_1 spread analysis
+│   └── lagMetric.R               # Sequential lag/jump analysis
+├── www/
+│   ├── custom.css                # Primary style overrides
+│   ├── custom.js                 # Consent, analytics events, client UX helpers
+│   ├── Home.css                  # Base page styling
+│   ├── privacy.html              # Static legal page
+│   ├── terms.html                # Static legal page
+│   ├── disclaimer.html           # Static legal page
+│   └── methodology.html          # Static educational methodology page
+└── tests/testthat/test_performance.R
 ```
 
-## 🖥️ Usage
+## Local Setup
 
-1.  **Clone the repository** or download the source code.
-2.  **Open the project in RStudio.**
-3.  **Run the App:**
-    ```r
-    shiny::runApp()
-    ```
+### 1) Prerequisites
 
-## ⚙️ Technical Details
+- R 4.0+ (R 4.3+ recommended)
+- Internet access for optional package restore and optional remote data refresh
 
-### Caching Strategy
-The application uses a global memory cache (`global_filter_cache`) defined in `DashboardModule.R`. This allows filtered datasets (e.g., "Last 30 Weeks") to be shared across all active user sessions, significantly reducing RAM usage and CPU load on the server.
+### 2) Restore dependencies
+
+Preferred (repo-managed):
+
+```bash
+Rscript -e "renv::restore(prompt = FALSE)"
+```
+
+If you are not using `renv`, install required packages manually:
+
+```r
+install.packages(c(
+  "shiny", "bslib", "shinyjs", "plotly", "DT", "dplyr", "tidyr",
+  "purrr", "readr", "vroom", "janitor", "waiter", "httr"
+))
+```
+
+### 3) Run the app
+
+```bash
+Rscript -e "shiny::runApp('.', host = '127.0.0.1', port = 4242, launch.browser = FALSE)"
+```
+
+Or from an interactive R session:
+
+```r
+shiny::runApp('.')
+```
+
+## How the App Works
+
+### Data loading and refresh
+
+`PrepareData.R` builds a loader that:
+
+- Reads and cleans `data/LOTTO_ab_2018.csv`.
+- Reuses `data/LOTTO_clean.rds` when possible.
+- Checks refresh timing via `data/LOTTO_refresh_meta.rds`.
+- Downloads fresh data from `https://www.westlotto.de/wlinfo/WL_InfoService` when due.
+- Falls back safely to existing local data if remote refresh fails.
+
+### Dashboard interaction model
+
+`DashboardModule.R` handles:
+
+- Debounced slider and date inputs.
+- Quick date presets (3m, 6m, 1y, all).
+- Inclusive date filtering (`datum >= from & datum <= to`).
+- Share-link generation from current view state.
+- Lazy metric initialization to speed first paint.
 
 ### Localization
-The app supports dynamic localization (defaulting to German `de`). Text elements are rendered using a helper function `t(key, lang)` which looks up strings based on the user's selected language or URL parameters.
 
-### Automatic Lottery Data Refresh
-The app can automatically refresh LOTTO 6aus49 draw data from the same backend used by the Sachsenlotto download page.
+- Language is driven by URL parameter (`?lang=de` or `?lang=en`).
+- All user-facing text should come from `t(key, lang)`.
+- Add new keys to both `en` and `de` dictionaries in `translations.R`.
 
-How it works:
-*   On first data load, it checks whether the local file is older than the refresh window.
-*   On shinyapps.io, first data load is forced to refresh by default so new deployments do not wait for the normal interval.
-*   If stale, it downloads the latest ZIP archive from `https://www.westlotto.de/wlinfo/WL_InfoService`.
-*   It extracts the CSV, replaces `data/LOTTO_ab_2018.csv`, deletes stale `data/LOTTO_clean.rds`, and rebuilds clean data automatically.
-*   If download fails, the app keeps using existing local data (safe fallback).
+## Environment Variables
 
-Environment variables:
-*   `LOTTO_AUTO_REFRESH_ENABLED`: Enable/disable auto-refresh (`true` by default).
-*   `LOTTO_FORCE_REFRESH_ON_STARTUP`: Force refresh on first data load (`true` by default on shinyapps.io, `false` elsewhere).
-*   `LOTTO_AUTO_REFRESH_DAYS`: Refresh interval in days (`14` by default).
-*   `LOTTO_AUTO_REFRESH_TOLERANCE_DAYS`: Allowed timing tolerance in days (`5` by default).
-*   `LOTTO_DATA_YEAR_FROM`: Start year for download query (`2018` by default).
-*   `LOTTO_DATA_YEAR_TO`: End year for download query (defaults to current year).
+### Data refresh controls
 
-Recommended production setup:
-*   Keep `LOTTO_AUTO_REFRESH_ENABLED=true`.
-*   Keep `LOTTO_AUTO_REFRESH_DAYS=14` for two-week updates.
-*   Set `LOTTO_AUTO_REFRESH_TOLERANCE_DAYS` to `3` to `5` to allow natural timing drift.
-*   If you need exact clock-time scheduling (for example every second Monday at 02:00), trigger a small external scheduled job that starts the app or runs a refresh script.
+- `R_CONFIG_ACTIVE`: deployment profile (`shinyapps` toggles startup defaults).
+- `LOTTO_AUTO_REFRESH_ENABLED`: enable periodic refresh (`true` default).
+- `LOTTO_FORCE_REFRESH_ON_STARTUP`: on shinyapps, defaults to `true`; elsewhere `false`.
+- `LOTTO_AUTO_REFRESH_DAYS`: target refresh cadence in days (`14` default).
+- `LOTTO_AUTO_REFRESH_TOLERANCE_DAYS`: day-window jitter around cadence (`5` default).
+- `LOTTO_DATA_YEAR_FROM`: download lower year bound (`2018` default).
+- `LOTTO_DATA_YEAR_TO`: download upper year bound (defaults to current year).
 
-### Persistent Visitor Counter
-The app tracks anonymous visitors in two ways:
-*   **Anonymous visitors today**: Daily unique visitors, deduplicated by browser token per day.
-*   **Anonymous visitors total**: Cumulative all-time counter.
+### Feedback, support, and lead capture
 
-Persistence strategy:
-*   Primary backend is CountAPI (remote), which survives app restarts and new deployments.
-*   If remote backend is unreachable, the app falls back to local RDS storage.
+- `APP_FEEDBACK_FORM_URL`: when set, footer feedback opens this URL in a new tab.
+- `APP_SUPPORT_EMAIL`: used for footer feedback mailto fallback when no form URL is set.
+- `APP_NEWSLETTER_URL`: when set, hero/sticky "Get updates" CTA opens this external URL.
 
-Recommended deployment settings (keep these stable across all redeployments):
-*   `VISITOR_COUNTER_NAMESPACE`: Unique namespace for this app (for example: `lottery-insights-prod-v1`).
-*   `VISITOR_COUNTER_SALT`: A private random string used to hash daily visitor IDs.
-*   `VISITOR_COUNTER_API_BASE`: Optional override, defaults to `https://api.countapi.xyz`.
-*   `VISITOR_COUNTER_BASELINE_TOTAL`: Optional real historical baseline added to total visitors (default is `523` from analytics snapshot).
-*   `VISITOR_COUNTER_REMOTE_TIMEOUT_SEC`: Remote request timeout in seconds (default `4`).
-*   `VISITOR_COUNTER_REMOTE_FAILURE_THRESHOLD`: Consecutive failures before short cooldown (default `8`).
-*   `VISITOR_COUNTER_REMOTE_COOLDOWN_SEC`: Cooldown duration before retrying remote backend (default `45`).
-*   `VISITOR_COUNTER_ALLOW_FILE_FALLBACK`: Enable local file fallback (`false` on shinyapps, `true` elsewhere by default).
+Current CTA behavior:
 
-Important:
-*   Do not change `VISITOR_COUNTER_NAMESPACE` between deployments if you want the same historical total.
-*   If remote backend is blocked by network policy, counts continue locally but may not persist across redeployments.
+- If `APP_NEWSLETTER_URL` exists, the updates CTA opens it (new tab).
+- Otherwise, the updates CTA falls back to `#analyzer` (in-page navigation), not email.
 
-### Bug Report / Feedback Link
-The footer includes a **Report a bug / Feedback** link.
+### Analytics and consent
 
-Recommended deployment setting:
-*   `APP_SUPPORT_EMAIL`: Contact email used to build a prefilled `mailto:` draft from the footer link.
-*   `APP_FEEDBACK_FORM_URL`: Public feedback form URL (for example Google Forms). When set, this is used instead of email.
+- `APP_GA4_MEASUREMENT_ID`: GA4 property ID.
+- If `APP_GA4_MEASUREMENT_ID` is empty, the app currently falls back to built-in ID `G-46CYMW6T38`.
+- Events are sent only after consent is accepted in the banner.
+- Main tracked events include metric switch, filter change, refresh click, scroll depth, outbound click, and share-link copy.
 
-Behavior:
-*   If `APP_FEEDBACK_FORM_URL` is configured, clicking the footer link opens that form in a new tab.
-*   Else if `APP_SUPPORT_EMAIL` is configured, clicking the footer link opens the user's email client with a prefilled bug report template.
-*   If neither setting is configured, the link falls back to the FAQ/disclaimer section.
+### Short `.env.example`
 
-### Analytics, Consent, and Lead Capture
-The app now includes a lightweight consent banner and optional frontend analytics tracking.
+Use safe placeholders for local setup and keep real production values out of version control.
 
-Recommended deployment settings:
-*   `APP_GA4_MEASUREMENT_ID`: GA4 Measurement ID (for example `G-XXXXXXXXXX`). If unset, GA4 is not loaded.
-*   `APP_NEWSLETTER_URL`: Optional external newsletter/signup form URL used by hero and sticky CTA.
-*   `APP_NEWSLETTER_EMAIL`: Optional fallback email for lead capture if no newsletter URL is configured.
+```env
+# App profile
+R_CONFIG_ACTIVE=local
 
-Behavior:
-*   Analytics events are only sent after the user accepts optional analytics tracking.
-*   Tracked events include session start, filter/metric interactions, copy-view usage, scroll depth, and outbound link clicks.
-*   Lead capture CTA opens `APP_NEWSLETTER_URL` in a new tab when configured; otherwise it falls back to `APP_NEWSLETTER_EMAIL` mailto.
-*   Footer legal links point to static pages in `www/` (`privacy.html`, `terms.html`, `disclaimer.html`, `methodology.html`).
+# Data refresh
+LOTTO_AUTO_REFRESH_ENABLED=true
+LOTTO_FORCE_REFRESH_ON_STARTUP=false
+LOTTO_AUTO_REFRESH_DAYS=14
+LOTTO_AUTO_REFRESH_TOLERANCE_DAYS=5
+LOTTO_DATA_YEAR_FROM=2018
+LOTTO_DATA_YEAR_TO=2026
 
-### Custom UI Components
-*   **`create_chart_card`**: A wrapper function that standardizes chart containers, adding titles, descriptions, and the fullscreen toggle functionality.
-*   **`create_stat_card`**: Standardized KPI cards for the top of metric views.
+# Feedback and growth
+APP_FEEDBACK_FORM_URL=https://example.com/feedback
+APP_SUPPORT_EMAIL=support@example.com
+APP_NEWSLETTER_URL=https://example.com/newsletter
 
-## 🤝 Contributing
+# Analytics
+APP_GA4_MEASUREMENT_ID=G-XXXXXXXXXX
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Testing and Performance Checks
 
-1.  Fork the project
-2.  Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+Run quick script benchmarks:
 
-## 📄 License
+```bash
+Rscript test.R
+```
 
-Distributed under the MIT License.
+Run the shinytest2 performance script:
+
+```bash
+Rscript -e "source('tests/testthat/test_performance.R')"
+```
+
+## Deployment Notes
+
+- Avoid committing runtime artifacts such as:
+  - `data/LOTTO_refresh_meta.rds`
+  - `.RData`, `.Rhistory`, `.Rproj.user/`
+- Keep legal static pages in sync with app links:
+  - `www/privacy.html`
+  - `www/terms.html`
+  - `www/disclaimer.html`
+  - `www/methodology.html`
+
+## Contributing
+
+1. Fork the repository.
+2. Create a branch for your change.
+3. Commit with a clear message.
+4. Open a pull request with a concise summary and testing notes.
+
+## License
+
+MIT License.

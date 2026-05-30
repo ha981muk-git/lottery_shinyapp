@@ -1236,6 +1236,18 @@ table.dataTable tbody tr:hover {
   }
 }
 
+/* Consent banner readability override for bright theme */
+.consent-content p,
+.consent-content p strong,
+.consent-content p span {
+  color: #3a2d21 !important;
+  font-size: clamp(0.9rem, 0.35vw + 0.82rem, 1rem) !important;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
 /* Typography and color harmony overrides */
 :root {
   --font-ui: "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;

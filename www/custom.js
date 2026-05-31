@@ -253,7 +253,14 @@ $(document).ready(function() {
   setTimeout(() => observer.disconnect(), 3000);
 
   // --- Responsive Sidebar Toggle ---
-  const toggleButton = $('<button class="sidebar-toggle-btn">☰ Menü</button>')
+  const isEnglish = (appConfig.lang || '').toLowerCase() === 'en';
+  const toggleLabel = isEnglish ? 'Menu' : 'Menü';
+  const toggleAriaLabel = isEnglish ? 'Open analysis filters' : 'Analysefilter oeffnen';
+
+  const toggleButton = $('<button class="sidebar-toggle-btn" type="button"></button>')
+    .attr('aria-label', toggleAriaLabel)
+    .attr('aria-expanded', 'false')
+    .text(toggleLabel)
     .css({
       position: 'fixed',
       top: '15px',
@@ -273,7 +280,9 @@ $(document).ready(function() {
       const layout = document.querySelector('.bslib-sidebar-layout');
       if (layout) {
         const open = layout.dataset.sidebarOpen === 'true';
-        layout.dataset.sidebarOpen = !open;
+        const nextState = !open;
+        layout.dataset.sidebarOpen = String(nextState);
+        $(this).attr('aria-expanded', String(nextState));
       }
     });
 

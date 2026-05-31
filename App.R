@@ -161,11 +161,19 @@ ui <- function(request) {
 
   lead_capture_href <- if (nzchar(newsletter_url)) {
     newsletter_url
+  } else if (nzchar(feedback_form_url)) {
+    feedback_form_url
   } else {
     "#analyzer"
   }
-  lead_capture_target <- if (grepl("^https?://", lead_capture_href)) "_blank" else NULL
+
+  lead_capture_target <- if (grepl("^https?://", lead_capture_href, ignore.case = TRUE)) "_blank" else NULL
   lead_capture_rel <- if (identical(lead_capture_target, "_blank")) "noopener noreferrer" else NULL
+  has_direct_lead_capture <- nzchar(newsletter_url) || nzchar(feedback_form_url)
+  growth_badge_key <- if (has_direct_lead_capture) "growth_badge" else "growth_badge_fallback"
+  growth_subtitle_key <- if (has_direct_lead_capture) "growth_subtitle" else "growth_subtitle_fallback"
+  growth_cta_primary_key <- if (has_direct_lead_capture) "growth_cta_primary" else "growth_cta_primary_fallback"
+  growth_sticky_cta_key <- if (has_direct_lead_capture) "growth_sticky_cta" else "growth_sticky_cta_fallback"
 
   privacy_href <- paste0("privacy.html?lang=", LANG)
   terms_href <- paste0("terms.html?lang=", LANG)
@@ -254,9 +262,9 @@ ui <- function(request) {
           class = "growth-hero",
           div(class = "growth-hero-content",
               div(class = "growth-hero-copy",
-                  div(class = "growth-badge", t("growth_badge", LANG)),
+                  div(class = "growth-badge", t(growth_badge_key, LANG)),
                   h2(t("growth_title", LANG)),
-                  p(t("growth_subtitle", LANG)),
+                  p(t(growth_subtitle_key, LANG)),
                   tags$ul(
                     class = "growth-points",
                     tags$li(t("growth_point_1", LANG)),
@@ -271,7 +279,7 @@ ui <- function(request) {
                       rel = lead_capture_rel,
                       class = "btn btn-primary growth-cta-primary",
                       `data-analytics-event` = "lead_capture_click",
-                      t("growth_cta_primary", LANG)
+                      t(growth_cta_primary_key, LANG)
                     ),
                     a(
                       href = "#analyzer",
@@ -458,7 +466,7 @@ ui <- function(request) {
       rel = lead_capture_rel,
       class = "sticky-lead-cta",
       `data-analytics-event` = "sticky_lead_click",
-      t("growth_sticky_cta", LANG)
+      t(growth_sticky_cta_key, LANG)
     )
   )
 }

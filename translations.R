@@ -301,12 +301,12 @@ translations <- list(
     lag_hover_expected = "Expected",
     
     # Educational Notice
-    notice_title = "⚠️ Important Notice - Educational Purpose Only",
-    notice_1 = "This is a TESTING and EDUCATIONAL platform",
-    notice_1b = " for demonstrating statistical analysis methods",
-    notice_2 = "This website is ",
-    notice_2b = "under construction",
-    notice_2c = " and not intended for commercial use",
+    notice_title = "Important Notice - Educational Analysis",
+    notice_1 = "This is an educational statistics platform",
+    notice_1b = " for exploring historical draw patterns and analysis methods",
+    notice_2 = "This website is provided ",
+    notice_2b = "as an educational project",
+    notice_2c = " and is not a commercial gambling service",
     notice_3 = "No real lottery services, betting, or gambling features are provided",
     notice_4 = "All data analysis is for ",
     notice_4b = "educational and research purposes",
@@ -314,7 +314,7 @@ translations <- list(
     notice_5 = "This tool demonstrates probability theory, data visualization, and statistical methods",
     notice_6 = "Warning:",
     notice_6b = " Gambling can be addictive. Please play responsibly. This site does NOT encourage gambling",
-    notice_purpose = "🔬 Purpose: Academic demonstration of statistical computing",
+    notice_purpose = "Purpose: Transparent statistical exploration of public draw data",
     
     # Educational Section
     edu_title = "About This Educational Project",
@@ -327,9 +327,9 @@ translations <- list(
     
     # Footer
     footer_about = "About This Project",
-    footer_edu_only = "Educational & Testing Only",
-    footer_desc = "Professional analysis tools for demonstrating statistical methods with public Lotto 6aus49 data. Based on historical data and modern statistical approaches.",
-    footer_construction = "⚠️ Under Construction - Testing Phase",
+    footer_edu_only = "Educational Analysis Platform",
+    footer_desc = "Interactive analysis tools for understanding public Lotto 6aus49 draw patterns with transparent statistical methods.",
+    footer_construction = "Educational release",
     footer_quick = "Quick Links",
     footer_legal = "Legal & Disclaimer",
     footer_full_disclaimer = "Full Disclaimer",
@@ -339,13 +339,13 @@ translations <- list(
     footer_no_gambling = "⚠️ No gambling services provided",
     footer_info = "Important Information",
     footer_project_type = "Project Type: Educational/Academic",
-    footer_status = "Status: Under Construction (Testing)",
-    footer_copyright = "Educational & Testing Project",
-    footer_for_edu = "FOR EDUCATIONAL PURPOSES ONLY",
+    footer_status = "Status: Active educational release",
+    footer_copyright = "Educational Analysis Project",
+    footer_for_edu = "FOR EDUCATIONAL USE",
     footer_play_resp = "Play Responsibly",
     footer_no_services = "No Real Gambling Services Provided",
-    footer_under_const = "Under Construction",
-    footer_report_bug = "Report a bug / Feedback"
+    footer_under_const = "Educational Release",
+    footer_report_bug = "Feedback / Contact"
   ),
   
   de = list(
@@ -647,12 +647,12 @@ translations <- list(
     lag_hover_expected = "Erwartet",
     
     # Educational Notice
-    notice_title = "⚠️ Wichtiger Hinweis - Nur zu Bildungszwecken",
-    notice_1 = "Dies ist eine TEST- und BILDUNGSPLATTFORM",
-    notice_1b = " zur Demonstration statistischer Analysemethoden",
-    notice_2 = "Diese Website befindet sich ",
-    notice_2b = "im Aufbau",
-    notice_2c = " und ist nicht für kommerzielle Zwecke bestimmt",
+    notice_title = "Wichtiger Hinweis - Bildungsanalyse",
+    notice_1 = "Dies ist eine Bildungsplattform fuer statistische Analysen",
+    notice_1b = " zur Auswertung historischer Ziehungsmuster",
+    notice_2 = "Diese Website wird ",
+    notice_2b = "als Bildungsprojekt bereitgestellt",
+    notice_2c = " und ist kein kommerzieller Gluecksspieldienst",
     notice_3 = "Es werden keine echten Lotterie-, Wett- oder Glücksspielfunktionen angeboten",
     notice_4 = "Alle Datenanalysen dienen ",
     notice_4b = "ausschließlich Bildungs- und Forschungszwecken",
@@ -660,7 +660,7 @@ translations <- list(
     notice_5 = "Dieses Tool demonstriert Wahrscheinlichkeitstheorie, Datenvisualisierung und statistische Methoden",
     notice_6 = "Warnung:",
     notice_6b = " Glücksspiel kann süchtig machen. Bitte spielen Sie verantwortungsvoll. Diese Seite fördert KEIN Glücksspiel",
-    notice_purpose = "🔬 Zweck: Akademische Demonstration statistischer Berechnungen",
+    notice_purpose = "Zweck: Transparente statistische Auswertung oeffentlicher Ziehungsdaten",
     
     # Educational Section
     edu_title = "Über dieses Bildungsprojekt",
@@ -673,9 +673,9 @@ translations <- list(
     
     # Footer
     footer_about = "Über dieses Projekt",
-    footer_edu_only = "Nur Bildung & Test",
-    footer_desc = "Professionelle Analysetools zur Demonstration statistischer Methoden mit öffentlichen Lotto 6aus49-Daten. Basierend auf historischen Daten und modernen statistischen Ansätzen.",
-    footer_construction = "⚠️ Im Aufbau - Testphase",
+    footer_edu_only = "Bildungs-Analyseplattform",
+    footer_desc = "Interaktive Analysewerkzeuge fuer oeffentliche Lotto 6aus49-Daten mit transparenten statistischen Methoden.",
+    footer_construction = "Bildungsversion",
     footer_quick = "Schnelllinks",
     footer_legal = "Rechtliches & Haftungsausschluss",
     footer_full_disclaimer = "Vollständiger Haftungsausschluss",
@@ -685,13 +685,13 @@ translations <- list(
     footer_no_gambling = "⚠️ Keine Glücksspieldienste bereitgestellt",
     footer_info = "Wichtige Informationen",
     footer_project_type = "Projekttyp: Bildung/Akademisch",
-    footer_status = "Status: Im Aufbau (Test)",
-    footer_copyright = "Bildungs- & Testprojekt",
-    footer_for_edu = "NUR FÜR BILDUNGSZWECKE",
+    footer_status = "Status: Aktive Bildungsversion",
+    footer_copyright = "Bildungsanalyse-Projekt",
+    footer_for_edu = "FUER BILDUNGSZWECKE",
     footer_play_resp = "Spielen Sie verantwortungsvoll",
     footer_no_services = "Keine echten Glücksspieldienste bereitgestellt",
-    footer_under_const = "Im Aufbau",
-    footer_report_bug = "Fehler melden / Feedback",
+    footer_under_const = "Bildungsversion",
+    footer_report_bug = "Feedback / Kontakt",
     
     # Educational Notice
     notice_title = "⚠️ Wichtiger Hinweis - Nur zu Bildungszwecken",
@@ -767,6 +767,10 @@ translations$en <- c(
     growth_trust_2 = "Clear educational context and transparent methodology",
     growth_trust_3 = "No gambling transactions or betting services",
     growth_sticky_cta = "Get updates",
+    growth_badge_fallback = "Free interactive lottery analysis",
+    growth_subtitle_fallback = "Explore historical draw patterns instantly with no signup required.",
+    growth_cta_primary_fallback = "Start free analysis",
+    growth_sticky_cta_fallback = "Open analyzer",
     lead_mail_subject = "Subscribe: Weekly Lottery Insights",
     lead_mail_body = "Please subscribe me to weekly lottery insights updates.",
     consent_text = "We use analytics cookies to understand product usage and improve the dashboard experience. You can accept or decline optional analytics tracking.",
@@ -799,6 +803,10 @@ translations$de <- c(
     growth_trust_2 = "Klare Bildungs-Einordnung und transparente Methodik",
     growth_trust_3 = "Keine Glücksspiel-Transaktionen oder Wettangebote",
     growth_sticky_cta = "Updates erhalten",
+    growth_badge_fallback = "Kostenlose interaktive Lotto-Analyse",
+    growth_subtitle_fallback = "Entdecke historische Ziehungsmuster sofort ohne Anmeldung.",
+    growth_cta_primary_fallback = "Kostenlos analysieren",
+    growth_sticky_cta_fallback = "Analysator oeffnen",
     lead_mail_subject = "Anmeldung: Wöchentliche Lotto-Insights",
     lead_mail_body = "Bitte melde mich für wöchentliche Lotto-Insights an.",
     consent_text = "Wir verwenden optionale Analytics-Cookies, um die Nutzung zu verstehen und das Dashboard zu verbessern. Du kannst dem Tracking zustimmen oder es ablehnen.",

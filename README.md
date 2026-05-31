@@ -124,7 +124,8 @@ shiny::runApp('.')
 Current CTA behavior:
 
 - If `APP_NEWSLETTER_URL` exists, the updates CTA opens it (new tab).
-- Otherwise, the updates CTA falls back to `#analyzer` (in-page navigation), not email.
+- Otherwise, if `APP_FEEDBACK_FORM_URL` exists, the updates CTA opens that form (new tab).
+- If neither is set, the hero/sticky CTA switches to free-analyzer copy and routes to `#analyzer`.
 
 ### Analytics and consent
 

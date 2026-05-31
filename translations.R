@@ -807,6 +807,76 @@ translations$de <- c(
   )
 )
 
+translations$en <- c(
+  translations$en,
+  list(
+    advanced_insights_title = "Advanced Insights",
+    balls_trend_desc = "Compare spread and central tendency for each ball using quartiles and outliers.",
+    balls_distribution_desc = "See full value distributions per ball with density shape and median context.",
+    balls_chart_density_desc = "Smoothed density curves highlight where each ball most often appears.",
+    balls_overview_desc = "Combined raincloud view for fast comparison of spread, median, and point concentration.",
+    balls_line_chart_desc = "Each line connects Ball 1 to Ball 6 for one draw to reveal within-draw structure.",
+    odds_evens_chart_pie_desc = "Overall share of odd versus even values across the selected draws.",
+    odds_evens_chart_trend_desc = "Track odd/even counts per draw and the rolling moving-average signal.",
+    odds_evens_chart_stacked_desc = "Stacked odd/even bars for quick balance comparison across recent draws.",
+    common_moving_average = "Moving Average",
+    sums_label_upper_band = "Upper Band",
+    sums_label_lower_band = "Lower Band",
+    sums_hover_upper = "Upper Band",
+    sums_hover_lower = "Lower Band",
+    sums_hover_moving_avg = "Moving Average",
+    table_label_numbers = "Numbers",
+    difference_label_average = "Average",
+    difference_label_moving_avg = "Moving Average",
+    difference_label_overall_avg = "Overall Average",
+    difference_label_draw_number = "Draw Number",
+    difference_label_category_guide = "Category Guide",
+    difference_label_cumulative = "Cumulative",
+    common_no_data = "No data available",
+    lag_zone_hot = "Hot Zone",
+    lag_zone_warm = "Warm Zone",
+    lag_zone_cool = "Cool Zone",
+    lag_zone_cold = "Cold Zone",
+    lag_label_zone = "Zone",
+    lag_summary_not_applicable = "Test not applicable"
+  )
+)
+
+translations$de <- c(
+  translations$de,
+  list(
+    advanced_insights_title = "Erweiterte Einblicke",
+    balls_trend_desc = "Vergleichen Sie Streuung und zentrale Tendenz je Kugel ueber Quartile und Ausreisser.",
+    balls_distribution_desc = "Sehen Sie die vollstaendige Verteilung je Kugel inklusive Dichteform und Median.",
+    balls_chart_density_desc = "Geglaettete Dichtekurven zeigen, in welchen Bereichen jede Kugel am haeufigsten liegt.",
+    balls_overview_desc = "Kombinierte Raincloud-Ansicht fuer schnellen Vergleich von Streuung, Median und Punktdichte.",
+    balls_line_chart_desc = "Jede Linie verbindet Kugel 1 bis Kugel 6 einer Ziehung und zeigt die interne Struktur.",
+    odds_evens_chart_pie_desc = "Gesamtanteil gerader und ungerader Werte in den ausgewaehlten Ziehungen.",
+    odds_evens_chart_trend_desc = "Verfolgen Sie Gerade/Ungerade pro Ziehung inklusive gleitendem Durchschnitt.",
+    odds_evens_chart_stacked_desc = "Gestapelte Gerade/Ungerade-Balken zum schnellen Vergleich ueber juengste Ziehungen.",
+    common_moving_average = "Gleitender Durchschnitt",
+    sums_label_upper_band = "Oberes Band",
+    sums_label_lower_band = "Unteres Band",
+    sums_hover_upper = "Oberes Band",
+    sums_hover_lower = "Unteres Band",
+    sums_hover_moving_avg = "Gleitender Durchschnitt",
+    table_label_numbers = "Zahlen",
+    difference_label_average = "Durchschnitt",
+    difference_label_moving_avg = "Gleitender Durchschnitt",
+    difference_label_overall_avg = "Gesamtdurchschnitt",
+    difference_label_draw_number = "Ziehungsnummer",
+    difference_label_category_guide = "Kategorie-Leitfaden",
+    difference_label_cumulative = "Kumuliert",
+    common_no_data = "Keine Daten verfuegbar",
+    lag_zone_hot = "Heisse Zone",
+    lag_zone_warm = "Warme Zone",
+    lag_zone_cool = "Kuehle Zone",
+    lag_zone_cold = "Kalte Zone",
+    lag_label_zone = "Zone",
+    lag_summary_not_applicable = "Test nicht anwendbar"
+  )
+)
+
 # Helper function to get translation
 t <- function(key, lang = "de") {
   translations[[lang]][[key]] %||% key

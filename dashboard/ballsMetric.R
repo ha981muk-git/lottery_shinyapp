@@ -31,12 +31,12 @@ ballsMetricUI <- function(id) {
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "trendChartTitle", NULL, "trendChart", height = "350px"),
-        create_chart_card(ns, "distributionChartTitle", NULL, "distributionChart", height = "350px")
+        create_chart_card(ns, "trendChartTitle", "trendChartDesc", "trendChart", height = "350px"),
+        create_chart_card(ns, "distributionChartTitle", "distributionChartDesc", "distributionChart", height = "350px")
       ),
-      create_chart_card(ns, "densityChartTitle", NULL, "densityChart", height = "400px", style = "margin-top: 20px;"),
-      create_chart_card(ns, "overviewChartTitle", NULL, "overviewChart", height = "400px", style = "margin-top: 20px;"),
-      create_chart_card(ns, "lineChartTitle", NULL, "lineChart", height = "400px", style = "margin-top: 20px;")
+      create_chart_card(ns, "densityChartTitle", "densityChartDesc", "densityChart", height = "400px", style = "margin-top: 20px;"),
+      create_chart_card(ns, "overviewChartTitle", "overviewChartDesc", "overviewChart", height = "400px", style = "margin-top: 20px;"),
+      create_chart_card(ns, "lineChartTitle", "lineChartDesc", "lineChart", height = "400px", style = "margin-top: 20px;")
     )
   )
 }
@@ -65,6 +65,11 @@ ballsMetricServer <- function(id, filtered_data, input_controls, base_row_count 
     output$densityChartTitle <- render_title("balls_chart_density", get_lang)
     output$overviewChartTitle <- render_title("balls_overview_title", get_lang)
     output$lineChartTitle <- render_title("balls_line_chart_title", get_lang)
+    output$trendChartDesc <- render_desc("balls_trend_desc", get_lang)
+    output$distributionChartDesc <- render_desc("balls_distribution_desc", get_lang)
+    output$densityChartDesc <- render_desc("balls_chart_density_desc", get_lang)
+    output$overviewChartDesc <- render_desc("balls_overview_desc", get_lang)
+    output$lineChartDesc <- render_desc("balls_line_chart_desc", get_lang)
     session$onFlushed(function() {
       lapply(c("metricRow", "trendChart", "distributionChart", "densityChart", "overviewChart", "lineChart"), function(id) {
         try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)

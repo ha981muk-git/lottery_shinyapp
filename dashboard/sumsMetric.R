@@ -17,16 +17,30 @@ sumsMetricUI <- function(id) {
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle1", NULL, "hist", height = "350px"),
-        create_chart_card(ns, "chartTitle4", NULL, "boxPlot", height = "350px")
+        create_chart_card(ns, "chartTitle1", "chartDesc1", "hist", height = "350px"),
+        create_chart_card(ns, "chartTitle4", "chartDesc4", "boxPlot", height = "350px")
       ),
       
       # Trend and Range Charts (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle2", NULL, "trend", height = "400px", style = "margin-top: 20px;"),
-        create_chart_card(ns, "chartTitle5", NULL, "movingAvg", height = "400px", style = "margin-top: 20px;")
+        create_chart_card(ns, "chartTitle2", "chartDesc2", "trend", height = "400px", style = "margin-top: 20px;"),
+        create_chart_card(ns, "chartTitle5", "chartDesc5", "movingAvg", height = "400px", style = "margin-top: 20px;")
+      ),
+
+      div(
+        style = "margin-top: 20px;",
+        bslib::accordion(
+          id = ns("advancedInsightsAccordion"),
+          open = FALSE,
+          multiple = TRUE,
+          bslib::accordion_panel(
+            title = uiOutput(ns("advancedPanelTitle")),
+            value = "sums-advanced",
+            create_chart_card(ns, "chartTitle3", "chartDesc3", "rangeChart", height = "360px")
+          )
+        )
       )
     )
   )
@@ -61,8 +75,11 @@ sumsMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
     output$chartDesc4 <- render_desc("sums_chart_boxplot_desc", get_lang)
     output$chartTitle5 <- render_title("sums_chart_moving", get_lang, "📉")
     output$chartDesc5 <- render_desc("sums_chart_moving_desc", get_lang)
+    output$advancedPanelTitle <- renderUI({
+      t("advanced_insights_title", get_lang())
+    })
     session$onFlushed(function() {
-      lapply(c("metricRow", "hist", "trend", "boxPlot", "movingAvg"), function(id) {
+      lapply(c("metricRow", "hist", "trend", "boxPlot", "movingAvg", "rangeChart"), function(id) {
         try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
       })
     }, once = TRUE)
@@ -193,14 +210,14 @@ sumsMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("sums_label_sum_value", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("sums_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           showlegend = TRUE,
           legend = list(
@@ -247,14 +264,14 @@ sumsMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("sums_label_draw_number", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("sums_label_sum_value", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           showlegend = TRUE,
           legend = list(
@@ -294,8 +311,8 @@ sumsMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                 line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
               ),
               text = ~paste0(count, " (", percentage, "%)"),
-              textposition = "outside",
-              textfont = list(color = "#e8eaed", size = 12),
+              textposition = "auto",
+              textfont = list(color = "#4f3d2d", size = 12),
               hovertemplate = paste0(
                 "<b>%{x}</b><br>",
                 t("sums_hover_count", lang), ": %{y}<br>",
@@ -305,15 +322,15 @@ sumsMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("sums_label_sum_range", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
+            gridcolor = "rgba(126, 95, 66, 0.18)",
             tickangle = -45
           ),
           yaxis = list(
             title = t("sums_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           margin = list(b = 100)
         )
@@ -337,10 +354,10 @@ sumsMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           yaxis = list(
             title = t("sums_label_sum_value", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           xaxis = list(
             title = "",
@@ -373,38 +390,38 @@ sumsMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                   hovertemplate = paste0(t("sums_label_draw", lang), ": %{x}<br>", t("sums_label_sum_value", lang), ": %{y}<extra></extra>")) %>%
         # Upper band
         {if("upper" %in% names(df))
-          add_trace(., y = ~upper, name = "Upper Band", type = "scatter", mode = "lines",
+          add_trace(., y = ~upper, name = t("sums_label_upper_band", lang), type = "scatter", mode = "lines",
                     line = list(color = "rgba(236, 72, 153, 0.3)", width = 1, dash = "dot"),
-                    hovertemplate = paste0("Upper: %{y:.1f}<extra></extra>"))
+                    hovertemplate = paste0(t("sums_hover_upper", lang), ": %{y:.1f}<extra></extra>"))
           else .
         } %>%
         # Lower band
         {if("lower" %in% names(df))
-          add_trace(., y = ~lower, name = "Lower Band", type = "scatter", mode = "lines",
+          add_trace(., y = ~lower, name = t("sums_label_lower_band", lang), type = "scatter", mode = "lines",
                     line = list(color = "rgba(79, 172, 254, 0.3)", width = 1, dash = "dot"),
                     fill = "tonexty", fillcolor = "rgba(139, 92, 246, 0.1)",
-                    hovertemplate = paste0("Lower: %{y:.1f}<extra></extra>"))
+                    hovertemplate = paste0(t("sums_hover_lower", lang), ": %{y:.1f}<extra></extra>"))
           else .
         } %>%
         # Moving average
         {if("ma" %in% names(df))
           add_trace(., y = ~ma, name = t("sums_metric_average", lang), type = "scatter", mode = "lines",
                     line = list(color = "#10b981", width = 3),
-                    hovertemplate = paste0("MA: %{y:.1f}<extra></extra>")) %>%
+                    hovertemplate = paste0(t("sums_hover_moving_avg", lang), ": %{y:.1f}<extra></extra>")) %>%
           toWebGL()
           else .
         } %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("sums_label_draw_number", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("sums_label_sum_value", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           hovermode = "x unified",
           legend = list(

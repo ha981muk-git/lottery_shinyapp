@@ -34,7 +34,7 @@ lagMetricUI <- function(id) {
                          style = "background: #9370DB; border-color: #9370DB;"),
             actionButton(ns("ball6"), "Ball 6", class = "btn-action btn-primary",
                          style = "background: #00CED1; border-color: #00CED1;"),
-            actionButton(ns("ballAll"), uiOutput(ns("allBallsText")), class = "btn-action btn-success")
+            actionButton(ns("ballAll"), "All", class = "btn-action btn-success")
           )
         ),
         div(
@@ -47,20 +47,56 @@ lagMetricUI <- function(id) {
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle1", NULL, "lagDistribution", height = "350px"),
-        create_chart_card(ns, "chartTitle4", NULL, "jumpCategories", height = "350px")
+        create_chart_card(ns, "chartTitle1", "chartDesc1", "lagDistribution", height = "350px"),
+        create_chart_card(ns, "chartTitle4", "chartDesc4", "jumpCategories", height = "350px")
       ),
       
       # Heatmap and Q-Q Plot (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle5", NULL, "lagHeatmap", height = "400px", style = "margin-top: 20px;"),
-        create_chart_card(ns, "chartTitle6", NULL, "qqPlot", height = "400px", style = "margin-top: 20px;")
+        create_chart_card(ns, "chartTitle5", "chartDesc5", "lagHeatmap", height = "400px", style = "margin-top: 20px;"),
+        create_chart_card(ns, "chartTitle6", "chartDesc6", "qqPlot", height = "400px", style = "margin-top: 20px;")
       ),
       
       # Trend Chart (Full width)
-      create_chart_card(ns, "chartTitle2", NULL, "positiveJumps", height = "400px", style = "margin-top: 20px;")
+      create_chart_card(ns, "chartTitle2", "chartDesc2", "positiveJumps", height = "400px", style = "margin-top: 20px;"),
+
+      div(
+        style = "margin-top: 20px;",
+        bslib::accordion(
+          id = ns("advancedInsightsAccordion"),
+          open = FALSE,
+          multiple = TRUE,
+          bslib::accordion_panel(
+            title = uiOutput(ns("advancedPanelTitle")),
+            value = "lag-advanced",
+            layout_column_wrap(
+              width = 1/2,
+              heights_equal = "row",
+              create_chart_card(ns, "chartTitle3", "chartDesc3", "negativeJumps", height = "320px"),
+              create_chart_card(ns, "chartTitle7", "chartDesc7", "preferredZones", height = "320px")
+            ),
+            div(
+              class = "content-card",
+              style = "margin-top: 16px;",
+              div(class = "d-flex justify-content-between align-items-start",
+                  div(style = "flex-grow: 1;", uiOutput(ns("chartTitle8")))
+              ),
+              uiOutput(ns("statSummary"))
+            ),
+            div(
+              class = "content-card",
+              style = "margin-top: 16px;",
+              div(class = "d-flex justify-content-between align-items-start",
+                  div(style = "flex-grow: 1;", uiOutput(ns("chartTitle9")))
+              ),
+              p(class = "info-text", uiOutput(ns("chartDesc9"))),
+              div(class = "table-wrapper", DT::dataTableOutput(ns("lagTable")))
+            )
+          )
+        )
+      )
     )
   )
 }
@@ -107,8 +143,11 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
     output$chartTitle8 <- render_title("lag_chart_summary", get_lang, "📊")
     output$chartTitle9 <- render_title("lag_chart_table", get_lang, "📋")
     output$chartDesc9 <- render_desc("lag_chart_table_desc", get_lang)
+    output$advancedPanelTitle <- renderUI({
+      t("advanced_insights_title", get_lang())
+    })
     session$onFlushed(function() {
-      lapply(c("metricRow", "lagDistribution", "jumpCategories", "lagHeatmap", "qqPlot", "positiveJumps"), function(id) {
+      lapply(c("metricRow", "lagDistribution", "jumpCategories", "lagHeatmap", "qqPlot", "positiveJumps", "negativeJumps", "preferredZones", "statSummary", "lagTable"), function(id) {
         try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
       })
     }, once = TRUE)
@@ -123,6 +162,17 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
     observeEvent(input$ball5, { selected_ball(5) })
     observeEvent(input$ball6, { selected_ball(6) })
     observeEvent(input$ballAll, { selected_ball(0) })
+
+    observe({
+      lang <- get_lang()
+      updateActionButton(session, "ball1", label = t("ball_1", lang))
+      updateActionButton(session, "ball2", label = t("ball_2", lang))
+      updateActionButton(session, "ball3", label = t("ball_3", lang))
+      updateActionButton(session, "ball4", label = t("ball_4", lang))
+      updateActionButton(session, "ball5", label = t("ball_5", lang))
+      updateActionButton(session, "ball6", label = t("ball_6", lang))
+      updateActionButton(session, "ballAll", label = t("lag_selector_all", lang))
+    })
     
     # Display selected ball
     output$selectedBall <- renderUI({
@@ -131,7 +181,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       if(is.null(ball)) ball <- 0
       
       ball_colors <- c("#4169E1", "#DC143C", "#32CD32", "#FFD700", "#9370DB", "#00CED1")
-      text <- if(ball == 0) t("lag_selector_all", lang) else paste0("Ball ", ball)
+      text <- if(ball == 0) t("lag_selector_all", lang) else t(paste0("ball_", ball), lang)
       color <- if(ball == 0) "#8b5cf6" else ball_colors[ball]
       
       div(
@@ -144,6 +194,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
     lag_stats <- reactive({
       req(is_active())
       data <- filtered_data()
+      lang <- get_lang()
       ball <- selected_ball()
       if(is.null(ball)) ball <- 0
       
@@ -175,11 +226,19 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       
       lag_df$category <- cut(abs(lag_df$lag),
                              breaks = c(0, 3, 7, 15, Inf),
-                             labels = c("Tiny (0-3)", "Small (4-7)", "Medium (8-15)", "Large (>15)"),
+                             labels = c(
+                               t("lag_label_tiny", lang),
+                               t("lag_label_small", lang),
+                               t("lag_label_medium", lang),
+                               t("lag_label_large", lang)
+                             ),
                              include.lowest = TRUE)
       
-      lag_df$direction <- ifelse(lag_df$lag > 0, t("lag_label_increase", get_lang()),
-                                 ifelse(lag_df$lag < 0, t("lag_label_decrease", get_lang()), t("lag_label_no_change", get_lang())))
+      lag_df$direction <- ifelse(
+        lag_df$lag > 0,
+        t("lag_label_increase", lang),
+        ifelse(lag_df$lag < 0, t("lag_label_decrease", lang), t("lag_label_no_change", lang))
+      )
       
       list(
         lags = lags,
@@ -270,7 +329,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
               marker = list(color = colorRampPalette(c("#32CD32", "#10b981"))(nrow(positive)),
                             line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)),
               text = ~paste0(frequency, " (", percentage, "%)"),
-              textposition = "outside", textfont = list(color = "#4f3d2d", size = 11),
+              textposition = "auto", textfont = list(color = "#4f3d2d", size = 11),
               hovertemplate = paste0("<b>", t("lag_hover_jump", lang), ": +%{x}</b><br>", t("lag_label_frequency", lang), ": %{y}<br>", t("lag_label_percentage", lang), ": %{text}<extra></extra>")) %>%
         layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
                font = list(color = "#4f3d2d", family = "Instrument Sans"),
@@ -294,7 +353,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
               marker = list(color = colorRampPalette(c("#ef4444", "#DC143C"))(nrow(negative)),
                             line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)),
               text = ~paste0(frequency, " (", percentage, "%)"),
-              textposition = "outside", textfont = list(color = "#4f3d2d", size = 11),
+              textposition = "auto", textfont = list(color = "#4f3d2d", size = 11),
               hovertemplate = paste0("<b>", t("lag_hover_jump", lang), ": %{x}</b><br>", t("lag_label_frequency", lang), ": %{y}<br>", t("lag_label_percentage", lang), ": %{text}<extra></extra>")) %>%
         layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
                font = list(color = "#4f3d2d", family = "Instrument Sans"),
@@ -421,20 +480,27 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
     output$preferredZones <- renderPlotly({
       lang <- get_lang()
       stats <- lag_stats()
-      if(length(stats$lags) == 0) return(NULL)
+            if(length(stats$lags) == 0) return(NULL)
       
       df <- stats$lag_df
       df <- df[order(df$lag), ]
-      df$zone <- ifelse(df$percentage >= 2, "Hot Zone",
-                        ifelse(df$percentage >= 1, "Warm Zone",
-                               ifelse(df$percentage >= 0.5, "Cool Zone", "Cold Zone")))
+            zone_hot <- t("lag_zone_hot", lang)
+            zone_warm <- t("lag_zone_warm", lang)
+            zone_cool <- t("lag_zone_cool", lang)
+            zone_cold <- t("lag_zone_cold", lang)
+            df$zone <- ifelse(df$percentage >= 2, zone_hot,
+            ifelse(df$percentage >= 1, zone_warm,
+                   ifelse(df$percentage >= 0.5, zone_cool, zone_cold)))
       
-      zone_colors <- c("Hot Zone" = "#DC143C", "Warm Zone" = "#ff6b6b", "Cool Zone" = "#4facfe", "Cold Zone" = "#4169E1")
+            zone_colors <- setNames(
+              c("#DC143C", "#ff6b6b", "#4facfe", "#4169E1"),
+              c(zone_hot, zone_warm, zone_cool, zone_cold)
+            )
       
       plot_ly(df, x = ~lag, y = ~percentage, type = "bar",
               marker = list(color = ~zone, colors = zone_colors, line = list(color = "rgba(126, 95, 66, 0.28)", width = 1)),
               text = ~zone,
-              hovertemplate = paste0("<b>", t("lag_label_lag", lang), ": %{x}</b><br>", t("lag_label_percentage", lang), ": %{y}%<br>Zone: %{text}<extra></extra>")) %>%
+              hovertemplate = paste0("<b>", t("lag_label_lag", lang), ": %{x}</b><br>", t("lag_label_percentage", lang), ": %{y}%<br>", t("lag_label_zone", lang), ": %{text}<extra></extra>")) %>%
         layout(paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)", font = list(color = "#4f3d2d", family = "Instrument Sans"),
                xaxis = list(title = t("lag_label_lag_value", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
                yaxis = list(title = t("lag_label_percentage", lang), gridcolor = "rgba(126, 95, 66, 0.18)"),
@@ -445,7 +511,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
     output$statSummary <- renderUI({
       lang <- get_lang()
       stats <- lag_stats()
-      if(length(stats$lags) == 0) return(p("No data available"))
+      if(length(stats$lags) == 0) return(p(t("common_no_data", lang)))
       
       df <- stats$lag_df
       hot_lags <- df[order(-df$frequency), ][1:min(5, nrow(df)), ]
@@ -477,7 +543,7 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                   div(tags$strong(paste0(t("lag_summary_normality", lang), ": ")), tags$span(
                     if(!is.na(shapiro_result)) {
                       if(shapiro_result > 0.05) t("lag_summary_follows", lang) else t("lag_summary_deviates", lang)
-                    } else "Test not applicable"
+                    } else t("lag_summary_not_applicable", lang)
                   ))
               )
           ),
@@ -503,12 +569,21 @@ lagMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       df <- stats$lag_df
       
       df_display <- data.frame(
-        Lag = df$lag,
-        Frequency = df$frequency,
-        Percentage = paste0(df$percentage, "%"),
-        Probability = round(df$probability, 4),
-        Category = df$category,
-        Direction = df$direction
+        df$lag,
+        df$frequency,
+        paste0(df$percentage, "%"),
+        round(df$probability, 4),
+        df$category,
+        df$direction,
+        check.names = FALSE
+      )
+      names(df_display) <- c(
+        t("lag_label_lag", lang),
+        t("lag_label_frequency", lang),
+        t("lag_label_percentage", lang),
+        t("lag_label_probability", lang),
+        t("difference_label_category", lang),
+        t("lag_label_direction", lang)
       )
       
       DT::datatable(

@@ -17,16 +17,16 @@ oddsEvensMetricUI <- function(id) {
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle1", NULL, "pascalChart", height = "350px"),
-        create_chart_card(ns, "chartTitle2", NULL, "pie", height = "350px")
+        create_chart_card(ns, "chartTitle1", "chartDesc1", "pascalChart", height = "350px"),
+        create_chart_card(ns, "chartTitle2", "chartDesc2", "pie", height = "350px")
       ),
       
       # Trend and Stacked Charts (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle3", NULL, "trendLine", height = "400px", style = "margin-top: 20px;"),
-        create_chart_card(ns, "chartTitle4", NULL, "stacked", height = "400px", style = "margin-top: 20px;")
+        create_chart_card(ns, "chartTitle3", "chartDesc3", "trendLine", height = "400px", style = "margin-top: 20px;"),
+        create_chart_card(ns, "chartTitle4", "chartDesc4", "stacked", height = "400px", style = "margin-top: 20px;")
       )
     )
   )
@@ -54,8 +54,11 @@ oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE))
     output$chartTitle1 <- render_title("odds_evens_chart_pascal", get_lang, "📊")
     output$chartDesc1 <- render_desc("odds_evens_chart_pascal_desc", get_lang)
     output$chartTitle2 <- render_title("odds_evens_chart_pie", get_lang, "🥧")
+    output$chartDesc2 <- render_desc("odds_evens_chart_pie_desc", get_lang)
     output$chartTitle3 <- render_title("odds_evens_chart_trend", get_lang, "📈")
+    output$chartDesc3 <- render_desc("odds_evens_chart_trend_desc", get_lang)
     output$chartTitle4 <- render_title("odds_evens_chart_stacked", get_lang, "📊")
+    output$chartDesc4 <- render_desc("odds_evens_chart_stacked_desc", get_lang)
     session$onFlushed(function() {
       lapply(c("metricRow", "pascalChart", "pie", "trendLine", "stacked"), function(id) {
         try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
@@ -70,7 +73,10 @@ oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE))
       evens <- 6 - odds
       
       # Create combination labels
-      combinations <- paste0(odds, " Odds / ", evens, " Evens")
+      combinations <- paste0(
+        odds, " ", t("odds_evens_label_odds", get_lang()),
+        " / ", evens, " ", t("odds_evens_label_evens", get_lang())
+      )
       
       list(
         odds = odds,
@@ -112,16 +118,18 @@ oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE))
       lang <- get_lang()
       stats <- odds_evens_stats()
       
-      # Count frequency of each combination
-      combo_counts <- table(stats$combinations)
+      # Count frequency of each combination (explicitly retain 0-6 odd combinations)
+      odds_counts <- table(stats$odds)
       combo_df <- data.frame(
-        combination = names(combo_counts),
-        count = as.numeric(combo_counts)
+        odds_num = 0:6,
+        evens_num = 6:0
       )
-      
-      # Extract odds count for ordering
-      combo_df$odds_num <- as.numeric(sub(" Odds.*", "", combo_df$combination))
-      combo_df <- combo_df[order(combo_df$odds_num), ]
+      combo_df$count <- as.numeric(odds_counts[as.character(combo_df$odds_num)])
+      combo_df$count[is.na(combo_df$count)] <- 0
+      combo_df$combination <- paste0(
+        combo_df$odds_num, " ", t("odds_evens_label_odds", lang),
+        " / ", combo_df$evens_num, " ", t("odds_evens_label_evens", lang)
+      )
       
       # Create color palette - gradient from blue (all evens) to red (all odds)
       colors <- c("#00CED1", "#4169E1", "#9370DB", "#8b5cf6", "#ec4899", "#DC143C", "#FFD700")
@@ -138,8 +146,8 @@ oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE))
                 line = list(color = "rgba(255, 255, 255, 0.3)", width = 2)
               ),
               text = ~paste0(count, " ", t("odds_evens_hover_draws", lang), "<br>", percentage, "%"),
-              textposition = "outside",
-              textfont = list(color = "#e8eaed", size = 14, family = "Inter"),
+              textposition = "auto",
+              textfont = list(color = "#4f3d2d", size = 14, family = "Instrument Sans"),
               hovertemplate = paste0(
                 "<b>%{x}</b><br>",
                 t("odds_evens_label_frequency", lang), ": %{y} ", t("odds_evens_hover_draws", lang), "<br>",
@@ -149,16 +157,16 @@ oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE))
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("odds_evens_label_combination", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
+            gridcolor = "rgba(126, 95, 66, 0.18)",
             tickangle = -45,
             tickfont = list(size = 12)
           ),
           yaxis = list(
             title = t("odds_evens_label_frequency", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           margin = list(b = 100, t = 40)
         )
@@ -180,7 +188,7 @@ oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE))
               marker = list(colors = c("#ec4899", "#4169E1"),
                             line = list(color = "#FFFFFF", width = 2)),
               textinfo = "label+percent",
-              textfont = list(size = 16, color = "#FFFFFF", family = "Inter"),
+              textfont = list(size = 16, color = "#FFFFFF", family = "Instrument Sans"),
               hovertemplate = paste0(
                 "<b>%{label}</b><br>",
                 t("odds_evens_label_count", lang), ": %{value}<br>",
@@ -190,7 +198,7 @@ oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE))
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           showlegend = TRUE,
           legend = list(
             orientation = "h",
@@ -227,23 +235,23 @@ oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE))
                   line = list(color = "#4169E1", width = 2),
                   hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>", t("odds_evens_label_evens", lang), ": %{y}<extra></extra>")) %>%
         {if("ma_odds" %in% names(df)) 
-          add_trace(., y = ~ma_odds, name = paste("MA (", t("odds_evens_label_odds", lang), ")"), type = "scatter", mode = "lines",
+          add_trace(., y = ~ma_odds, name = paste0(t("common_moving_average", lang), " (", t("odds_evens_label_odds", lang), ")"), type = "scatter", mode = "lines",
                     line = list(color = "#8b5cf6", width = 3, dash = "dash"),
-                    hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>MA: %{y:.2f}<extra></extra>")) %>%
+                    hovertemplate = paste0(t("odds_evens_label_draw_number", lang), ": %{x}<br>", t("common_moving_average", lang), ": %{y:.2f}<extra></extra>")) %>%
           toWebGL()
           else .
         } %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("odds_evens_label_draw_number", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("odds_evens_label_count", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
+            gridcolor = "rgba(126, 95, 66, 0.18)",
             range = c(0, 6)
           ),
           hovermode = "x unified",
@@ -283,14 +291,14 @@ oddsEvensMetricServer <- function(id, filtered_data, is_active = reactive(TRUE))
           barmode = "stack",
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
-          font = list(color = "#e8eaed", family = "Inter"),
+          font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
             title = t("odds_evens_label_draw_number", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)"
+            gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
             title = t("odds_evens_label_count", lang),
-            gridcolor = "rgba(255, 255, 255, 0.1)",
+            gridcolor = "rgba(126, 95, 66, 0.18)",
             range = c(0, 6)
           ),
           hovermode = "x unified",

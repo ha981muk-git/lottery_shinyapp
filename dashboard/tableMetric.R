@@ -17,16 +17,45 @@ tableMetricUI <- function(id) {
     layout_column_wrap(
       width = 1/2,
       heights_equal = "row",
-      create_chart_card(ns, "chartTitle1", NULL, "freq", height = "350px"),
-      create_chart_card(ns, "chartTitle4", NULL, "heatGrid", height = "350px")
+      create_chart_card(ns, "chartTitle1", "chartDesc1", "freq", height = "350px"),
+      create_chart_card(ns, "chartTitle4", "chartDesc4", "heatGrid", height = "350px")
     ),
     
     # Hot and Cold Numbers (2 columns)
     layout_column_wrap(
       width = 1/2,
       heights_equal = "row",
-      create_chart_card(ns, "chartTitle2", NULL, "hotNumbers", height = "400px", style = "margin-top: 20px;"),
-      create_chart_card(ns, "chartTitle3", NULL, "coldNumbers", height = "400px", style = "margin-top: 20px;")
+      create_chart_card(ns, "chartTitle2", "chartDesc2", "hotNumbers", height = "400px", style = "margin-top: 20px;"),
+      create_chart_card(ns, "chartTitle3", "chartDesc3", "coldNumbers", height = "400px", style = "margin-top: 20px;")
+    ),
+
+    div(
+      style = "margin-top: 20px;",
+      bslib::accordion(
+        id = ns("advancedInsightsAccordion"),
+        open = FALSE,
+        multiple = TRUE,
+        bslib::accordion_panel(
+          title = uiOutput(ns("advancedPanelTitle")),
+          value = "table-advanced",
+          layout_column_wrap(
+            width = 1/2,
+            heights_equal = "row",
+            create_chart_card(ns, "chartTitle5", "chartDesc5", "freqDist", height = "320px"),
+            create_chart_card(ns, "chartTitle6", "chartDesc6", "positionAnalysis", height = "320px")
+          ),
+          create_chart_card(ns, "chartTitle7", "chartDesc7", "deviation", height = "360px", style = "margin-top: 16px;"),
+          div(
+            class = "content-card",
+            style = "margin-top: 16px;",
+            div(class = "d-flex justify-content-between align-items-start",
+                div(style = "flex-grow: 1;", uiOutput(ns("chartTitle8")))
+            ),
+            p(class = "info-text", uiOutput(ns("chartDesc8"))),
+            div(class = "table-wrapper", DT::dataTableOutput(ns("freqTable")))
+          )
+        )
+      )
     )
   )
 }
@@ -52,11 +81,26 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
     
     # Chart titles
     output$chartTitle1 <- render_title("table_chart_frequencies", get_lang)
+    output$chartDesc1 <- render_desc("table_chart_frequencies_desc", get_lang)
     output$chartTitle2 <- render_title("table_chart_hot", get_lang)
+    output$chartDesc2 <- render_desc("table_chart_hot_desc", get_lang)
     output$chartTitle3 <- render_title("table_chart_cold", get_lang)
+    output$chartDesc3 <- render_desc("table_chart_cold_desc", get_lang)
     output$chartTitle4 <- render_title("table_chart_grid", get_lang)
+    output$chartDesc4 <- render_desc("table_chart_grid_desc", get_lang)
+    output$chartTitle5 <- render_title("table_chart_dist", get_lang)
+    output$chartDesc5 <- render_desc("table_chart_dist_desc", get_lang)
+    output$chartTitle6 <- render_title("table_chart_position", get_lang)
+    output$chartDesc6 <- render_desc("table_chart_position_desc", get_lang)
+    output$chartTitle7 <- render_title("table_chart_deviation", get_lang)
+    output$chartDesc7 <- render_desc("table_chart_deviation_desc", get_lang)
+    output$chartTitle8 <- render_title("table_chart_table", get_lang)
+    output$chartDesc8 <- render_desc("table_chart_table_desc", get_lang)
+    output$advancedPanelTitle <- renderUI({
+      t("advanced_insights_title", get_lang())
+    })
     session$onFlushed(function() {
-      lapply(c("metricRow", "freq", "hotNumbers", "coldNumbers", "heatGrid"), function(id) {
+      lapply(c("metricRow", "freq", "hotNumbers", "coldNumbers", "heatGrid", "freqDist", "positionAnalysis", "deviation", "freqTable"), function(id) {
         try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
       })
     }, once = TRUE)
@@ -148,7 +192,12 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                 )
               ),
               customdata = ~cbind(percentage, deviation),
-              hovertemplate = "<b>Number: %{x}</b><br>Frequency: %{y}<br>Percentage: %{customdata[0]}%<br>Deviation: %{customdata[1]:.1f}<extra></extra>") %>%
+              hovertemplate = paste0(
+                "<b>", t("table_label_number", lang), ": %{x}</b><br>",
+                t("table_label_frequency", lang), ": %{y}<br>",
+                t("table_label_percentage", lang), ": %{customdata[0]}%<br>",
+                t("table_label_deviation", lang), ": %{customdata[1]:.1f}<extra></extra>"
+              )) %>%
         add_trace(x = c(min(df$number), max(df$number)), 
                   y = rep(stats$expected_freq, 2),
                   type = "scatter", mode = "lines",
@@ -197,7 +246,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                 line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~frequency,
-              textposition = "outside",
+              textposition = "auto",
               textfont = list(color = "#4f3d2d", size = 12),
               customdata = ~deviation,
               hovertemplate = paste0(
@@ -236,7 +285,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                 line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~frequency,
-              textposition = "outside",
+              textposition = "auto",
               textfont = list(color = "#4f3d2d", size = 12),
               customdata = ~deviation,
               hovertemplate = paste0(
@@ -357,7 +406,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
             color = "#4f3d2d"
           ),
           yaxis = list(
-            title = paste0(t("table_label_number", lang), "s"),
+            title = t("table_label_numbers", lang),
             gridcolor = "rgba(126, 95, 66, 0.18)",
             color = "#4f3d2d"
           ),
@@ -391,7 +440,7 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
                 line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~round(avg_freq, 1),
-              textposition = "outside",
+              textposition = "auto",
               textfont = list(color = "#4f3d2d", size = 14),
               hovertemplate = paste0(
                 "<b>%{x}</b><br>",
@@ -471,12 +520,19 @@ tableMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)) {
       df <- stats$freq_df
       
       df_display <- data.frame(
-        Number = df$number,
-        Frequency = df$frequency,
-        Percentage = paste0(df$percentage, "%"),
-        Deviation = round(df$deviation, 2),
-        `Deviation %` = paste0(df$deviation_pct, "%"),
+        df$number,
+        df$frequency,
+        paste0(df$percentage, "%"),
+        round(df$deviation, 2),
+        paste0(df$deviation_pct, "%"),
         check.names = FALSE
+      )
+      names(df_display) <- c(
+        t("table_label_number", lang),
+        t("table_label_frequency", lang),
+        t("table_label_percentage", lang),
+        t("table_label_deviation", lang),
+        t("table_label_deviation_pct", lang)
       )
       
       DT::datatable(

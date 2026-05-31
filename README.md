@@ -172,6 +172,16 @@ Run the shinytest2 performance script:
 Rscript -e "source('tests/testthat/test_performance.R')"
 ```
 
+Run the responsive pre-deploy regression check (5 breakpoints + focus/touch-target sweep):
+
+```bash
+NOT_CRAN=true Rscript -e "source('tests/testthat/test_responsive_regression.R')"
+```
+
+This check fails fast when it detects horizontal overflow, header/language overlap,
+off-screen sidebar toggle placement, missing focus indicator styles, or touch targets
+smaller than 44x44 for language and consent actions.
+
 ## Deployment Notes
 
 - Avoid committing runtime artifacts such as:

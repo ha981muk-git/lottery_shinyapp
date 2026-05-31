@@ -17,20 +17,58 @@ differenceMetricUI <- function(id) {
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle_density", NULL, "densityDistribution", height = "350px"),
-        create_chart_card(ns, "chartTitle1", NULL, "rangeFreq", height = "350px")
+        create_chart_card(ns, "chartTitle_density", "chartDesc_density", "densityDistribution", height = "350px"),
+        create_chart_card(ns, "chartTitle1", "chartDesc1", "rangeFreq", height = "350px")
       ),
       
       # Trend and Box Plot (2 columns)
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        create_chart_card(ns, "chartTitle5", NULL, "rangeTrend", height = "400px", style = "margin-top: 20px;"),
-        create_chart_card(ns, "chartTitle6", NULL, "rangeBox", height = "400px", style = "margin-top: 20px;")
+        create_chart_card(ns, "chartTitle5", "chartDesc5", "rangeTrend", height = "400px", style = "margin-top: 20px;"),
+        create_chart_card(ns, "chartTitle6", "chartDesc6", "rangeBox", height = "400px", style = "margin-top: 20px;")
       ),
       
       # Heatmap (Full width)
-      create_chart_card(ns, "chartTitle7", NULL, "rangeHeatmap", height = "400px", style = "margin-top: 20px;")
+      create_chart_card(ns, "chartTitle7", "chartDesc7", "rangeHeatmap", height = "400px", style = "margin-top: 20px;"),
+
+      div(
+        style = "margin-top: 20px;",
+        bslib::accordion(
+          id = ns("advancedInsightsAccordion"),
+          open = FALSE,
+          multiple = TRUE,
+          bslib::accordion_panel(
+            title = uiOutput(ns("advancedPanelTitle")),
+            value = "difference-advanced",
+            layout_column_wrap(
+              width = 1/2,
+              heights_equal = "row",
+              create_chart_card(ns, "chartTitle2", "chartDesc2", "hotRanges", height = "320px"),
+              create_chart_card(ns, "chartTitle3", "chartDesc3", "coldRanges", height = "320px")
+            ),
+            create_chart_card(ns, "chartTitle4", "chartDesc4", "rangeCategories", height = "340px", style = "margin-top: 16px;"),
+            div(
+              class = "content-card",
+              style = "margin-top: 16px;",
+              div(class = "d-flex justify-content-between align-items-start",
+                  div(style = "flex-grow: 1;", uiOutput(ns("chartTitle8")))
+              ),
+              p(class = "info-text", uiOutput(ns("chartDesc8"))),
+              uiOutput(ns("rangeGuide"))
+            ),
+            div(
+              class = "content-card",
+              style = "margin-top: 16px;",
+              div(class = "d-flex justify-content-between align-items-start",
+                  div(style = "flex-grow: 1;", uiOutput(ns("chartTitle9")))
+              ),
+              p(class = "info-text", uiOutput(ns("chartDesc9"))),
+              div(class = "table-wrapper", DT::dataTableOutput(ns("rangeTable")))
+            )
+          )
+        )
+      )
     )
   )
 }
@@ -72,8 +110,11 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
     output$chartDesc8 <- render_desc("difference_chart_guide_desc", get_lang)
     output$chartTitle9 <- render_title("difference_chart_table", get_lang, "📋")
     output$chartDesc9 <- render_desc("difference_chart_table_desc", get_lang)
+    output$advancedPanelTitle <- renderUI({
+      t("advanced_insights_title", get_lang())
+    })
     session$onFlushed(function() {
-      lapply(c("metricRow", "densityDistribution", "rangeFreq", "rangeTrend", "rangeBox", "rangeHeatmap"), function(id) {
+      lapply(c("metricRow", "densityDistribution", "rangeFreq", "rangeTrend", "rangeBox", "rangeHeatmap", "hotRanges", "coldRanges", "rangeCategories", "rangeGuide", "rangeTable"), function(id) {
         try(outputOptions(output, id, suspendWhenHidden = TRUE), silent = TRUE)
       })
     }, once = TRUE)
@@ -81,6 +122,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
     # Calculate range statistics
     range_stats <- reactive({
       req(is_active())
+      lang <- get_lang()
       data <- filtered_data()
       
       ranges <- data$ball_6 - data$ball_1
@@ -96,7 +138,12 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
       
       range_df$category <- cut(range_df$range, 
                                breaks = c(-Inf, 15, 25, 35, Inf),
-                               labels = c("Small (≤15)", "Medium (16-25)", "Large (26-35)", "Very Large (>35)"))
+                               labels = c(
+                                 t("difference_label_small", lang),
+                                 t("difference_label_medium", lang),
+                                 t("difference_label_large", lang),
+                                 t("difference_label_very_large", lang)
+                               ))
       
       list(
         ranges = ranges,
@@ -248,8 +295,8 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
                   y = c(0, max(df$frequency) * 1.1),
                   type = "scatter", mode = "lines",
                   line = list(color = "#10b981", width = 3, dash = "dash"),
-                  name = "Average",
-                  hovertemplate = paste0("Average: ", round(stats$mean, 1), "<extra></extra>"),
+                  name = t("difference_label_average", lang),
+                  hovertemplate = paste0(t("difference_label_average", lang), ": ", round(stats$mean, 1), "<extra></extra>"),
                   showlegend = TRUE,
                   inherit = FALSE) %>%
         layout(
@@ -287,7 +334,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
                 line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~paste0(frequency, " ", t("difference_hover_times", lang), " (", percentage, "%)"),
-              textposition = "outside",
+              textposition = "auto",
               textfont = list(color = "#4f3d2d", size = 11),
               hovertemplate = paste0(
                 "<b>", t("difference_label_range", lang), ": %{x}</b><br>",
@@ -322,7 +369,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
                 line = list(color = "rgba(126, 95, 66, 0.28)", width = 2)
               ),
               text = ~paste0(frequency, " ", t("difference_hover_times", lang), " (", percentage, "%)"),
-              textposition = "outside",
+              textposition = "auto",
               textfont = list(color = "#4f3d2d", size = 11),
               hovertemplate = paste0(
                 "<b>", t("difference_label_range", lang), ": %{x}</b><br>",
@@ -406,24 +453,24 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
                   hovertemplate = paste0(t("difference_label_range", lang), " #%{x}: %{y}<extra></extra>")) %>%
         toWebGL() %>%
         {if("ma" %in% names(df))
-          add_trace(., y = ~ma, name = "Moving Avg", type = "scatter", mode = "lines",
+          add_trace(., y = ~ma, name = t("difference_label_moving_avg", lang), type = "scatter", mode = "lines",
                     line = list(color = "#10b981", width = 3),
-                    hovertemplate = "MA: %{y:.1f}<extra></extra>")
+                    hovertemplate = paste0(t("difference_label_moving_avg", lang), ": %{y:.1f}<extra></extra>"))
           else .
         } %>%
         add_trace(x = c(min(df$draw), max(df$draw)),
                   y = rep(stats$mean, 2),
                   type = "scatter", mode = "lines",
                   line = list(color = "#ec4899", width = 2, dash = "dash"),
-                  name = "Overall Avg",
-                  hovertemplate = paste0("Average: ", round(stats$mean, 1), "<extra></extra>"),
+                  name = t("difference_label_overall_avg", lang),
+                  hovertemplate = paste0(t("difference_label_average", lang), ": ", round(stats$mean, 1), "<extra></extra>"),
                   inherit = FALSE) %>%
         layout(
           paper_bgcolor = "rgba(0,0,0,0)",
           plot_bgcolor = "rgba(0,0,0,0)",
           font = list(color = "#4f3d2d", family = "Instrument Sans"),
           xaxis = list(
-            title = "Draw Number",
+            title = t("difference_label_draw_number", lang),
             gridcolor = "rgba(126, 95, 66, 0.18)"
           ),
           yaxis = list(
@@ -592,7 +639,7 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
           div(
             class = "value-box-custom",
             style = "text-align: left;",
-            h4(style = "color: #FFD700; margin-bottom: 15px;", "📊 Category Guide"),
+            h4(style = "color: #FFD700; margin-bottom: 15px;", paste0("📊 ", t("difference_label_category_guide", lang))),
             div(
               style = "padding: 8px 0;",
               tags$div(
@@ -628,11 +675,19 @@ differenceMetricServer <- function(id, filtered_data, is_active = reactive(TRUE)
       df <- stats$range_df
       
       df_display <- data.frame(
-        Range = df$range,
-        Frequency = df$frequency,
-        Percentage = paste0(df$percentage, "%"),
-        Cumulative = paste0(round(df$cumulative, 1), "%"),
-        Category = df$category
+        df$range,
+        df$frequency,
+        paste0(df$percentage, "%"),
+        paste0(round(df$cumulative, 1), "%"),
+        df$category,
+        check.names = FALSE
+      )
+      names(df_display) <- c(
+        t("difference_label_range", lang),
+        t("difference_label_frequency", lang),
+        t("table_label_percentage", lang),
+        t("difference_label_cumulative", lang),
+        t("difference_label_category", lang)
       )
       
       DT::datatable(

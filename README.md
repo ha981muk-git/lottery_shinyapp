@@ -121,6 +121,10 @@ shiny::runApp('.')
 - `APP_SUPPORT_EMAIL`: used for footer feedback mailto fallback when no form URL is set.
 - `APP_NEWSLETTER_URL`: when set, hero/sticky "Get updates" CTA opens this external URL.
 
+Default fallback behavior:
+
+- If `APP_FEEDBACK_FORM_URL` is missing, the app falls back to the built-in public form URL `https://forms.gle/cxNzRfc1PijLLcgX8` to keep feedback/contact available.
+
 Current CTA behavior:
 
 - If `APP_NEWSLETTER_URL` exists, the updates CTA opens it (new tab).

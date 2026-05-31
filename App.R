@@ -62,7 +62,17 @@ ui <- function(request) {
   LANG <- query$lang %||% "de"
   app_base_url <- "https://lottery-insights.shinyapps.io/lottery_shinyapp_v2/"
   og_locale <- if (identical(LANG, "de")) "de_DE" else "en_US"
+  feedback_form_fallback_url <- "https://forms.gle/cxNzRfc1PijLLcgX8"
+  is_external_http_url <- function(value) {
+    nzchar(value) && grepl("^https?://", value, ignore.case = TRUE)
+  }
   feedback_form_url <- trimws(Sys.getenv("APP_FEEDBACK_FORM_URL", unset = ""))
+  if (!nzchar(feedback_form_url)) {
+    feedback_form_url <- feedback_form_fallback_url
+  }
+  if (!is_external_http_url(feedback_form_url)) {
+    feedback_form_url <- ""
+  }
   support_email <- trimws(Sys.getenv("APP_SUPPORT_EMAIL", unset = ""))
   newsletter_url <- trimws(Sys.getenv("APP_NEWSLETTER_URL", unset = ""))
   ga4_measurement_id <- trimws(Sys.getenv("APP_GA4_MEASUREMENT_ID", unset = ""))
@@ -156,8 +166,8 @@ ui <- function(request) {
     "#disclaimer"
   }
 
-  feedback_target <- if (nzchar(feedback_form_url)) "_blank" else NULL
-  feedback_rel <- if (nzchar(feedback_form_url)) "noopener noreferrer" else NULL
+  feedback_target <- if (is_external_http_url(feedback_form_url)) "_blank" else NULL
+  feedback_rel <- if (identical(feedback_target, "_blank")) "noopener noreferrer" else NULL
 
   lead_capture_href <- if (nzchar(newsletter_url)) {
     newsletter_url
@@ -167,7 +177,7 @@ ui <- function(request) {
     "#analyzer"
   }
 
-  lead_capture_target <- if (grepl("^https?://", lead_capture_href, ignore.case = TRUE)) "_blank" else NULL
+  lead_capture_target <- if (is_external_http_url(lead_capture_href)) "_blank" else NULL
   lead_capture_rel <- if (identical(lead_capture_target, "_blank")) "noopener noreferrer" else NULL
   has_direct_lead_capture <- nzchar(newsletter_url) || nzchar(feedback_form_url)
   growth_badge_key <- if (has_direct_lead_capture) "growth_badge" else "growth_badge_fallback"
